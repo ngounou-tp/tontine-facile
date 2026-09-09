@@ -1,0 +1,4 @@
+enum OrigineCotisation {
+  administratrice,
+  membre,
+}

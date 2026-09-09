@@ -1,0 +1,4 @@
+enum StatutTontine {
+	active,
+	cloturee,
+}
