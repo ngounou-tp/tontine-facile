@@ -1,0 +1,57 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data;
+    }
+
+    function isMember(tontineId) {
+      return signedIn() && profile().tontineId == tontineId;
+    }
+
+    function isAdmin(tontineId) {
+      return signedIn() &&
+          get(/databases/$(database)/documents/tontines/$(tontineId)).data.adminUid == request.auth.uid;
+    }
+
+    match /utilisateurs/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
+    match /tontines/{tontineId} {
+      allow read: if isMember(tontineId);
+      allow create: if signedIn() && request.resource.data.adminUid == request.auth.uid;
+      allow update, delete: if isAdmin(tontineId);
+
+      match /declarations/{declarationId} {
+        allow read: if isMember(tontineId);
+        allow create: if isMember(tontineId) &&
+            request.resource.data.membreId == profile().membreId &&
+            request.resource.data.statut == 'enAttente';
+        allow update: if isAdmin(tontineId);
+        allow delete: if false;
+      }
+
+      match /{subcollection}/{documentId} {
+        allow read: if isMember(tontineId);
+        allow write: if isAdmin(tontineId);
+      }
+    }
+
+    match /invitations/{code} {
+      allow get: if signedIn();
+      allow list, write, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

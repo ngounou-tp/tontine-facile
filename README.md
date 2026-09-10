@@ -15,3 +15,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+firebase emulators:start --only auth,firestore
+flutter run --dart-define=FIREBASE_ENV=local --dart-define=EMULATOR_HOST=192.168.1.20
+

@@ -1,0 +1,44 @@
+{
+  "firestore": {
+    "database": "(default)",
+    "location": "africa-south1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "tontinefacile237",
+          "appId": "1:996014459125:android:7ddcc124f6405a92679dbc",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "tontinefacile237",
+          "configurations": {
+            "android": "1:996014459125:android:7ddcc124f6405a92679dbc",
+            "ios": "1:996014459125:ios:da386779e2ce5429679dbc",
+            "web": "1:996014459125:web:525353cc5a18588d679dbc"
+          }
+        }
+      }
+    }
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "storage": {
+      "port": 9199
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  }
+}
