@@ -1,5 +1,185 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../domain/entities/session.dart';
+import '../domain/entities/tontine.dart';
+import '../features/auth/application/auth_providers.dart';
+import '../features/auth/presentation/pages/connexion_page.dart';
+import '../features/auth/presentation/pages/inscription_page.dart';
+import '../features/auth/presentation/pages/rejoindre_tontine_page.dart';
+import '../features/auth/presentation/pages/verify_email_page.dart';
 import '../features/tontine/presentation/pages/home_page.dart';
+import '../shared/pages/route_placeholder_page.dart';
+import 'firebase_setup.dart';
+
+/// Fournit le routeur réactif à l'état Firebase et au profil Firestore.
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final refreshNotifier = _RouterRefreshNotifier(ref);
+  ref.onDispose(refreshNotifier.dispose);
+
+  return GoRouter(
+    initialLocation: AppRouter.rootPath,
+    refreshListenable: refreshNotifier,
+    redirect: (context, state) => AppRouter.redirect(ref, state),
+    routes: AppRouter.routes,
+  );
+});
 
 abstract final class AppRouter {
-  static const home = HomePage();
+  static const rootPath = '/';
+  static const connexionPath = '/connexion';
+  static const inscriptionPath = '/inscription';
+  static const rejoindrePath = '/rejoindre';
+  static const verifyEmailPath = '/verifier-email';
+  static const creerTontinePath = '/creer-tontine';
+  static const accueilPath = '/accueil';
+  static const espaceMembrePath = '/espace-membre';
+  static const membresPath = '/membres';
+  static const echeancierPath = '/echeancier';
+  static const cotisationsPath = '/cotisations';
+  static const declarationsPath = '/declarations';
+
+  static final routes = <RouteBase>[
+    GoRoute(
+      path: rootPath,
+      builder: (_, _) => const RoutePlaceholderPage(title: 'TontineFacile'),
+    ),
+    GoRoute(
+      path: connexionPath,
+      name: 'connexion',
+      builder: (_, _) => const ConnexionPage(),
+    ),
+    GoRoute(
+      path: inscriptionPath,
+      name: 'inscription',
+      builder: (_, state) => InscriptionPage(codeInvitation: state.extra as String?),
+    ),
+    GoRoute(
+      path: rejoindrePath,
+      name: 'rejoindre',
+      builder: (_, _) => const RejoindreTontinePage(),
+    ),
+    GoRoute(
+      path: verifyEmailPath,
+      name: 'verifier-email',
+      builder: (_, _) => const VerifyEmailPage(),
+    ),
+    GoRoute(
+      path: creerTontinePath,
+      name: 'creer-tontine',
+      builder: (_, _) => const RoutePlaceholderPage(title: 'Créer une tontine'),
+    ),
+    GoRoute(
+      path: accueilPath,
+      name: 'accueil',
+      builder: (_, _) => const HomePage(),
+    ),
+    GoRoute(
+      path: espaceMembrePath,
+      name: 'espace-membre',
+      builder: (_, _) => const RoutePlaceholderPage(title: 'Mon espace'),
+    ),
+    GoRoute(
+      path: membresPath,
+      name: 'membres',
+      builder: (_, _) => const RoutePlaceholderPage(title: 'Membres'),
+    ),
+    GoRoute(
+      path: echeancierPath,
+      name: 'echeancier',
+      builder: (_, _) => const RoutePlaceholderPage(title: 'Échéancier'),
+    ),
+    GoRoute(
+      path: '$cotisationsPath/:tourId',
+      name: 'cotisations',
+      builder: (_, state) => RoutePlaceholderPage(
+        title: 'Cotisations — tour ${state.pathParameters['tourId']}',
+      ),
+    ),
+    GoRoute(
+      path: declarationsPath,
+      name: 'declarations',
+      builder: (_, _) => const RoutePlaceholderPage(
+        title: 'Déclarations en attente',
+      ),
+    ),
+  ];
+
+  static String? redirect(Ref ref, GoRouterState state) {
+    final location = state.uri.path;
+    final sessionState = ref.read(sessionProvider);
+
+    if (sessionState.isLoading) return null;
+    if (sessionState.hasError) return connexionPath;
+
+    final Session? session = sessionState.value;
+    if (session == null) {
+      // /rejoindre reste accessible sans compte : on peut y prévisualiser une
+      // tontine avant de créer un compte pour la rejoindre.
+      return (_isPublic(location) || location == rejoindrePath)
+          ? null
+          : connexionPath;
+    }
+
+    // La vérification d'email n'est imposée qu'en environnement live : les
+    // émulateurs locaux n'envoient pas de vrais emails, ce qui rendrait le
+    // blocage impossible à lever en développement.
+    if (FirebaseSetup.environment == FirebaseEnvironment.live &&
+        !session.utilisateur.emailVerified) {
+      return location == verifyEmailPath ? null : verifyEmailPath;
+    }
+
+    if (session.profil == null) {
+      return _isNoProfileDestination(location) ? null : creerTontinePath;
+    }
+
+    final tontineState = ref.read(currentTontineProvider);
+    if (tontineState.isLoading) return null;
+    if (tontineState.hasError || tontineState.value == null) {
+      return rejoindrePath;
+    }
+
+    final Tontine tontine = tontineState.requireValue!;
+    final isAdmin = tontine.adminUid == session.utilisateur.uid;
+    if (isAdmin) {
+      if (_isPublic(location) || _isNoProfileDestination(location) ||
+          location == rootPath || location == espaceMembrePath ||
+          location == verifyEmailPath) {
+        return accueilPath;
+      }
+      return null;
+    }
+
+    if (_isAdminDestination(location) || _isPublic(location) ||
+        _isNoProfileDestination(location) || location == rootPath ||
+        location == verifyEmailPath) {
+      return espaceMembrePath;
+    }
+    return null;
+  }
+
+  static bool _isPublic(String location) =>
+      location == connexionPath || location == inscriptionPath;
+
+  static bool _isNoProfileDestination(String location) =>
+      location == rejoindrePath || location == creerTontinePath;
+
+  static bool _isAdminDestination(String location) =>
+      location == accueilPath ||
+      location == membresPath ||
+      location == declarationsPath ||
+      location.startsWith('$cotisationsPath/');
+}
+
+class _RouterRefreshNotifier extends ChangeNotifier {
+  _RouterRefreshNotifier(Ref ref) {
+    ref.listen<AsyncValue<Session?>>(sessionProvider, (_, _) {
+      notifyListeners();
+    });
+    ref.listen<AsyncValue<Tontine?>>(currentTontineProvider, (_, _) {
+      notifyListeners();
+    });
+  }
 }

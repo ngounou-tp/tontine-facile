@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 
-enum AppButtonVariant { primary, secondary, tertiary, destructive }
+enum AppButtonVariant { primary, secondary, tertiary, destructive, accent }
 
 class AppButton extends StatelessWidget {
   const AppButton({super.key, required this.label, required this.onPressed, this.icon, this.variant = AppButtonVariant.primary, this.busy = false});
@@ -23,6 +23,7 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.secondary => OutlinedButton(onPressed: busy ? null : onPressed, child: child),
       AppButtonVariant.tertiary => TextButton(onPressed: busy ? null : onPressed, child: child),
       AppButtonVariant.destructive => OutlinedButton(onPressed: busy ? null : onPressed, style: OutlinedButton.styleFrom(foregroundColor: AppColors.danger, side: const BorderSide(color: AppColors.danger)), child: child),
+      AppButtonVariant.accent => FilledButton(onPressed: busy ? null : onPressed, style: FilledButton.styleFrom(backgroundColor: AppColors.accent, foregroundColor: AppColors.surface), child: child),
     };
     return SizedBox(height: 48, child: button);
   }

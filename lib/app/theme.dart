@@ -24,6 +24,9 @@ abstract final class AppSpacing {
 }
 
 abstract final class AppTypography {
+  /// H1 (32px Sora Bold) : titres principaux, notamment le nom de l'app sur
+  /// les écrans d'authentification.
+  static const pageTitle = TextStyle(fontFamily: 'Sora', fontSize: 32, fontWeight: FontWeight.w600, height: 40 / 32, color: AppColors.ink);
   static const amountXl = TextStyle(fontFamily: 'Sora', fontSize: 34, fontWeight: FontWeight.w600, height: 40 / 34, color: AppColors.ink);
   static const screenTitle = TextStyle(fontFamily: 'Sora', fontSize: 24, fontWeight: FontWeight.w600, height: 32 / 24, color: AppColors.ink);
   static const amount = TextStyle(fontFamily: 'Sora', fontSize: 20, fontWeight: FontWeight.w500, height: 28 / 20, color: AppColors.ink);
@@ -52,6 +55,23 @@ abstract final class AppTheme {
         titleLarge: const TextStyle(color: AppColors.ink, fontFamily: 'Sora', fontSize: 20, fontWeight: FontWeight.w600),
         bodyLarge: const TextStyle(color: AppColors.ink, fontSize: 16, height: 1.4),
         bodyMedium: const TextStyle(color: AppColors.slate, fontSize: 14, height: 1.35),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(48),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.controlRadius)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(48),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.controlRadius)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.controlRadius)),
+        ),
       ),
       cardTheme: CardThemeData(
         color: AppColors.surface,

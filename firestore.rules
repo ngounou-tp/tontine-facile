@@ -30,6 +30,23 @@ service cloud.firestore {
       allow create: if signedIn() && request.resource.data.adminUid == request.auth.uid;
       allow update, delete: if isAdmin(tontineId);
 
+      // Un membre invité peut uniquement réclamer son placeholder. La fiche
+      // doit encore être libre, le code doit désigner cette même fiche et
+      // aucune autre donnée du membre ne peut être modifiée à cette étape.
+      match /membres/{membreId} {
+        allow read: if isMember(tontineId);
+        allow update: if signedIn() &&
+            resource.data.uid == null &&
+            request.resource.data.uid == request.auth.uid &&
+            request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['uid', 'codeInvitationUtilise']) &&
+            get(/databases/$(database)/documents/invitations/
+                $(request.resource.data.codeInvitationUtilise)).data.tontineId == tontineId &&
+            get(/databases/$(database)/documents/invitations/
+                $(request.resource.data.codeInvitationUtilise)).data.membreId == membreId;
+        allow create, delete: if isAdmin(tontineId);
+      }
+
       match /declarations/{declarationId} {
         allow read: if isMember(tontineId);
         allow create: if isMember(tontineId) &&
@@ -46,8 +63,15 @@ service cloud.firestore {
     }
 
     match /invitations/{code} {
-      allow get: if signedIn();
-      allow list, write, delete: if false;
+      // Lecture publique : le document ne contient qu'un instantané
+      // dénormalisé (tontineId, membreId, nomTontine, nombreMembres), utile à
+      // l'écran d'adhésion pour prévisualiser la tontine avant la création
+      // d'un compte. Il faut connaître le code exact (pas de `list`), et les
+      // documents `tontines`/`membres` complets restent réservés aux membres.
+      allow get: if true;
+      allow list: if false;
+      allow create: if isAdmin(request.resource.data.tontineId);
+      allow update, delete: if false;
     }
 
     match /{document=**} {

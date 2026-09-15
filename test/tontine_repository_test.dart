@@ -43,6 +43,10 @@ class FakeTontineDataSource implements TontineDataSource {
 
   final List<TontineModel> items;
   TontineModel? savedTontine;
+  var _nextId = 0;
+
+  @override
+  String nouvelIdTontine() => 'tontine-fake-${_nextId++}';
 
   @override
   Future<List<TontineModel>> getTontines() async => items;
@@ -56,6 +60,28 @@ class FakeTontineDataSource implements TontineDataSource {
 
   @override
   Future<void> saveMembre(String tontineId, MembreModel membre) async {}
+
+  @override
+  Future<MembreModel> creerMembrePlaceholder(
+    String tontineId, {
+    required String nomComplet,
+    String? email,
+    String? whatsapp,
+  }) async =>
+      MembreModel(
+        id: 'membre-fake-${_nextId++}',
+        nomComplet: nomComplet,
+        email: email,
+        whatsapp: whatsapp,
+      );
+
+  @override
+  Future<void> claimMembre({
+    required String tontineId,
+    required String membreId,
+    required String uid,
+    required String codeInvitation,
+  }) async {}
 
   @override
   Future<void> saveNom(String tontineId, NomModel nom) async {}
@@ -98,6 +124,12 @@ class FakeTontineDataSource implements TontineDataSource {
 
   @override
   Future<List<DeclarationModel>> getDeclarations(String tontineId) async => const [];
+
+  @override
+  Future<List<PreuveModel>> getPreuves(String tontineId) async => const [];
+
+  @override
+  Future<List<ChangementModel>> getChangements(String tontineId) async => const [];
 }
 
 Tontine _tontine() => Tontine(

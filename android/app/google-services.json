@@ -12,7 +12,20 @@
           "package_name": "com.example.tontinefacile"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "996014459125-9sumgitfudlnj13l2cel3rjvtsv44t9r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.tontinefacile",
+            "certificate_hash": "184e1b9ccd97587b81cc8d623cfeda635d014921"
+          }
+        },
+        {
+          "client_id": "996014459125-nc93vfkms82rr3hpr4233pppm1btinc0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBxNEAw4aFUxWIwpRwNtbUaalVTxEGyVtI"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "996014459125-nc93vfkms82rr3hpr4233pppm1btinc0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "996014459125-4tijqlbnsb4aoqrmolnr73krrm7niqu5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.tontinefacile"
+              }
+            }
+          ]
         }
       }
     }

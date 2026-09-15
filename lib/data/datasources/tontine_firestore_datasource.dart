@@ -10,10 +10,34 @@ import '../models/tontine_model.dart';
 import '../models/tour_model.dart';
 
 abstract interface class TontineDataSource {
+  /// Identifiant frais pour une nouvelle tontine (aucun accès réseau).
+  String nouvelIdTontine();
+
   Future<List<TontineModel>> getTontines();
   Future<TontineModel?> getTontine(String tontineId);
   Future<void> saveTontine(TontineModel tontine);
   Future<void> saveMembre(String tontineId, MembreModel membre);
+
+  /// Crée un membre sans `uid` (voir `Membre.uid`), destiné à être réclamé
+  /// plus tard par la personne invitée via [claimMembre].
+  Future<MembreModel> creerMembrePlaceholder(
+    String tontineId, {
+    required String nomComplet,
+    String? email,
+    String? whatsapp,
+  });
+
+  /// Attache `uid` au membre placeholder [membreId] pour matérialiser
+  /// l'adhésion validée par le code d'invitation [codeInvitation].
+  ///
+  /// Échoue (`FirebaseException` avec `code == 'permission-denied'`) si le
+  /// placeholder a déjà été réclamé — les règles Firestore l'exigent.
+  Future<void> claimMembre({
+    required String tontineId,
+    required String membreId,
+    required String uid,
+    required String codeInvitation,
+  });
   Future<void> saveNom(String tontineId, NomModel nom);
   Future<void> saveTour(String tontineId, TourModel tour);
   Future<void> saveCotisation(String tontineId, CotisationModel cotisation);
@@ -25,6 +49,8 @@ abstract interface class TontineDataSource {
   Future<List<TourModel>> getTours(String tontineId);
   Future<List<CotisationModel>> getCotisations(String tontineId);
   Future<List<DeclarationModel>> getDeclarations(String tontineId);
+  Future<List<PreuveModel>> getPreuves(String tontineId);
+  Future<List<ChangementModel>> getChangements(String tontineId);
 }
 
 class FirestoreTontineDataSource implements TontineDataSource {
@@ -44,6 +70,9 @@ class FirestoreTontineDataSource implements TontineDataSource {
     String name,
   ) =>
       _tontine(tontineId).collection(name);
+
+  @override
+  String nouvelIdTontine() => _tontines.doc().id;
 
   @override
   Future<List<TontineModel>> getTontines() async {
@@ -68,6 +97,37 @@ class FirestoreTontineDataSource implements TontineDataSource {
   @override
   Future<void> saveMembre(String tontineId, MembreModel membre) =>
       _subcollection(tontineId, 'membres').doc(membre.id).set(membre.toFirestore());
+
+  @override
+  Future<MembreModel> creerMembrePlaceholder(
+    String tontineId, {
+    required String nomComplet,
+    String? email,
+    String? whatsapp,
+  }) async {
+    final doc = _subcollection(tontineId, 'membres').doc();
+    final membre = MembreModel(
+      id: doc.id,
+      nomComplet: nomComplet,
+      email: email,
+      whatsapp: whatsapp,
+      uid: null,
+    );
+    await doc.set(membre.toFirestore());
+    return membre;
+  }
+
+  @override
+  Future<void> claimMembre({
+    required String tontineId,
+    required String membreId,
+    required String uid,
+    required String codeInvitation,
+  }) =>
+      _subcollection(tontineId, 'membres').doc(membreId).update({
+        'uid': uid,
+        'codeInvitationUtilise': codeInvitation,
+      });
 
   @override
   Future<void> saveNom(String tontineId, NomModel nom) =>
@@ -146,6 +206,23 @@ class FirestoreTontineDataSource implements TontineDataSource {
         tontineId,
         'declarations',
         (data, id) => DeclarationModel.fromFirestore(data, id: id),
+        orderBy: 'createdAt',
+      );
+
+  @override
+  Future<List<PreuveModel>> getPreuves(String tontineId) => _getSubcollection(
+        tontineId,
+        'preuves',
+        (data, id) => PreuveModel.fromFirestore(data, id: id),
+        orderBy: 'createdAt',
+      );
+
+  @override
+  Future<List<ChangementModel>> getChangements(String tontineId) =>
+      _getSubcollection(
+        tontineId,
+        'changements',
+        (data, id) => ChangementModel.fromFirestore(data, id: id),
         orderBy: 'createdAt',
       );
 
