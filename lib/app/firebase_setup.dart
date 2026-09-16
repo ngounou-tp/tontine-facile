@@ -22,6 +22,15 @@ enum FirebaseEnvironment { live, local }
 /// flutter run --dart-define=FIREBASE_ENV=local  # émulateurs
 /// ```
 ///
+/// Ou, de façon équivalente, via les fichiers `env/local.json` /
+/// `env/live.json` (voir aussi `.vscode/launch.json`, qui expose les deux
+/// comme configurations de lancement dans VS Code) :
+///
+/// ```powershell
+/// flutter run --dart-define-from-file=env/local.json
+/// flutter run --dart-define-from-file=env/live.json
+/// ```
+///
 /// Pour un téléphone physique, l'IP LAN de la machine hôte doit être fournie :
 ///
 /// ```powershell
@@ -55,6 +64,13 @@ class FirebaseSetup {
     final host = emulatorHost;
 
     await FirebaseAuth.instance.useAuthEmulator(host, _authPort);
+    // L'émulateur Auth n'a pas besoin de la protection reCAPTCHA de
+    // l'inscription/connexion par mot de passe (elle vérifie l'appareil
+    // contre les vrais serveurs Google, indisponibles ou superflus en local
+    // — sur un appareil physique sans accès internet réel, ou pour lequel
+    // l'empreinte de signature du build debug n'est pas enregistrée côté
+    // Firebase, cette vérification échoue ou reste bloquée indéfiniment).
+    await FirebaseAuth.instance.setSettings(appVerificationDisabledForTesting: true);
 
     // Sur un hot restart, Firestore est déjà démarré : l'appel relance une
     // exception qui peut être ignorée sans risque.

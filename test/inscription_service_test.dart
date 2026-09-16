@@ -61,6 +61,70 @@ void main() {
     expect(membre?.uid, session.utilisateur.uid);
   });
 
+  test('inscrireAdmin rejette une tontine invalide sans créer aucun compte',
+      () async {
+    final brouillon = _brouillonTontine();
+    final tontineInvalide = Tontine(
+      id: brouillon.id,
+      nom: 'x', // moins de 2 caractères : ValidationTontine doit refuser.
+      adminUid: brouillon.adminUid,
+      montantParNom: brouillon.montantParNom,
+      nombreDeNoms: brouillon.nombreDeNoms,
+      datePremiereEcheance: brouillon.datePremiereEcheance,
+      periodicite: brouillon.periodicite,
+      reglePenalite: brouillon.reglePenalite,
+      delaiGraceJours: brouillon.delaiGraceJours,
+      valeurPenalite: brouillon.valeurPenalite,
+      modeParts: brouillon.modeParts,
+      codeInvitation: brouillon.codeInvitation,
+    );
+
+    expect(
+      () => service.inscrireAdmin(
+        email: 'admin@example.com',
+        password: 'secret123',
+        nomCompletAdmin: 'Aïcha Ndiaye',
+        tontineSansId: tontineInvalide,
+      ),
+      throwsArgumentError,
+    );
+    expect(tontines.saved, isEmpty);
+  });
+
+  test(
+    'creerTontinePourAdmin crée la tontine pour un compte déjà connecté',
+    () async {
+      await auth.signUp(email: 'admin@example.com', password: 'secret123');
+
+      final session = await service.creerTontinePourAdmin(
+        nomCompletAdmin: 'Aïcha Ndiaye',
+        tontineSansId: _brouillonTontine(),
+      );
+
+      expect(session.profil, isNotNull);
+      final tontine = tontines.saved[session.profil!.tontineId];
+      expect(tontine, isNotNull);
+      expect(tontine!.adminUid, session.utilisateur.uid);
+
+      final membre = tontines.membres[session.profil!.membreId];
+      expect(membre?.nomComplet, 'Aïcha Ndiaye');
+      expect(membre?.uid, session.utilisateur.uid);
+    },
+  );
+
+  test(
+    'creerTontinePourAdmin échoue si personne n’est connecté',
+    () async {
+      expect(
+        () => service.creerTontinePourAdmin(
+          nomCompletAdmin: 'Aïcha Ndiaye',
+          tontineSansId: _brouillonTontine(),
+        ),
+        throwsA(isA<UnknownAuthException>()),
+      );
+    },
+  );
+
   test('inviterMembre puis inscrireMembre relie le nouveau compte au '
       'placeholder', () async {
     final admin = await service.inscrireAdmin(
@@ -238,6 +302,7 @@ Tontine _brouillonTontine() => Tontine(
       nom: 'Cercle des amies',
       adminUid: 'ignore',
       montantParNom: 25000,
+      nombreDeNoms: 10,
       datePremiereEcheance: DateTime(2026, 1, 10),
       periodicite: ReglePeriodicite.tousLesNJours(7),
       reglePenalite: ReglePenalite.aucune,
@@ -415,6 +480,16 @@ class FakeTontineRepository implements TontineRepository {
   Future<List<Nom>> getNoms(String tontineId) async => const [];
   @override
   Future<void> saveNom(String tontineId, Nom nom) async {}
+  @override
+  String nouvelIdNom(String tontineId) => 'nom-${_nextId++}';
+  @override
+  Stream<Tontine?> watchTontine(String tontineId) => Stream.value(saved[tontineId]);
+  @override
+  Stream<List<Membre>> watchMembres(String tontineId) => Stream.value(membres.values.toList());
+  @override
+  Stream<List<Nom>> watchNoms(String tontineId) => Stream.value(const []);
+  @override
+  Stream<List<Tour>> watchTours(String tontineId) => Stream.value(const []);
   @override
   Future<List<Tour>> getTours(String tontineId) async => const [];
   @override

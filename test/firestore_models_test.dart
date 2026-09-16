@@ -36,6 +36,7 @@ void main() {
       nom: 'Tontine test',
       adminUid: 'admin-1',
       montantParNom: 25000,
+      nombreDeNoms: 10,
       datePremiereEcheance: date,
       periodicite: ReglePeriodicite.chaqueSemaine(JourSemaine.mercredi),
       reglePenalite: ReglePenalite.proportionnelle,
@@ -54,6 +55,7 @@ void main() {
     expect(restored.nom, entity.nom);
     expect(restored.periodicite.toJson(), entity.periodicite.toJson());
     expect(restored.modeParts, entity.modeParts);
+    expect(restored.nombreDeNoms, entity.nombreDeNoms);
   });
 
   test('sérialise les parts imbriquées dans un nom', () {

@@ -4,4 +4,9 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Autorise le trafic HTTP en clair vers les émulateurs Firebase locaux
+         (10.0.2.2 depuis l'émulateur Android). Débogage uniquement : ce
+         manifeste ne s'applique jamais aux builds release. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

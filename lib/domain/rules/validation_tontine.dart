@@ -11,6 +11,9 @@ class ValidationTontine {
 		if (tontine.montantParNom <= 0) {
 			throw ArgumentError('Le montant par nom doit être supérieur à zéro.');
 		}
+		if (tontine.nombreDeNoms <= 0) {
+			throw ArgumentError('Le nombre de noms doit être supérieur à zéro.');
+		}
 		if (tontine.delaiGraceJours < 0 || tontine.delaiGraceJours > 30) {
 			throw ArgumentError('Le délai de grâce doit être compris entre 0 et 30 jours.');
 		}

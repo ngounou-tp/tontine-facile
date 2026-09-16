@@ -180,6 +180,7 @@ Tontine _brouillonTontine() => Tontine(
   nom: 'Cercle des amies',
   adminUid: 'ignore',
   montantParNom: 25000,
+  nombreDeNoms: 10,
   datePremiereEcheance: DateTime(2026, 1, 10),
   periodicite: ReglePeriodicite.tousLesNJours(7),
   reglePenalite: ReglePenalite.aucune,
@@ -342,6 +343,16 @@ class FakeTontineRepository implements TontineRepository {
   Future<List<Nom>> getNoms(String tontineId) async => const [];
   @override
   Future<void> saveNom(String tontineId, Nom nom) async {}
+  @override
+  String nouvelIdNom(String tontineId) => 'nom-${_nextId++}';
+  @override
+  Stream<Tontine?> watchTontine(String tontineId) => Stream.value(saved[tontineId]);
+  @override
+  Stream<List<Membre>> watchMembres(String tontineId) => Stream.value(membres.values.toList());
+  @override
+  Stream<List<Nom>> watchNoms(String tontineId) => Stream.value(const []);
+  @override
+  Stream<List<Tour>> watchTours(String tontineId) => Stream.value(const []);
   @override
   Future<List<Tour>> getTours(String tontineId) async => const [];
   @override

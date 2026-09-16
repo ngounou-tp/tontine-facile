@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../app/router.dart';
 import '../../app/theme.dart';
 
 class AppNavigation extends StatelessWidget {
@@ -7,6 +9,18 @@ class AppNavigation extends StatelessWidget {
 
   final int selectedIndex;
   final ValueChanged<int> onSelected;
+
+  /// Bascule vers l'onglet [index] (Accueil, Membres, Échéancier, Réglages) :
+  /// callback prêt à l'emploi pour [onSelected] sur les écrans principaux.
+  static void go(BuildContext context, int index) {
+    final destination = switch (index) {
+      1 => AppRouter.membresPath,
+      2 => AppRouter.echeancierPath,
+      3 => AppRouter.reglagesPath,
+      _ => AppRouter.accueilPath,
+    };
+    context.go(destination);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +31,9 @@ class AppNavigation extends StatelessWidget {
       indicatorColor: AppColors.canvas,
       destinations: const [
         NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Accueil'),
-        NavigationDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups), label: 'Cercles'),
-        NavigationDestination(icon: Icon(Icons.payments_outlined), selectedIcon: Icon(Icons.payments), label: 'Paiements'),
-        NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profil'),
+        NavigationDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups), label: 'Membres'),
+        NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Échéancier'),
+        NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Réglages'),
       ],
     );
   }

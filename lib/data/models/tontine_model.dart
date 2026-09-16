@@ -10,6 +10,7 @@ class TontineModel {
     required this.nom,
     required this.adminUid,
     required this.montantParNom,
+    required this.nombreDeNoms,
     required this.datePremiereEcheance,
     required this.periodicite,
     required this.reglePenalite,
@@ -23,6 +24,7 @@ class TontineModel {
   final String nom;
   final String adminUid;
   final int montantParNom;
+  final int nombreDeNoms;
   final DateTime datePremiereEcheance;
   final ReglePeriodicite periodicite;
   final ReglePenalite reglePenalite;
@@ -49,6 +51,7 @@ class TontineModel {
       nom: FirestoreCodec.requiredString(data, 'nom'),
       adminUid: FirestoreCodec.requiredString(data, 'adminUid'),
       montantParNom: FirestoreCodec.requiredInt(data, 'montantParNom'),
+      nombreDeNoms: FirestoreCodec.requiredInt(data, 'nombreDeNoms'),
       datePremiereEcheance:
           FirestoreCodec.requiredDate(data, 'datePremiereEcheance'),
       periodicite: ReglePeriodicite.fromJson(
@@ -67,6 +70,7 @@ class TontineModel {
         nom: entity.nom,
         adminUid: entity.adminUid,
         montantParNom: entity.montantParNom,
+        nombreDeNoms: entity.nombreDeNoms,
         datePremiereEcheance: entity.datePremiereEcheance,
         periodicite: entity.periodicite,
         reglePenalite: entity.reglePenalite,
@@ -81,6 +85,7 @@ class TontineModel {
         nom: nom,
         adminUid: adminUid,
         montantParNom: montantParNom,
+        nombreDeNoms: nombreDeNoms,
         datePremiereEcheance: datePremiereEcheance,
         periodicite: periodicite,
         reglePenalite: reglePenalite,
@@ -94,6 +99,7 @@ class TontineModel {
         'nom': nom,
         'adminUid': adminUid,
         'montantParNom': montantParNom,
+        'nombreDeNoms': nombreDeNoms,
         'datePremiereEcheance': FirestoreCodec.timestamp(datePremiereEcheance),
         'periodicite': periodicite.toJson(),
         'reglePenalite': reglePenalite.name,

@@ -9,6 +9,7 @@ import 'package:tontinefacile/data/models/preuve_model.dart';
 import 'package:tontinefacile/data/models/tontine_model.dart';
 import 'package:tontinefacile/data/models/tour_model.dart';
 import 'package:tontinefacile/data/repositories/tontine_repository_impl.dart';
+import 'package:tontinefacile/domain/entities/membre.dart';
 import 'package:tontinefacile/domain/entities/tontine.dart';
 import 'package:tontinefacile/domain/enums/mode_parts.dart';
 import 'package:tontinefacile/domain/enums/regle_penalite.dart';
@@ -36,6 +37,37 @@ void main() {
     expect(source.savedTontine?.id, 'tontine-1');
     expect(source.savedTontine?.toFirestore()['montantParNom'], 25000);
   });
+
+  test('le repository diffuse la tontine courante convertie en entité',
+      () async {
+    final source = FakeTontineDataSource([TontineModel.fromEntity(_tontine())]);
+    final repository = FirestoreTontineRepository(dataSource: source);
+
+    final tontine = await repository.watchTontine('tontine-1').first;
+
+    expect(tontine?.nom, 'Tontine test');
+  });
+
+  test('le repository diffuse les membres en direct convertis en entités',
+      () async {
+    final source = FakeTontineDataSource()
+      ..membresAEmettre = [
+        MembreModel.fromEntity(const Membre(id: 'm-1', nomComplet: 'Aïcha')),
+      ];
+    final repository = FirestoreTontineRepository(dataSource: source);
+
+    final membres = await repository.watchMembres('tontine-1').first;
+
+    expect(membres, hasLength(1));
+    expect(membres.single.nomComplet, 'Aïcha');
+  });
+
+  test('nouvelIdNom délègue au datasource', () {
+    final source = FakeTontineDataSource();
+    final repository = FirestoreTontineRepository(dataSource: source);
+
+    expect(repository.nouvelIdNom('tontine-1'), 'nom-fake-0');
+  });
 }
 
 class FakeTontineDataSource implements TontineDataSource {
@@ -43,10 +75,28 @@ class FakeTontineDataSource implements TontineDataSource {
 
   final List<TontineModel> items;
   TontineModel? savedTontine;
+  List<MembreModel> membresAEmettre = const [];
   var _nextId = 0;
 
   @override
   String nouvelIdTontine() => 'tontine-fake-${_nextId++}';
+
+  @override
+  String nouvelIdNom(String tontineId) => 'nom-fake-${_nextId++}';
+
+  @override
+  Stream<TontineModel?> watchTontine(String tontineId) =>
+      Stream.value(items.where((item) => item.id == tontineId).firstOrNull);
+
+  @override
+  Stream<List<MembreModel>> watchMembres(String tontineId) =>
+      Stream.value(membresAEmettre);
+
+  @override
+  Stream<List<NomModel>> watchNoms(String tontineId) => Stream.value(const []);
+
+  @override
+  Stream<List<TourModel>> watchTours(String tontineId) => Stream.value(const []);
 
   @override
   Future<List<TontineModel>> getTontines() async => items;
@@ -137,6 +187,7 @@ Tontine _tontine() => Tontine(
       nom: 'Tontine test',
       adminUid: 'admin-1',
       montantParNom: 25000,
+      nombreDeNoms: 10,
       datePremiereEcheance: DateTime(2026, 9, 9),
       periodicite: ReglePeriodicite.tousLesNJours(7),
       reglePenalite: ReglePenalite.aucune,

@@ -77,12 +77,34 @@ class FirestoreTontineRepository implements TontineRepository {
       );
 
   @override
+  String nouvelIdNom(String tontineId) => _dataSource.nouvelIdNom(tontineId);
+
+  @override
   Future<void> saveNom(String tontineId, Nom nom) =>
       _dataSource.saveNom(tontineId, NomModel.fromEntity(nom));
 
   @override
   Future<void> saveTour(String tontineId, Tour tour) =>
       _dataSource.saveTour(tontineId, TourModel.fromEntity(tour));
+
+  @override
+  Stream<Tontine?> watchTontine(String tontineId) =>
+      _dataSource.watchTontine(tontineId).map((model) => model?.toEntity());
+
+  @override
+  Stream<List<Membre>> watchMembres(String tontineId) => _dataSource
+      .watchMembres(tontineId)
+      .map((models) => models.map((model) => model.toEntity()).toList(growable: false));
+
+  @override
+  Stream<List<Nom>> watchNoms(String tontineId) => _dataSource
+      .watchNoms(tontineId)
+      .map((models) => models.map((model) => model.toEntity()).toList(growable: false));
+
+  @override
+  Stream<List<Tour>> watchTours(String tontineId) => _dataSource
+      .watchTours(tontineId)
+      .map((models) => models.map((model) => model.toEntity()).toList(growable: false));
 
   @override
   Future<void> saveCotisation(String tontineId, Cotisation cotisation) =>

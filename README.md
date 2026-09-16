@@ -19,3 +19,5 @@ samples, guidance on mobile development, and a full API reference.
 firebase emulators:start --only auth,firestore
 flutter run --dart-define=FIREBASE_ENV=local --dart-define=EMULATOR_HOST=192.168.1.20
 
+flutter run --dart-define-from-file=env/local.json  --dart-define=EMULATOR_HOST=192.168.1.20 # local emulators
+flutter run --dart-define-from-file=env/live.json    # live Firebase

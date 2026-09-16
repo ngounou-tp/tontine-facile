@@ -51,7 +51,7 @@ class _InscriptionPageState extends ConsumerState<InscriptionPage> {
               email: _email.text.trim(),
               password: _password.text,
             );
-        if (mounted) context.go(AppRouter.rejoindrePath);
+        if (mounted) context.go(AppRouter.choixPath);
       }
     } catch (error) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageErreurAuth(error))));

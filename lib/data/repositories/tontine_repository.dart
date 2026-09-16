@@ -44,12 +44,24 @@ abstract interface class TontineRepository {
   });
 
   // Noms
+  /// Identifiant frais pour un nouveau nom de [tontineId] (aucun accès
+  /// réseau).
+  String nouvelIdNom(String tontineId);
   Future<List<Nom>> getNoms(String tontineId);
   Future<void> saveNom(String tontineId, Nom nom);
 
   // Tours
   Future<List<Tour>> getTours(String tontineId);
   Future<void> saveTour(String tontineId, Tour tour);
+
+  // Streams — mises à jour en direct pour les écrans qui affichent la
+  // tontine courante sans action explicite de rechargement.
+  Stream<Tontine?> watchTontine(String tontineId);
+  Stream<List<Membre>> watchMembres(String tontineId);
+  Stream<List<Nom>> watchNoms(String tontineId);
+
+  /// Programme, triée par [Tour.position].
+  Stream<List<Tour>> watchTours(String tontineId);
 
   // Cotisations
   Future<List<Cotisation>> getCotisations(String tontineId);

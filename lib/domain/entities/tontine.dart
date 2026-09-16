@@ -9,6 +9,11 @@ class Tontine {
 
   final int montantParNom;
 
+  /// Nombre total de noms (parts/tours) prévus pour cette tontine, décidé à
+  /// la création. Les noms sont attribués au fil des inscriptions jusqu'à
+  /// atteindre ce total (voir `MembresController.inviterMembreAvecNoms`).
+  final int nombreDeNoms;
+
   final DateTime datePremiereEcheance;
   final ReglePeriodicite periodicite;
 
@@ -25,6 +30,7 @@ class Tontine {
     required this.nom,
     required this.adminUid,
     required this.montantParNom,
+    required this.nombreDeNoms,
     required this.datePremiereEcheance,
     required this.periodicite,
     required this.reglePenalite,

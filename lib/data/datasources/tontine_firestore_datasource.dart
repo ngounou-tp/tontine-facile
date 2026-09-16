@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../core/errors/app_exception.dart';
 import '../models/changement_model.dart';
 import '../models/cotisation_model.dart';
 import '../models/declaration_model.dart';
@@ -38,6 +39,9 @@ abstract interface class TontineDataSource {
     required String uid,
     required String codeInvitation,
   });
+  /// Identifiant frais pour un nouveau nom de [tontineId] (aucun accès
+  /// réseau).
+  String nouvelIdNom(String tontineId);
   Future<void> saveNom(String tontineId, NomModel nom);
   Future<void> saveTour(String tontineId, TourModel tour);
   Future<void> saveCotisation(String tontineId, CotisationModel cotisation);
@@ -51,6 +55,15 @@ abstract interface class TontineDataSource {
   Future<List<DeclarationModel>> getDeclarations(String tontineId);
   Future<List<PreuveModel>> getPreuves(String tontineId);
   Future<List<ChangementModel>> getChangements(String tontineId);
+
+  // Streams — mises à jour en direct pour les écrans qui affichent la
+  // tontine courante sans action explicite de rechargement.
+  Stream<TontineModel?> watchTontine(String tontineId);
+  Stream<List<MembreModel>> watchMembres(String tontineId);
+  Stream<List<NomModel>> watchNoms(String tontineId);
+
+  /// Programme, triée par position.
+  Stream<List<TourModel>> watchTours(String tontineId);
 }
 
 class FirestoreTontineDataSource implements TontineDataSource {
@@ -71,32 +84,51 @@ class FirestoreTontineDataSource implements TontineDataSource {
   ) =>
       _tontine(tontineId).collection(name);
 
+  /// Les appels Firestore ponctuels (`get`/`set`/`update`) peuvent rester
+  /// bloqués sans jamais résoudre ni rejeter leur `Future` sur un réseau
+  /// dégradé (émulateur local joint via une IP LAN depuis un appareil
+  /// physique, par exemple). Sans ce délai, un écran d'action (création de
+  /// tontine, ajout de membre...) reste bloqué en chargement indéfiniment,
+  /// sans message d'erreur ni redirection. Les flux (`watchXxx`) restent
+  /// volontairement sans délai : ils sont censés attendre.
+  static const _delaiReseau = Duration(seconds: 20);
+
+  Future<T> _avecDelai<T>(Future<T> Function() action) {
+    return action().timeout(
+      _delaiReseau,
+      onTimeout: () => throw const NetworkException(
+        'La connexion à Firestore a expiré. Vérifiez votre connexion et réessayez.',
+      ),
+    );
+  }
+
   @override
   String nouvelIdTontine() => _tontines.doc().id;
 
   @override
-  Future<List<TontineModel>> getTontines() async {
-    final snapshot = await _tontines.orderBy('nom').get();
-    return snapshot.docs
-        .map((doc) => TontineModel.fromFirestore(doc.data(), id: doc.id))
-        .toList(growable: false);
-  }
+  Future<List<TontineModel>> getTontines() => _avecDelai(() async {
+        final snapshot = await _tontines.orderBy('nom').get();
+        return snapshot.docs
+            .map((doc) => TontineModel.fromFirestore(doc.data(), id: doc.id))
+            .toList(growable: false);
+      });
 
   @override
-  Future<TontineModel?> getTontine(String tontineId) async {
-    final snapshot = await _tontine(tontineId).get();
-    final data = snapshot.data();
-    if (!snapshot.exists || data == null) return null;
-    return TontineModel.fromFirestore(data, id: snapshot.id);
-  }
+  Future<TontineModel?> getTontine(String tontineId) => _avecDelai(() async {
+        final snapshot = await _tontine(tontineId).get();
+        final data = snapshot.data();
+        if (!snapshot.exists || data == null) return null;
+        return TontineModel.fromFirestore(data, id: snapshot.id);
+      });
 
   @override
   Future<void> saveTontine(TontineModel tontine) =>
-      _tontine(tontine.id).set(tontine.toFirestore());
+      _avecDelai(() => _tontine(tontine.id).set(tontine.toFirestore()));
 
   @override
-  Future<void> saveMembre(String tontineId, MembreModel membre) =>
-      _subcollection(tontineId, 'membres').doc(membre.id).set(membre.toFirestore());
+  Future<void> saveMembre(String tontineId, MembreModel membre) => _avecDelai(
+        () => _subcollection(tontineId, 'membres').doc(membre.id).set(membre.toFirestore()),
+      );
 
   @override
   Future<MembreModel> creerMembrePlaceholder(
@@ -104,18 +136,19 @@ class FirestoreTontineDataSource implements TontineDataSource {
     required String nomComplet,
     String? email,
     String? whatsapp,
-  }) async {
-    final doc = _subcollection(tontineId, 'membres').doc();
-    final membre = MembreModel(
-      id: doc.id,
-      nomComplet: nomComplet,
-      email: email,
-      whatsapp: whatsapp,
-      uid: null,
-    );
-    await doc.set(membre.toFirestore());
-    return membre;
-  }
+  }) =>
+      _avecDelai(() async {
+        final doc = _subcollection(tontineId, 'membres').doc();
+        final membre = MembreModel(
+          id: doc.id,
+          nomComplet: nomComplet,
+          email: email,
+          whatsapp: whatsapp,
+          uid: null,
+        );
+        await doc.set(membre.toFirestore());
+        return membre;
+      });
 
   @override
   Future<void> claimMembre({
@@ -124,49 +157,64 @@ class FirestoreTontineDataSource implements TontineDataSource {
     required String uid,
     required String codeInvitation,
   }) =>
-      _subcollection(tontineId, 'membres').doc(membreId).update({
-        'uid': uid,
-        'codeInvitationUtilise': codeInvitation,
-      });
+      _avecDelai(
+        () => _subcollection(tontineId, 'membres').doc(membreId).update({
+          'uid': uid,
+          'codeInvitationUtilise': codeInvitation,
+        }),
+      );
 
   @override
-  Future<void> saveNom(String tontineId, NomModel nom) =>
-      _subcollection(tontineId, 'noms').doc(nom.id).set(nom.toFirestore());
+  String nouvelIdNom(String tontineId) =>
+      _subcollection(tontineId, 'noms').doc().id;
 
   @override
-  Future<void> saveTour(String tontineId, TourModel tour) =>
-      _subcollection(tontineId, 'tours').doc(tour.id).set(tour.toFirestore());
+  Future<void> saveNom(String tontineId, NomModel nom) => _avecDelai(
+        () => _subcollection(tontineId, 'noms').doc(nom.id).set(nom.toFirestore()),
+      );
+
+  @override
+  Future<void> saveTour(String tontineId, TourModel tour) => _avecDelai(
+        () => _subcollection(tontineId, 'tours').doc(tour.id).set(tour.toFirestore()),
+      );
 
   @override
   Future<void> saveCotisation(
     String tontineId,
     CotisationModel cotisation,
   ) =>
-      _subcollection(tontineId, 'cotisations')
-          .doc(cotisation.id)
-          .set(cotisation.toFirestore());
+      _avecDelai(
+        () => _subcollection(tontineId, 'cotisations')
+            .doc(cotisation.id)
+            .set(cotisation.toFirestore()),
+      );
 
   @override
   Future<void> saveDeclaration(
     String tontineId,
     DeclarationModel declaration,
   ) =>
-      _subcollection(tontineId, 'declarations')
-          .doc(declaration.id)
-          .set(declaration.toFirestore());
+      _avecDelai(
+        () => _subcollection(tontineId, 'declarations')
+            .doc(declaration.id)
+            .set(declaration.toFirestore()),
+      );
 
   @override
-  Future<void> savePreuve(String tontineId, PreuveModel preuve) =>
-      _subcollection(tontineId, 'preuves').doc(preuve.id).set(preuve.toFirestore());
+  Future<void> savePreuve(String tontineId, PreuveModel preuve) => _avecDelai(
+        () => _subcollection(tontineId, 'preuves').doc(preuve.id).set(preuve.toFirestore()),
+      );
 
   @override
   Future<void> saveChangement(
     String tontineId,
     ChangementModel changement,
   ) =>
-      _subcollection(tontineId, 'changements')
-          .doc(changement.id)
-          .set(changement.toFirestore());
+      _avecDelai(
+        () => _subcollection(tontineId, 'changements')
+            .doc(changement.id)
+            .set(changement.toFirestore()),
+      );
 
   @override
   Future<List<MembreModel>> getMembres(String tontineId) => _getSubcollection(
@@ -232,14 +280,65 @@ class FirestoreTontineDataSource implements TontineDataSource {
     T Function(Map<String, dynamic> data, String id) parse, {
     String? orderBy,
     bool descending = false,
-  }) async {
+  }) =>
+      _avecDelai(() async {
+        Query<Map<String, dynamic>> query = _subcollection(tontineId, name);
+        if (orderBy != null) {
+          query = query.orderBy(orderBy, descending: descending);
+        }
+        final snapshot = await query.get();
+        return snapshot.docs
+            .map((doc) => parse(doc.data(), doc.id))
+            .toList(growable: false);
+      });
+
+  @override
+  Stream<TontineModel?> watchTontine(String tontineId) {
+    return _tontine(tontineId).snapshots().map((snapshot) {
+      final data = snapshot.data();
+      if (!snapshot.exists || data == null) return null;
+      return TontineModel.fromFirestore(data, id: snapshot.id);
+    });
+  }
+
+  @override
+  Stream<List<MembreModel>> watchMembres(String tontineId) =>
+      _watchSubcollection(
+        tontineId,
+        'membres',
+        (data, id) => MembreModel.fromFirestore(data, id: id),
+      );
+
+  @override
+  Stream<List<NomModel>> watchNoms(String tontineId) => _watchSubcollection(
+        tontineId,
+        'noms',
+        (data, id) => NomModel.fromFirestore(data, id: id),
+      );
+
+  @override
+  Stream<List<TourModel>> watchTours(String tontineId) => _watchSubcollection(
+        tontineId,
+        'tours',
+        (data, id) => TourModel.fromFirestore(data, id: id),
+        orderBy: 'position',
+      );
+
+  Stream<List<T>> _watchSubcollection<T>(
+    String tontineId,
+    String name,
+    T Function(Map<String, dynamic> data, String id) parse, {
+    String? orderBy,
+    bool descending = false,
+  }) {
     Query<Map<String, dynamic>> query = _subcollection(tontineId, name);
     if (orderBy != null) {
       query = query.orderBy(orderBy, descending: descending);
     }
-    final snapshot = await query.get();
-    return snapshot.docs
-        .map((doc) => parse(doc.data(), doc.id))
-        .toList(growable: false);
+    return query.snapshots().map(
+          (snapshot) => snapshot.docs
+              .map((doc) => parse(doc.data(), doc.id))
+              .toList(growable: false),
+        );
   }
 }

@@ -237,6 +237,7 @@ Tontine _tontine() {
     nom: 'Tontine test',
     adminUid: 'admin-1',
     montantParNom: 25000,
+    nombreDeNoms: 10,
     datePremiereEcheance: DateTime(2026, 9, 1),
     periodicite: ReglePeriodicite.chaqueSemaine(
       // DateTime.weekday: Tuesday.

@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseException;
 
 import '../../core/errors/app_exception.dart';
+import '../../domain/entities/app_user.dart';
 import '../../domain/entities/invitation.dart';
 import '../../domain/entities/profil.dart';
 import '../../domain/entities/session.dart';
 import '../../domain/entities/tontine.dart';
+import '../../domain/rules/validation_tontine.dart';
 import '../repositories/profil_repository.dart';
 import '../repositories/tontine_repository.dart';
 import 'auth_service.dart';
@@ -61,11 +63,52 @@ class InscriptionService {
     );
     await _envoyerVerificationSansEchec();
 
+    return _creerTontineEtProfilAdmin(
+      utilisateur: utilisateur,
+      nomCompletAdmin: nomCompletAdmin,
+      tontineSansId: tontineSansId,
+    );
+  }
+
+  /// Crée la tontine, le membre de l'administratrice et son profil, pour un
+  /// compte déjà authentifié mais sans profil (arrivé via
+  /// [creerCompteSansTontine]). Reprend la même logique que la fin de
+  /// [inscrireAdmin], sans l'étape de création de compte.
+  Future<Session> creerTontinePourAdmin({
+    required String nomCompletAdmin,
+    required Tontine tontineSansId,
+  }) async {
+    final utilisateur = authService.currentUser;
+    if (utilisateur == null) {
+      throw const UnknownAuthException('Connectez-vous avant de créer une tontine.');
+    }
+
+    return _creerTontineEtProfilAdmin(
+      utilisateur: utilisateur,
+      nomCompletAdmin: nomCompletAdmin,
+      tontineSansId: tontineSansId,
+    );
+  }
+
+  /// Construit la tontine (id et code d'invitation régénérés, validée via
+  /// [ValidationTontine]), le membre de l'administratrice, son invitation
+  /// auto-réclamée (exigée par les règles Firestore — voir [inviterMembre])
+  /// et son profil.
+  ///
+  /// [tontineSansId] doit avoir tous les champs métier déjà renseignés
+  /// (nom, montant, périodicité, pénalité, mode de parts...) ; `id`,
+  /// `adminUid` et `codeInvitation` sont ignorés et régénérés ici.
+  Future<Session> _creerTontineEtProfilAdmin({
+    required AppUser utilisateur,
+    required String nomCompletAdmin,
+    required Tontine tontineSansId,
+  }) async {
     final tontine = Tontine(
       id: tontineRepository.nouvelIdTontine(),
       nom: tontineSansId.nom,
       adminUid: utilisateur.uid,
       montantParNom: tontineSansId.montantParNom,
+      nombreDeNoms: tontineSansId.nombreDeNoms,
       datePremiereEcheance: tontineSansId.datePremiereEcheance,
       periodicite: tontineSansId.periodicite,
       reglePenalite: tontineSansId.reglePenalite,
@@ -74,12 +117,13 @@ class InscriptionService {
       modeParts: tontineSansId.modeParts,
       codeInvitation: _genererCode(),
     );
+    const ValidationTontine().valider(tontine);
     await tontineRepository.saveTontine(tontine);
 
     final membre = await tontineRepository.creerMembrePlaceholder(
       tontine.id,
       nomComplet: nomCompletAdmin,
-      email: email,
+      email: utilisateur.email,
     );
 
     // Les règles Firestore exigent, pour réclamer un membre, une invitation

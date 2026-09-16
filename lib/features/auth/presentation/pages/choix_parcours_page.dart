@@ -1,0 +1,133 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../app/router.dart';
+import '../../../../app/theme.dart';
+import '../../../../shared/widgets/app_button.dart';
+import '../../application/auth_controller.dart';
+
+/// Écran d'accueil du compte fraîchement créé (sans profil) : l'utilisateur
+/// choisit entre créer une nouvelle tontine ou rejoindre un groupe existant
+/// avec un code d'invitation.
+///
+/// Landing par défaut de `AppRouter.redirect` tant qu'aucune de ces deux
+/// actions n'a abouti (voir `AppRouter._isNoProfileDestination`).
+class ChoixParcoursPage extends ConsumerWidget {
+  const ChoixParcoursPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: AppSpacing.xl),
+                  Image.asset('assets/images/logo_placeholder.png', width: 72, height: 72),
+                  const SizedBox(height: AppSpacing.lg),
+                  const Text('Bienvenue sur TontineFacile', style: AppTypography.screenTitle),
+                  const SizedBox(height: AppSpacing.xs),
+                  const Text(
+                    'Comment souhaitez-vous commencer ?',
+                    style: AppTypography.secondary,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  _OptionCard(
+                    icon: Icons.add_circle_outline,
+                    iconBackground: AppColors.accent,
+                    title: 'Créer une tontine',
+                    description:
+                        'Démarrez un nouveau groupe, invitez vos membres et suivez les cotisations dès aujourd\'hui.',
+                    onTap: () => context.go(AppRouter.creerTontinePath),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _OptionCard(
+                    icon: Icons.groups_outlined,
+                    iconBackground: AppColors.indigo,
+                    title: 'Rejoindre une tontine',
+                    description:
+                        'Vous avez reçu un code de votre trésorier ? Rejoignez son groupe en quelques secondes.',
+                    onTap: () => context.go(AppRouter.rejoindrePath),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  Center(
+                    child: AppButton(
+                      label: 'Se déconnecter',
+                      variant: AppButtonVariant.tertiary,
+                      onPressed: () => ref.read(authControllerProvider.notifier).deconnecter(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OptionCard extends StatelessWidget {
+  const _OptionCard({
+    required this.icon,
+    required this.iconBackground,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color iconBackground;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: iconBackground,
+                  borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
+                ),
+                child: Icon(icon, color: AppColors.surface, size: 28),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text(description, style: AppTypography.secondary),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              const Padding(
+                padding: EdgeInsets.only(top: AppSpacing.xs),
+                child: Icon(Icons.chevron_right, color: AppColors.slate),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

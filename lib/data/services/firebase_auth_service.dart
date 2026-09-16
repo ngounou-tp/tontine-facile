@@ -11,6 +11,24 @@ class FirebaseAuthService implements AuthService {
 
   final fb.FirebaseAuth _firebaseAuth;
 
+  /// Les appels réseau Firebase Auth (SDK natif) peuvent rester bloqués sans
+  /// jamais résoudre ni rejeter leur `Future` — observé notamment quand la
+  /// vérification reCAPTCHA de l'inscription par mot de passe ne peut pas
+  /// joindre les serveurs Google (appareil sans accès internet réel,
+  /// empreinte de build non enregistrée...). Sans ce délai, l'écran reste
+  /// bloqué en chargement indéfiniment plutôt que d'afficher une erreur.
+  static const _delaiReseau = Duration(seconds: 20);
+
+  Future<T> _avecDelai<T>(Future<T> Function() action) {
+    return action().timeout(
+      _delaiReseau,
+      onTimeout: () => throw const NetworkException(
+        "La connexion au service d'authentification a expiré. Vérifiez votre "
+        'connexion et réessayez.',
+      ),
+    );
+  }
+
   // `GoogleSignIn.instance.initialize()` ne doit être appelé qu'une seule
   // fois : on met en cache le Future pour que les appels concurrents ou
   // répétés à [signInWithGoogle] attendent la même initialisation.
@@ -33,9 +51,11 @@ class FirebaseAuthService implements AuthService {
     required String password,
   }) async {
     try {
-      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+      final credential = await _avecDelai(
+        () => _firebaseAuth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        ),
       );
       return _requireAppUser(credential.user);
     } on fb.FirebaseAuthException catch (error) {
@@ -49,9 +69,11 @@ class FirebaseAuthService implements AuthService {
     required String password,
   }) async {
     try {
-      final credential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+      final credential = await _avecDelai(
+        () => _firebaseAuth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        ),
       );
       return _requireAppUser(credential.user);
     } on fb.FirebaseAuthException catch (error) {

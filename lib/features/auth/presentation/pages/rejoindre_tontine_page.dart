@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/errors/app_exception.dart';
+import '../../../../shared/state/flash_message.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../application/auth_controller.dart';
 import '../../application/auth_providers.dart';
@@ -57,6 +58,9 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
 
     try {
       await ref.read(authControllerProvider.notifier).rejoindreAvecCode(_code);
+      if (mounted) {
+        ref.read(flashMessageProvider.notifier).set('Vous avez rejoint la tontine.');
+      }
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
     }
@@ -78,7 +82,7 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
     final busy = ref.watch(authControllerProvider).isLoading;
     final authentifie = ref.watch(sessionProvider).value != null;
     return Scaffold(
-      appBar: AppBar(leading: IconButton(icon: const Icon(Icons.arrow_back), tooltip: 'Retour', onPressed: () => context.go(authentifie ? AppRouter.creerTontinePath : AppRouter.connexionPath))),
+      appBar: AppBar(leading: IconButton(icon: const Icon(Icons.arrow_back), tooltip: 'Retour', onPressed: () => context.go(authentifie ? AppRouter.choixPath : AppRouter.connexionPath))),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),

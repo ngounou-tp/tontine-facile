@@ -6,11 +6,19 @@ import 'package:go_router/go_router.dart';
 import '../domain/entities/session.dart';
 import '../domain/entities/tontine.dart';
 import '../features/auth/application/auth_providers.dart';
+import '../features/auth/presentation/pages/choix_parcours_page.dart';
 import '../features/auth/presentation/pages/connexion_page.dart';
 import '../features/auth/presentation/pages/inscription_page.dart';
 import '../features/auth/presentation/pages/rejoindre_tontine_page.dart';
 import '../features/auth/presentation/pages/verify_email_page.dart';
+import '../features/echeancier/presentation/pages/echeancier_page.dart';
+import '../features/membres/presentation/pages/ajouter_membre_page.dart';
+import '../features/membres/presentation/pages/attribuer_nom_page.dart';
+import '../features/membres/presentation/pages/fiche_membre_page.dart';
+import '../features/membres/presentation/pages/membres_page.dart';
+import '../features/tontine/presentation/pages/creer_tontine_page.dart';
 import '../features/tontine/presentation/pages/home_page.dart';
+import '../features/tontine/presentation/pages/reglages_page.dart';
 import '../shared/pages/route_placeholder_page.dart';
 import 'firebase_setup.dart';
 
@@ -33,11 +41,13 @@ abstract final class AppRouter {
   static const inscriptionPath = '/inscription';
   static const rejoindrePath = '/rejoindre';
   static const verifyEmailPath = '/verifier-email';
+  static const choixPath = '/bienvenue';
   static const creerTontinePath = '/creer-tontine';
   static const accueilPath = '/accueil';
   static const espaceMembrePath = '/espace-membre';
   static const membresPath = '/membres';
   static const echeancierPath = '/echeancier';
+  static const reglagesPath = '/reglages';
   static const cotisationsPath = '/cotisations';
   static const declarationsPath = '/declarations';
 
@@ -67,9 +77,14 @@ abstract final class AppRouter {
       builder: (_, _) => const VerifyEmailPage(),
     ),
     GoRoute(
+      path: choixPath,
+      name: 'bienvenue',
+      builder: (_, _) => const ChoixParcoursPage(),
+    ),
+    GoRoute(
       path: creerTontinePath,
       name: 'creer-tontine',
-      builder: (_, _) => const RoutePlaceholderPage(title: 'Créer une tontine'),
+      builder: (_, _) => const CreerTontinePage(),
     ),
     GoRoute(
       path: accueilPath,
@@ -84,12 +99,37 @@ abstract final class AppRouter {
     GoRoute(
       path: membresPath,
       name: 'membres',
-      builder: (_, _) => const RoutePlaceholderPage(title: 'Membres'),
+      builder: (_, _) => const MembresPage(),
+    ),
+    GoRoute(
+      path: '$membresPath/ajouter',
+      name: 'ajouter-membre',
+      builder: (_, _) => const AjouterMembrePage(),
+    ),
+    GoRoute(
+      path: '$membresPath/noms/nouveau',
+      name: 'attribuer-nom',
+      builder: (_, _) => const AttribuerNomPage(),
+    ),
+    GoRoute(
+      path: '$membresPath/noms/:nomId',
+      name: 'modifier-nom',
+      builder: (_, state) => AttribuerNomPage(nomId: state.pathParameters['nomId']),
+    ),
+    GoRoute(
+      path: '$membresPath/:membreId',
+      name: 'fiche-membre',
+      builder: (_, state) => FicheMembrePage(membreId: state.pathParameters['membreId']!),
     ),
     GoRoute(
       path: echeancierPath,
       name: 'echeancier',
-      builder: (_, _) => const RoutePlaceholderPage(title: 'Échéancier'),
+      builder: (_, _) => const EcheancierPage(),
+    ),
+    GoRoute(
+      path: reglagesPath,
+      name: 'reglages',
+      builder: (_, _) => const ReglagesPage(),
     ),
     GoRoute(
       path: '$cotisationsPath/:tourId',
@@ -132,7 +172,7 @@ abstract final class AppRouter {
     }
 
     if (session.profil == null) {
-      return _isNoProfileDestination(location) ? null : creerTontinePath;
+      return _isNoProfileDestination(location) ? null : choixPath;
     }
 
     final tontineState = ref.read(currentTontineProvider);
@@ -164,11 +204,16 @@ abstract final class AppRouter {
       location == connexionPath || location == inscriptionPath;
 
   static bool _isNoProfileDestination(String location) =>
-      location == rejoindrePath || location == creerTontinePath;
+      location == rejoindrePath ||
+      location == creerTontinePath ||
+      location == choixPath;
 
   static bool _isAdminDestination(String location) =>
       location == accueilPath ||
       location == membresPath ||
+      location.startsWith('$membresPath/') ||
+      location == echeancierPath ||
+      location == reglagesPath ||
       location == declarationsPath ||
       location.startsWith('$cotisationsPath/');
 }
