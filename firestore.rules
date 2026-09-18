@@ -35,8 +35,17 @@ service cloud.firestore {
       // aucune autre donnée du membre ne peut être modifiée à cette étape.
       match /membres/{membreId} {
         allow read: if isMember(tontineId);
+        // Une personne invitée peut réclamer son propre placeholder (fiche
+        // encore libre, code désignant cette même fiche, aucune autre donnée
+        // modifiée à cette étape) ...
+        //
+        // `creerMembrePlaceholder` omet entièrement la clé `uid` (au lieu
+        // d'écrire `uid: null`) : `resource.data.uid` accédé directement sur
+        // un placeholder jamais réclamé lèverait une erreur d'évaluation
+        // (propriété indéfinie), ce qui refuse la règle entière — d'où
+        // `get(..., null)`, qui renvoie bien `null` si la clé est absente.
         allow update: if signedIn() &&
-            resource.data.uid == null &&
+            resource.data.get('uid', null) == null &&
             request.resource.data.uid == request.auth.uid &&
             request.resource.data.diff(resource.data).affectedKeys()
                 .hasOnly(['uid', 'codeInvitationUtilise']) &&
@@ -44,21 +53,48 @@ service cloud.firestore {
                 $(request.resource.data.codeInvitationUtilise)).data.tontineId == tontineId &&
             get(/databases/$(database)/documents/invitations/
                 $(request.resource.data.codeInvitationUtilise)).data.membreId == membreId;
+        // ... ou l'administratrice peut librement gérer les fiches de sa
+        // tontine (coordonnées, activation, code d'invitation dénormalisé).
+        allow update: if isAdmin(tontineId);
         allow create, delete: if isAdmin(tontineId);
       }
 
       match /declarations/{declarationId} {
         allow read: if isMember(tontineId);
+        // Le membre doit détenir une part du nom déclaré (membreIds,
+        // dénormalisé sur le nom à partir de `parts` — voir NomModel) : sans
+        // cette vérification, n'importe quel membre pourrait déclarer un
+        // paiement pour le nom de quelqu'un d'autre.
         allow create: if isMember(tontineId) &&
             request.resource.data.membreId == profile().membreId &&
-            request.resource.data.statut == 'enAttente';
+            request.resource.data.statut == 'enAttente' &&
+            get(/databases/$(database)/documents/tontines/$(tontineId)/noms/
+                $(request.resource.data.nomId)).data.membreIds
+                .hasAny([profile().membreId]);
         allow update: if isAdmin(tontineId);
         allow delete: if false;
       }
 
+      // Une preuve (photo compressée) est un fichier immuable une fois
+      // envoyé : un membre doit pouvoir joindre la sienne à sa déclaration
+      // (le catch-all `{subcollection}` ci-dessous réserverait l'écriture à
+      // l'administratrice), mais personne ne peut la modifier ni la
+      // supprimer ensuite.
+      match /preuves/{preuveId} {
+        allow read: if isMember(tontineId);
+        allow create: if isMember(tontineId);
+        allow update, delete: if false;
+      }
+
+      // Couvre les autres sous-collections (noms, tours, cotisations,
+      // changements). `declarations` et `preuves` sont exclues : Firestore
+      // évalue TOUTES les règles dont le chemin correspond et autorise dès
+      // que L'UNE d'elles l'autorise — sans cette exclusion, ce bloc admin
+      // « write » réactiverait la suppression/modification que leurs blocs
+      // dédiés ci-dessus interdisent explicitement (delete/update: false).
       match /{subcollection}/{documentId} {
         allow read: if isMember(tontineId);
-        allow write: if isAdmin(tontineId);
+        allow write: if isAdmin(tontineId) && !(subcollection in ['declarations', 'preuves']);
       }
     }
 

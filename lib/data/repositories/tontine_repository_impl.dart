@@ -107,6 +107,15 @@ class FirestoreTontineRepository implements TontineRepository {
       .map((models) => models.map((model) => model.toEntity()).toList(growable: false));
 
   @override
+  String nouvelIdCotisation(String tontineId) => _dataSource.nouvelIdCotisation(tontineId);
+
+  @override
+  String nouvelIdDeclaration(String tontineId) => _dataSource.nouvelIdDeclaration(tontineId);
+
+  @override
+  String nouvelIdPreuve(String tontineId) => _dataSource.nouvelIdPreuve(tontineId);
+
+  @override
   Future<void> saveCotisation(String tontineId, Cotisation cotisation) =>
       _dataSource.saveCotisation(
         tontineId,
@@ -114,11 +123,21 @@ class FirestoreTontineRepository implements TontineRepository {
       );
 
   @override
+  Stream<List<Cotisation>> watchCotisations(String tontineId) => _dataSource
+      .watchCotisations(tontineId)
+      .map((models) => models.map((model) => model.toEntity()).toList(growable: false));
+
+  @override
   Future<void> saveDeclaration(String tontineId, Declaration declaration) =>
       _dataSource.saveDeclaration(
         tontineId,
         DeclarationModel.fromEntity(declaration),
       );
+
+  @override
+  Stream<List<Declaration>> watchDeclarations(String tontineId) => _dataSource
+      .watchDeclarations(tontineId)
+      .map((models) => models.map((model) => model.toEntity()).toList(growable: false));
 
   @override
   Future<void> savePreuve(String tontineId, Preuve preuve) =>
@@ -130,6 +149,11 @@ class FirestoreTontineRepository implements TontineRepository {
         tontineId,
         ChangementModel.fromEntity(changement),
       );
+
+  @override
+  Stream<List<Changement>> watchChangements(String tontineId) => _dataSource
+      .watchChangements(tontineId)
+      .map((models) => models.map((model) => model.toEntity()).toList(growable: false));
 
   @override
   Future<List<Membre>> getMembres(String tontineId) async =>

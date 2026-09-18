@@ -76,6 +76,20 @@ final currentTontineProvider = FutureProvider<Tontine?>((ref) async {
   return ref.watch(tontineRepositoryProvider).getTontine(profil.tontineId);
 });
 
+/// `true` si le compte connecté est l'administratrice de la tontine
+/// courante, `false` pour un membre ou tant que l'un ou l'autre n'a pas
+/// résolu. Les écrans partagés (Accueil, Membres, Échéancier, Réglages,
+/// Déclarations) sont ouverts en lecture seule aux membres par le routeur ;
+/// c'est ce provider qui leur permet de masquer localement leurs actions
+/// réservées (ajouter/modifier/désactiver un membre, générer ou réorganiser
+/// l'échéancier, traiter une déclaration...).
+final isAdminProvider = Provider<bool>((ref) {
+  final session = ref.watch(sessionProvider).value;
+  final tontine = ref.watch(currentTontineProvider).value;
+  if (session == null || tontine == null) return false;
+  return tontine.adminUid == session.utilisateur.uid;
+});
+
 /// Aperçu (nom, nombre de membres) de la tontine désignée par un code
 /// d'invitation, `null` si le code est introuvable. Une instance par code
 /// grâce à `.family` : l'écran d'adhésion la relance à chaque frappe.

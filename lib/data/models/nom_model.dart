@@ -49,5 +49,10 @@ class NomModel {
         'position': position,
         'libelle': libelle,
         'parts': parts.map((part) => part.toFirestore()).toList(growable: false),
+        // Dénormalisé à partir de `parts` : les security rules ne peuvent pas
+        // inspecter facilement un tableau de maps, donc une déclaration ne
+        // peut vérifier qu'un membre détient bien ce nom qu'en comparant son
+        // id à cette liste plate (voir firestore.rules, match /declarations).
+        'membreIds': parts.map((part) => part.membreId).toSet().toList(growable: false),
       };
 }

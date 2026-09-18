@@ -13,6 +13,7 @@ import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../../../../shared/state/flash_message.dart';
 import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAuth;
+import '../../../echeancier/application/echeancier_providers.dart';
 import '../../../tontine/application/tontine_providers.dart';
 import '../../application/membres_controller.dart';
 import '../../application/membres_providers.dart';
@@ -76,6 +77,7 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
         .where((m) => m.actif)
         .toList(growable: false);
     final busy = ref.watch(membresControllerProvider).isLoading;
+    final tontineDemarree = (ref.watch(toursProvider).value ?? const []).isNotEmpty;
 
     if (nomsAsync.hasError) {
       return Scaffold(
@@ -132,6 +134,11 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
 
     final libelle = nomExistant?.libelle ?? 'Nom ${noms.length + 1}';
     final sommeValide = const ValidationParts().estValide(_parts) && _parts.isNotEmpty;
+    // Les parts d'un nom déjà généré dans l'échéancier ne peuvent plus
+    // changer : le montant dû de chaque détentrice est calculé en direct à
+    // partir de `nom.parts` (voir CalculateurCotisation), donc les modifier
+    // fausserait rétroactivement les tours déjà en cours ou remis.
+    final verrouille = nomExistant != null && tontineDemarree;
 
     return Scaffold(
       appBar: AppBar(
@@ -152,7 +159,9 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
               children: [
                 Text(libelle, style: AppTypography.screenTitle),
                 const SizedBox(height: AppSpacing.lg),
-                if (membresActifs.isEmpty)
+                if (verrouille)
+                  _PartsVerrouillees(nom: nomExistant, membres: ref.watch(membresProvider).value ?? const [])
+                else if (membresActifs.isEmpty)
                   const Text(
                     "Ajoutez d'abord des membres actifs pour pouvoir leur attribuer ce nom.",
                     style: AppTypography.secondary,
@@ -163,20 +172,80 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
                     initialParts: nomExistant?.parts ?? const [],
                     onChanged: (parts) => setState(() => _parts = parts),
                   ),
-                const SizedBox(height: AppSpacing.xl),
-                AppButton(
-                  label: 'Enregistrer',
-                  variant: AppButtonVariant.accent,
-                  busy: busy,
-                  onPressed: (busy || !sommeValide)
-                      ? null
-                      : () => _enregistrer(tontineId, nomExistant, noms.length + 1),
-                ),
+                if (!verrouille) ...[
+                  const SizedBox(height: AppSpacing.xl),
+                  AppButton(
+                    label: 'Enregistrer',
+                    variant: AppButtonVariant.accent,
+                    busy: busy,
+                    onPressed: (busy || !sommeValide)
+                        ? null
+                        : () => _enregistrer(tontineId, nomExistant, noms.length + 1),
+                  ),
+                ],
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PartsVerrouillees extends StatelessWidget {
+  const _PartsVerrouillees({required this.nom, required this.membres});
+
+  final Nom nom;
+  final List<Membre> membres;
+
+  String _nomComplet(String membreId) {
+    for (final membre in membres) {
+      if (membre.id == membreId) return membre.nomComplet;
+    }
+    return 'Membre inconnu';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Card(
+          color: AppColors.canvas,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                const Icon(Icons.lock_outline, size: 16, color: AppColors.slate),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(
+                    "Figé — l'échéancier a déjà démarré. Modifier ces parts fausserait les "
+                    'montants dus déjà calculés.',
+                    style: AppTypography.secondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Card(
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              for (final part in nom.parts)
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.canvas,
+                    child: Text(formatFraction(part.fraction), style: AppTypography.micro),
+                  ),
+                  title: Text(_nomComplet(part.membreId)),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

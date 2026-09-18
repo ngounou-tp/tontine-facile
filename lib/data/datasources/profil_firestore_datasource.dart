@@ -7,6 +7,13 @@ import '../models/profil_model.dart';
 abstract interface class ProfilDataSource {
   Future<ProfilModel?> getProfil(String uid);
   Future<void> saveProfil(ProfilModel profil);
+
+  /// Mis à jour en direct — le profil n'existe pas encore juste après la
+  /// connexion Firebase Auth d'une personne qui vient de créer son compte ou
+  /// de rejoindre une tontine avec un code : `getProfil` seul ne le
+  /// détecterait jamais tant que rien d'autre ne force une nouvelle lecture.
+  Stream<ProfilModel?> watchProfil(String uid);
+
   Future<InvitationModel?> getInvitation(String code);
   Future<void> saveInvitation(InvitationModel invitation);
 }
@@ -49,6 +56,15 @@ class FirestoreProfilDataSource implements ProfilDataSource {
   @override
   Future<void> saveProfil(ProfilModel profil) =>
       _avecDelai(() => _utilisateurs.doc(profil.uid).set(profil.toFirestore()));
+
+  @override
+  Stream<ProfilModel?> watchProfil(String uid) {
+    return _utilisateurs.doc(uid).snapshots().map((snapshot) {
+      final data = snapshot.data();
+      if (!snapshot.exists || data == null) return null;
+      return ProfilModel.fromFirestore(data, uid: snapshot.id);
+    });
+  }
 
   @override
   Future<InvitationModel?> getInvitation(String code) => _avecDelai(() async {

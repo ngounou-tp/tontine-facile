@@ -7,6 +7,7 @@ import '../../domain/entities/profil.dart';
 abstract interface class ProfilRepository {
   Future<Profil?> getProfil(String uid);
   Future<void> saveProfil(Profil profil);
+  Stream<Profil?> watchProfil(String uid);
 
   Future<Invitation?> getInvitation(String code);
   Future<void> saveInvitation(Invitation invitation);

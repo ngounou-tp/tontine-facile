@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +8,7 @@ import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../application/auth_controller.dart';
+import '../../application/auth_providers.dart';
 import '../widgets/auth_form.dart';
 import '../widgets/auth_header.dart';
 
@@ -45,6 +48,14 @@ class _InscriptionPageState extends ConsumerState<InscriptionPage> {
               password: _password.text,
               codeInvitation: code,
             );
+        // `inscrireMembre` vient d'écrire le profil dans Firestore, mais la
+        // session (qui le suit en direct) peut ne pas l'avoir encore
+        // répercuté : naviguer tout de suite ferait rebondir le routeur sur
+        // /bienvenue, qui traite un profil pas encore propagé comme absent
+        // (voir `AppRouter.redirect`). On attend qu'il apparaisse.
+        if (ref.read(sessionProvider).value?.profil == null) {
+          await _attendreProfil();
+        }
         if (mounted) context.go(AppRouter.espaceMembrePath);
       } else {
         await ref.read(authControllerProvider.notifier).creerCompteSansTontine(
@@ -55,6 +66,26 @@ class _InscriptionPageState extends ConsumerState<InscriptionPage> {
       }
     } catch (error) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageErreurAuth(error))));
+    }
+  }
+
+  /// Attend la prochaine émission de [sessionProvider] dont le profil est
+  /// renseigné (avec une limite raisonnable pour ne jamais bloquer
+  /// indéfiniment si la propagation échoue).
+  Future<void> _attendreProfil() async {
+    final completeur = Completer<void>();
+    final abonnement = ref.listenManual(sessionProvider, (_, next) {
+      if (next.value?.profil != null && !completeur.isCompleted) {
+        completeur.complete();
+      }
+    });
+    try {
+      await completeur.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {},
+      );
+    } finally {
+      abonnement.close();
     }
   }
 

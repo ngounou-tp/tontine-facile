@@ -5,34 +5,42 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
 import '../../../../domain/entities/membre.dart';
-import '../../../../domain/entities/nom.dart';
 import '../../../../domain/entities/tontine.dart';
-import '../../../../domain/entities/tour.dart';
-import '../../../../domain/enums/statut_tour.dart';
+import '../../../../domain/enums/statut_cotisation.dart';
+import '../../../../shared/state/flash_message.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../../../auth/application/auth_providers.dart';
+import '../../../cotisations/application/cotisations_providers.dart';
 import '../../../echeancier/application/echeancier_providers.dart';
 import '../../../membres/application/membres_providers.dart';
 import '../../application/tontine_providers.dart';
+import '../widgets/contribution_progress.dart';
+import '../widgets/current_tour_card.dart';
+import '../widgets/dashboard_stats_grid.dart';
+import '../widgets/dashboard_summary_card.dart';
+import '../widgets/pending_declarations_banner.dart';
 
 /// Tableau de bord de l'administratrice : vue d'ensemble de sa tontine
-/// (montant distribué par tour, prochaine échéance, membres actifs) et accès
-/// rapide à l'ajout d'un membre.
+/// (montant distribué par tour, tour en cours, progression de la collecte,
+/// déclarations en attente, membres actifs) et accès rapide à la collecte
+/// et à l'ajout d'un membre. Aucune donnée n'est figée en dur : tout vient
+/// des providers de la tontine, des noms, des tours et des cotisations
+/// courants.
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    FlashMessageListener.attach(ref, context);
     final tontineAsync = ref.watch(tontineProvider);
+    final isAdmin = ref.watch(isAdminProvider);
 
     return AppScaffold(
       selectedNavIndex: 0,
       appBar: AppBar(
-        backgroundColor: AppColors.canvas,
         title: Text(tontineAsync.value?.nom ?? 'TontineFacile'),
-        titleTextStyle: Theme.of(context).textTheme.titleLarge,
         actions: [
           IconButton(
             onPressed: () => context.go(AppRouter.reglagesPath),
@@ -42,13 +50,15 @@ class HomePage extends ConsumerWidget {
           const SizedBox(width: AppSpacing.xs),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('${AppRouter.membresPath}/ajouter'),
-        backgroundColor: AppColors.accent,
-        foregroundColor: AppColors.ink,
-        icon: const Icon(Icons.add),
-        label: const Text('Ajouter'),
-      ),
+      floatingActionButton: !isAdmin
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => context.go('${AppRouter.membresPath}/ajouter'),
+              backgroundColor: AppColors.accent,
+              foregroundColor: AppColors.ink,
+              icon: const Icon(Icons.add),
+              label: const Text('Ajouter'),
+            ),
       body: tontineAsync.when(
         loading: () => const LoadingView(message: 'Chargement de votre tontine…'),
         error: (_, _) => ErrorView(
@@ -71,9 +81,15 @@ class _Contenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider).value;
+    final isAdmin = ref.watch(isAdminProvider);
     final membres = ref.watch(membresProvider).value ?? const <Membre>[];
-    final noms = ref.watch(nomsProvider).value ?? const <Nom>[];
-    final tours = ref.watch(toursProvider).value ?? const <Tour>[];
+    final noms = ref.watch(nomsProvider).value ?? const [];
+    final tours = ref.watch(toursProvider).value ?? const [];
+    final tourActuel = ref.watch(tourActuelProvider);
+    final totalAttendu = ref.watch(totalAttenduTourActuelProvider);
+    final totalCollecte = ref.watch(totalCollecteTourActuelProvider);
+    final declarationsEnAttente = ref.watch(declarationsEnAttenteProvider);
+    final cotisations = ref.watch(cotisationsProvider).value ?? const [];
 
     Membre? moi;
     final membreId = session?.profil?.membreId;
@@ -88,13 +104,13 @@ class _Contenu extends ConsumerWidget {
     final prenom = moi != null ? moi.nomComplet.split(' ').first : '';
     final actifs = membres.where((m) => m.actif).length;
 
-    Tour? prochainTour;
-    for (final tour in [...tours]..sort((a, b) => a.position.compareTo(b.position))) {
-      if (tour.statut != StatutTour.remis) {
-        prochainTour = tour;
-        break;
-      }
-    }
+    final cotisationsValidees =
+        cotisations.where((c) => c.statut == StatutCotisation.validee);
+    final paiementsATemps = cotisationsValidees.where((c) => c.penalite == 0).length;
+    final paiementsEnRetard = cotisationsValidees.where((c) => c.penalite > 0).length;
+    final tauxCollecte = tourActuel == null || totalAttendu <= 0
+        ? null
+        : totalCollecte / totalAttendu;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xl),
@@ -106,11 +122,37 @@ class _Contenu extends ConsumerWidget {
         const SizedBox(height: AppSpacing.xs),
         Text('Voici le résumé de votre tontine.', style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: AppSpacing.lg),
-        _SummaryCard(montantParTour: tontine.montantParNom * noms.length),
+        DashboardStatsGrid(
+          membresActifs: actifs,
+          nomsAttribues: noms.length,
+          nomsAttendus: tontine.nombreDeNoms,
+          tauxCollecte: tauxCollecte,
+          paiementsATemps: paiementsATemps,
+          paiementsEnRetard: paiementsEnRetard,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        PendingDeclarationsBanner(
+          nombre: declarationsEnAttente.length,
+          onTap: () => context.go(AppRouter.declarationsPath),
+        ),
+        if (declarationsEnAttente.isNotEmpty) const SizedBox(height: AppSpacing.lg),
+        DashboardSummaryCard(montantParTour: tontine.montantParNom * noms.length),
         const SizedBox(height: AppSpacing.xl),
-        Text('Prochaine échéance', style: Theme.of(context).textTheme.titleLarge),
+        Text('Tour en cours', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: AppSpacing.sm),
-        _EcheanceCard(tour: prochainTour, noms: noms, membres: membres, tourGenere: tours.isNotEmpty),
+        CurrentTourCard(
+          tour: tourActuel,
+          noms: noms,
+          membres: membres,
+          tourGenere: tours.isNotEmpty,
+          onCollecter: !isAdmin || tourActuel == null
+              ? null
+              : () => context.go('${AppRouter.cotisationsPath}/${tourActuel.id}'),
+        ),
+        if (tourActuel != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          ContributionProgress(collecte: totalCollecte, attendu: totalAttendu),
+        ],
         const SizedBox(height: AppSpacing.lg),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -124,138 +166,33 @@ class _Contenu extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  backgroundColor: AppColors.canvas,
-                  child: Icon(Icons.groups_rounded, color: AppColors.indigo),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Text(
-                    actifs == 0
-                        ? 'Aucun membre actif pour le moment'
-                        : '$actifs membre${actifs > 1 ? 's' : ''} actif${actifs > 1 ? 's' : ''}',
-                    style: Theme.of(context).textTheme.bodyLarge,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => context.go(AppRouter.membresPath),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    backgroundColor: AppColors.canvas,
+                    child: Icon(Icons.groups_rounded, color: AppColors.indigo),
                   ),
-                ),
-                const Icon(Icons.chevron_right, color: AppColors.slate),
-              ],
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Text(
+                      actifs == 0
+                          ? 'Aucun membre actif pour le moment'
+                          : '$actifs membre${actifs > 1 ? 's' : ''} actif${actifs > 1 ? 's' : ''}',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: AppColors.slate),
+                ],
+              ),
             ),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.montantParTour});
-
-  final int montantParTour;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.ink,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Distribué par tour', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.accent)),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text('$montantParTour FCFA', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.surface)),
-                ],
-              ),
-            ),
-            const CircleAvatar(backgroundColor: AppColors.accent, child: Icon(Icons.savings_outlined, color: AppColors.ink, size: 28)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EcheanceCard extends StatelessWidget {
-  const _EcheanceCard({
-    required this.tour,
-    required this.noms,
-    required this.membres,
-    required this.tourGenere,
-  });
-
-  final Tour? tour;
-  final List<Nom> noms;
-  final List<Membre> membres;
-  final bool tourGenere;
-
-  String _libelleNom(String nomId) {
-    for (final nom in noms) {
-      if (nom.id == nomId) return nom.libelle;
-    }
-    return 'Nom inconnu';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!tourGenere) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            children: [
-              const Icon(Icons.event_busy_outlined, color: AppColors.slate),
-              const SizedBox(width: AppSpacing.sm),
-              const Expanded(
-                child: Text(
-                  "L'échéancier n'a pas encore été généré. Attribuez les noms puis générez-le depuis Membres.",
-                  style: AppTypography.secondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    if (tour == null) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.md),
-          child: Text('Tous les tours ont été remis. Bravo !', style: AppTypography.body),
-        ),
-      );
-    }
-    final date = tour!.datePrevue;
-    final formatted = '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: AppColors.canvas,
-              child: Text('${tour!.position}', style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(_libelleNom(tour!.nomId), style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 2),
-                  Text('Prévu le $formatted', style: AppTypography.secondary),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

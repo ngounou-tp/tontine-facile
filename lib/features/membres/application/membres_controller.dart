@@ -91,13 +91,46 @@ class MembresController extends AsyncNotifier<void> {
         return invitation;
       });
 
+  /// Attribue [nombreDeNoms] noms supplémentaires à un membre déjà
+  /// enregistré — même logique que la part « noms » de
+  /// [inviterMembreAvecNoms], utilisable après coup depuis sa fiche.
+  Future<void> attribuerNomsSupplementaires({
+    required String tontineId,
+    required String membreId,
+    required double nombreDeNoms,
+  }) => _runVoid(
+        () => _attribuerNoms(
+          tontineId: tontineId,
+          membreId: membreId,
+          nombreDeNoms: nombreDeNoms,
+        ),
+      );
+
   Future<void> _attribuerNoms({
     required String tontineId,
     required String membreId,
     required double nombreDeNoms,
   }) async {
     if (nombreDeNoms <= 0) return;
+    final tontine = await _tontines.getTontine(tontineId);
     final noms = await _tontines.getNoms(tontineId);
+
+    if (tontine != null) {
+      final completeraUnNomExistant = (nombreDeNoms % 1 >= 0.5 - 1e-6) &&
+          noms.any((nom) {
+            final somme = nom.parts.fold<double>(0, (total, part) => total + part.fraction);
+            return (somme - 0.5).abs() < 1e-6;
+          });
+      final demiRestant = nombreDeNoms % 1 >= 0.5 - 1e-6 && !completeraUnNomExistant ? 1 : 0;
+      final nouveauxNoms = nombreDeNoms.truncate() + demiRestant;
+      if (noms.length + nouveauxNoms > tontine.nombreDeNoms) {
+        throw ArgumentError(
+          'Cette attribution dépasserait le nombre de noms prévu pour la '
+          'tontine (${tontine.nombreDeNoms}).',
+        );
+      }
+    }
+
     var prochainePosition = noms.length + 1;
     var restant = nombreDeNoms;
 
@@ -166,6 +199,7 @@ class MembresController extends AsyncNotifier<void> {
             whatsapp: whatsapp,
             uid: membre.uid,
             actif: membre.actif,
+            codeInvitation: membre.codeInvitation,
           ),
         ),
       );
@@ -197,6 +231,7 @@ class MembresController extends AsyncNotifier<void> {
             whatsapp: membre.whatsapp,
             uid: membre.uid,
             actif: actif,
+            codeInvitation: membre.codeInvitation,
           ),
         ),
       );

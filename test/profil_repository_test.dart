@@ -97,6 +97,9 @@ class FakeProfilDataSource implements ProfilDataSource {
   Future<ProfilModel?> getProfil(String uid) async => profils[uid];
 
   @override
+  Stream<ProfilModel?> watchProfil(String uid) => Stream.value(profils[uid]);
+
+  @override
   Future<void> saveProfil(ProfilModel profil) async =>
       profils[profil.uid] = profil;
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseException;
@@ -5,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseException;
 import '../../core/errors/app_exception.dart';
 import '../../domain/entities/app_user.dart';
 import '../../domain/entities/invitation.dart';
+import '../../domain/entities/membre.dart';
 import '../../domain/entities/profil.dart';
 import '../../domain/entities/session.dart';
 import '../../domain/entities/tontine.dart';
@@ -37,13 +39,46 @@ class InscriptionService {
 
   /// Session courante : `null` si déconnecté, sinon l'utilisateur Firebase
   /// Auth accompagné de son profil (`null` si l'inscription n'a pas abouti).
-  Stream<Session?> get session => authService.authStateChanges.asyncMap(
-        (utilisateur) async {
-          if (utilisateur == null) return null;
-          final profil = await profilRepository.getProfil(utilisateur.uid);
-          return Session(utilisateur: utilisateur, profil: profil);
-        },
-      );
+  ///
+  /// Suit le profil Firestore EN DIRECT (pas seulement l'état Firebase Auth) :
+  /// juste après avoir rejoint une tontine ou créé un compte, l'utilisateur
+  /// reste le même du point de vue de Firebase Auth (aucune nouvelle
+  /// émission de `authStateChanges`), alors que le profil, lui, vient
+  /// d'apparaître. Sans ce suivi séparé, le routeur ne serait jamais
+  /// notifié du nouveau profil et resterait bloqué sur un écran destiné aux
+  /// comptes sans tontine (voir `AppRouter.redirect`).
+  Stream<Session?> get session {
+    late StreamController<Session?> controleur;
+    StreamSubscription<Profil?>? abonnementProfil;
+    StreamSubscription<AppUser?>? abonnementAuth;
+
+    void suivreProfil(AppUser? utilisateur) {
+      abonnementProfil?.cancel();
+      if (utilisateur == null) {
+        abonnementProfil = null;
+        controleur.add(null);
+        return;
+      }
+      abonnementProfil = profilRepository.watchProfil(utilisateur.uid).listen(
+            (profil) => controleur.add(Session(utilisateur: utilisateur, profil: profil)),
+            onError: controleur.addError,
+          );
+    }
+
+    controleur = StreamController<Session?>.broadcast(
+      onListen: () {
+        abonnementAuth = authService.authStateChanges.listen(
+          suivreProfil,
+          onError: controleur.addError,
+        );
+      },
+      onCancel: () {
+        abonnementAuth?.cancel();
+        abonnementProfil?.cancel();
+      },
+    );
+    return controleur.stream;
+  }
 
   /// Inscription de l'administratrice : crée le compte, la tontine, son
   /// propre membre, et le profil qui les relie.
@@ -138,6 +173,18 @@ class InscriptionService {
         nombreMembres: 1,
       ),
     );
+    await tontineRepository.saveMembre(
+      tontine.id,
+      Membre(
+        id: membre.id,
+        nomComplet: membre.nomComplet,
+        email: membre.email,
+        whatsapp: membre.whatsapp,
+        uid: membre.uid,
+        actif: membre.actif,
+        codeInvitation: tontine.codeInvitation,
+      ),
+    );
     await tontineRepository.claimMembre(
       tontineId: tontine.id,
       membreId: membre.id,
@@ -188,6 +235,21 @@ class InscriptionService {
         nombreMembres: membres.length,
       );
       await profilRepository.saveInvitation(invitation);
+      // Dénormalisé sur la fiche pour rester consultable depuis
+      // `FicheMembrePage` après la création (l'écran d'ajout ne le montre
+      // qu'une fois).
+      await tontineRepository.saveMembre(
+        tontineId,
+        Membre(
+          id: membre.id,
+          nomComplet: membre.nomComplet,
+          email: membre.email,
+          whatsapp: membre.whatsapp,
+          uid: membre.uid,
+          actif: membre.actif,
+          codeInvitation: code,
+        ),
+      );
       return invitation;
     }
     throw StateError("Impossible de générer un code d'invitation unique.");

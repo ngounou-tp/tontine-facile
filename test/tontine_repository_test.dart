@@ -140,16 +140,31 @@ class FakeTontineDataSource implements TontineDataSource {
   Future<void> saveTour(String tontineId, TourModel tour) async {}
 
   @override
+  String nouvelIdCotisation(String tontineId) => 'cotisation-id';
+
+  @override
   Future<void> saveCotisation(
     String tontineId,
     CotisationModel cotisation,
   ) async {}
 
   @override
+  Stream<List<CotisationModel>> watchCotisations(String tontineId) => Stream.value(const []);
+
+  @override
+  String nouvelIdDeclaration(String tontineId) => 'declaration-id';
+
+  @override
   Future<void> saveDeclaration(
     String tontineId,
     DeclarationModel declaration,
   ) async {}
+
+  @override
+  Stream<List<DeclarationModel>> watchDeclarations(String tontineId) => Stream.value(const []);
+
+  @override
+  String nouvelIdPreuve(String tontineId) => 'preuve-id';
 
   @override
   Future<void> savePreuve(String tontineId, PreuveModel preuve) async {}
@@ -180,6 +195,9 @@ class FakeTontineDataSource implements TontineDataSource {
 
   @override
   Future<List<ChangementModel>> getChangements(String tontineId) async => const [];
+
+  @override
+  Stream<List<ChangementModel>> watchChangements(String tontineId) => Stream.value(const []);
 }
 
 Tontine _tontine() => Tontine(

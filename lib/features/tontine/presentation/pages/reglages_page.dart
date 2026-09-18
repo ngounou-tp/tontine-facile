@@ -1,154 +1,165 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
-import '../../../../domain/entities/tontine.dart';
-import '../../../../domain/enums/regle_penalite.dart';
-import '../../../../domain/value_objects/regle_periodicite.dart';
-import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
-import '../../../../shared/widgets/loading_view.dart';
 import '../../../auth/application/auth_controller.dart';
-import '../../application/tontine_providers.dart';
-import '../widgets/penalite_field.dart' show libellePenalite;
+import '../../../auth/application/auth_providers.dart';
 
-/// Onglet Réglages : récapitulatif en lecture seule de la tontine (les
-/// règles sont immuables une fois créées, voir `ValidationTontine` /
-/// `CreerTontinePage`) et actions de compte.
+/// Onglet Réglages : menu des paramètres de l'application (tontine, profil
+/// utilisateur...) et actions de compte.
 class ReglagesPage extends ConsumerWidget {
   const ReglagesPage({super.key});
 
-  String _libellePeriodicite(ReglePeriodicite regle) => switch (regle) {
-        RegleTousLesNJours(:final jours) => 'Tous les $jours jours',
-        RegleChaqueSemaine(:final jour) => 'Chaque ${jour.libelle.toLowerCase()}',
-        RegleToutesLesDeuxSemaines(:final jour) =>
-          'Toutes les deux semaines, le ${jour.libelle.toLowerCase()}',
-        RegleChaqueMoisJourFixe(:final jour) => 'Chaque mois, le $jour',
-        RegleChaqueMoisSemaine(:final occurrence, :final jour) =>
-          '${occurrence.libelle} ${jour.libelle.toLowerCase()} du mois',
-      };
-
-  Future<void> _copierCode(BuildContext context, String code) async {
-    await Clipboard.setData(ClipboardData(text: code));
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Code copié.')));
+  Future<void> _confirmerDeconnexion(BuildContext context, WidgetRef ref) async {
+    final confirme = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Se déconnecter ?'),
+        content: const Text('Vous devrez vous reconnecter pour accéder à votre tontine.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Se déconnecter'),
+          ),
+        ],
+      ),
+    );
+    if (confirme == true) {
+      await ref.read(authControllerProvider.notifier).deconnecter();
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tontineAsync = ref.watch(tontineProvider);
+    final session = ref.watch(sessionProvider).value;
+    final membreId = session?.profil?.membreId;
+    final isAdmin = ref.watch(isAdminProvider);
 
     return AppScaffold(
-      selectedNavIndex: 3,
+      selectedNavIndex: 4,
       appBar: AppBar(title: const Text('Réglages')),
-      body: tontineAsync.when(
-        loading: () => const LoadingView(),
-        error: (_, _) => const Center(child: Text('Impossible de charger la tontine.')),
-        data: (tontine) => tontine == null
-            ? const Center(child: Text('Aucune tontine associée à ce compte.'))
-            : _Contenu(tontine: tontine, formatterPeriodicite: _libellePeriodicite, onCopier: _copierCode),
-      ),
-    );
-  }
-}
-
-class _Contenu extends ConsumerWidget {
-  const _Contenu({
-    required this.tontine,
-    required this.formatterPeriodicite,
-    required this.onCopier,
-  });
-
-  final Tontine tontine;
-  final String Function(ReglePeriodicite) formatterPeriodicite;
-  final Future<void> Function(BuildContext, String) onCopier;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final busy = ref.watch(authControllerProvider).isLoading;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 460),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            Text('Votre tontine', style: AppTypography.screenTitle),
-            const SizedBox(height: AppSpacing.md),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  children: [
-                    _ligne('Nom', tontine.nom),
-                    _ligne('Montant par nom', '${tontine.montantParNom} FCFA'),
-                    _ligne('Fréquence', formatterPeriodicite(tontine.periodicite)),
-                    _ligne('Pénalité', libellePenalite(tontine.reglePenalite)),
-                    if (tontine.reglePenalite != ReglePenalite.aucune)
-                      _ligne('Valeur de la pénalité', '${tontine.valeurPenalite ?? '—'}'),
-                    _ligne('Délai de grâce', '${tontine.delaiGraceJours} jour(s)'),
-                    _ligne('Répartition des parts', tontine.modeParts.libelle, dernier: true),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            const Text(
-              'Ces règles sont figées après la création de la tontine et ne peuvent plus être modifiées.',
-              style: AppTypography.micro,
+            const _EnTeteSection('Groupe'),
+            _CarteMenu(
+              icon: Icons.groups_outlined,
+              title: 'Réglages de la tontine',
+              subtitle: isAdmin
+                  ? 'Nom, montant, pénalité, nombre de noms'
+                  : 'Consulter (lecture seule)',
+              onTap: () => context.go('${AppRouter.reglagesPath}/tontine'),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('Code d\'invitation', style: AppTypography.screenTitle),
-            const SizedBox(height: AppSpacing.sm),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        tontine.codeInvitation,
-                        style: AppTypography.screenTitle.copyWith(letterSpacing: 4),
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Copier le code',
-                      icon: const Icon(Icons.copy_outlined),
-                      onPressed: () => onCopier(context, tontine.codeInvitation),
-                    ),
-                  ],
-                ),
-              ),
+            const _EnTeteSection('Compte'),
+            _CarteMenu(
+              icon: Icons.person_outline,
+              title: 'Mon profil',
+              subtitle: isAdmin
+                  ? 'Vos coordonnées et votre code d\'invitation'
+                  : 'Vos noms, vos cotisations et vos déclarations',
+              onTap: isAdmin
+                  ? (membreId == null ? null : () => context.go('${AppRouter.membresPath}/$membreId'))
+                  : () => context.go(AppRouter.espaceMembrePath),
             ),
             const SizedBox(height: AppSpacing.xl),
-            AppButton(
-              label: 'Se déconnecter',
-              variant: AppButtonVariant.destructive,
-              busy: busy,
-              onPressed: busy ? null : () => ref.read(authControllerProvider.notifier).deconnecter(),
+            _CarteMenu(
+              icon: Icons.logout,
+              title: 'Se déconnecter',
+              iconColor: AppColors.danger,
+              titleColor: AppColors.danger,
+              onTap: () => _confirmerDeconnexion(context, ref),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _ligne(String label, String valeur, {bool dernier = false}) {
+class _EnTeteSection extends StatelessWidget {
+  const _EnTeteSection(this.titre);
+
+  final String titre;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: dernier ? 0 : AppSpacing.sm),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: Text(label, style: AppTypography.secondary)),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            flex: 2,
-            child: Text(valeur, textAlign: TextAlign.right, style: AppTypography.body),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm, left: AppSpacing.xs),
+      child: Text(titre.toUpperCase(), style: AppTypography.micro),
+    );
+  }
+}
+
+class _CarteMenu extends StatelessWidget {
+  const _CarteMenu({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.iconColor = AppColors.indigo,
+    this.titleColor,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Color iconColor;
+  final Color? titleColor;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: titleColor,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(subtitle!, style: AppTypography.secondary),
+                    ],
+                  ],
+                ),
+              ),
+              if (onTap != null) const Icon(Icons.chevron_right, color: AppColors.slate),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -295,6 +295,37 @@ void main() {
     expect(session.profil, isNotNull);
     expect(evenements, contains(false));
   });
+
+  test(
+    'session émet le profil dès qu\'il apparaît, sans nouvel événement '
+    'Firebase Auth (rejoindre une tontine sans se reconnecter)',
+    () async {
+      // Compte déjà authentifié mais sans profil — le cas exact d'une
+      // personne qui vient de saisir un code d'invitation sur un compte
+      // existant : `rejoindreAvecCode` crée le profil, mais Firebase Auth
+      // ne réémet rien puisque l'utilisateur reste connecté.
+      //
+      // On s'abonne à `session` AVANT `signUp` : `authStateChanges` est un
+      // flux broadcast qui ne rejoue rien aux abonnés tardifs, donc un
+      // abonnement après coup manquerait l'émission initiale.
+      final profilsEmis = <Profil?>[];
+      final sub = service.session.listen((value) => profilsEmis.add(value?.profil));
+      await Future<void>.delayed(Duration.zero);
+
+      final utilisateur = await auth.signUp(email: 'membre@example.com', password: 'secret123');
+      await Future<void>.delayed(Duration.zero);
+      expect(profilsEmis.last, isNull);
+
+      await profils.saveProfil(
+        Profil(uid: utilisateur.uid, tontineId: 't-1', membreId: 'm-1'),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+
+      expect(profilsEmis.last, isNotNull);
+      expect(profilsEmis.last!.tontineId, 't-1');
+    },
+  );
 }
 
 Tontine _brouillonTontine() => Tontine(
@@ -499,6 +530,10 @@ class FakeTontineRepository implements TontineRepository {
   @override
   Future<void> saveCotisation(String tontineId, Cotisation cotisation) async {}
   @override
+  String nouvelIdCotisation(String tontineId) => 'cotisation-${_nextId++}';
+  @override
+  Stream<List<Cotisation>> watchCotisations(String tontineId) => Stream.value(const []);
+  @override
   Future<List<Declaration>> getDeclarations(String tontineId) async =>
       const [];
   @override
@@ -511,23 +546,45 @@ class FakeTontineRepository implements TontineRepository {
   @override
   Future<void> savePreuve(String tontineId, Preuve preuve) async {}
   @override
+  String nouvelIdDeclaration(String tontineId) => 'declaration-${_nextId++}';
+  @override
+  Stream<List<Declaration>> watchDeclarations(String tontineId) => Stream.value(const []);
+  @override
+  String nouvelIdPreuve(String tontineId) => 'preuve-${_nextId++}';
+  @override
   Future<List<Changement>> getChangements(String tontineId) async => const [];
   @override
   Future<void> saveChangement(
     String tontineId,
     Changement changement,
   ) async {}
+  @override
+  Stream<List<Changement>> watchChangements(String tontineId) => Stream.value(const []);
 }
 
 class FakeProfilRepository implements ProfilRepository {
   final Map<String, Profil> profils = {};
   final Map<String, Invitation> invitations = {};
 
-  @override
-  Future<Profil?> getProfil(String uid) async => profils[uid];
+  // Un vrai flux (pas Stream.value, qui n'émettrait qu'une fois) : nécessaire
+  // pour vérifier que `InscriptionService.session` réagit bien à un profil
+  // qui apparaît/change SANS nouvel événement Firebase Auth (voir le test de
+  // régression ci-dessous).
+  final _controller = StreamController<Profil?>.broadcast();
 
   @override
-  Future<void> saveProfil(Profil profil) async => profils[profil.uid] = profil;
+  Future<Profil?> getProfil(String uid) async => profils[uid];
+  @override
+  Stream<Profil?> watchProfil(String uid) async* {
+    yield profils[uid];
+    yield* _controller.stream.map((_) => profils[uid]);
+  }
+
+  @override
+  Future<void> saveProfil(Profil profil) async {
+    profils[profil.uid] = profil;
+    _controller.add(profil);
+  }
 
   @override
   Future<Invitation?> getInvitation(String code) async => invitations[code];

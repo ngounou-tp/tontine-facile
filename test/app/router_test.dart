@@ -108,8 +108,10 @@ void main() {
   );
 
   testWidgets(
-    'un membre ne peut pas ouvrir /membres ni /cotisations/:tourId : il est '
-    'renvoyé vers /espace-membre',
+    'un membre consulte Accueil, Membres, Échéancier, Réglages, '
+    'Déclarations et Cotisations (qui a déjà contribué) en lecture seule, '
+    'mais ne peut pas ouvrir /membres/ajouter : il est renvoyé vers '
+    '/espace-membre',
     (tester) async {
       final tontines = FakeTontineRepository()
         ..saved['t-1'] = _tontine(adminUid: 'uid-admin');
@@ -134,11 +136,20 @@ void main() {
 
       final router = await pumpRouter(tester, container: container);
 
-      router.go(AppRouter.membresPath);
-      await tester.pumpAndSettle();
-      expect(currentPath(router), AppRouter.espaceMembrePath);
+      for (final lecture in [
+        AppRouter.accueilPath,
+        AppRouter.membresPath,
+        AppRouter.echeancierPath,
+        AppRouter.reglagesPath,
+        AppRouter.declarationsPath,
+        '${AppRouter.cotisationsPath}/tour-1',
+      ]) {
+        router.go(lecture);
+        await tester.pumpAndSettle();
+        expect(currentPath(router), lecture);
+      }
 
-      router.go('${AppRouter.cotisationsPath}/tour-1');
+      router.go('${AppRouter.membresPath}/ajouter');
       await tester.pumpAndSettle();
       expect(currentPath(router), AppRouter.espaceMembrePath);
     },
@@ -174,6 +185,49 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(currentPath(router), AppRouter.membresPath);
+    },
+  );
+
+  testWidgets(
+    'un compte qui vient de rejoindre une tontine (profil pas encore '
+    "propagé au moment de la navigation) finit par atterrir sur "
+    '/espace-membre sans navigation explicite supplémentaire',
+    (tester) async {
+      final tontines = FakeTontineRepository()
+        ..saved['t-1'] = _tontine(adminUid: 'uid-admin');
+      final profils = FakeProfilRepository();
+      final container = ProviderContainer(
+        overrides: [
+          authServiceProvider.overrideWithValue(
+            FakeAuthService(
+              const AppUser(uid: 'uid-membre', emailVerified: true),
+            ),
+          ),
+          tontineRepositoryProvider.overrideWithValue(tontines),
+          profilRepositoryProvider.overrideWithValue(profils),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final router = await pumpRouter(tester, container: container);
+
+      // Reproduit `InscriptionPage._inscrire` : navigation explicite vers
+      // /espace-membre lancée juste après l'écriture Firestore du profil,
+      // avant que celui-ci n'ait eu le temps de se propager au routeur (la
+      // session ne le reflète pas encore à cet instant précis).
+      router.go(AppRouter.espaceMembrePath);
+      await tester.pumpAndSettle();
+      expect(currentPath(router), AppRouter.choixPath);
+
+      // Le profil apparaît ensuite (écriture Firestore désormais visible du
+      // routeur) : la redirection réactive doit, seule, renvoyer vers
+      // /espace-membre.
+      await profils.saveProfil(
+        const Profil(uid: 'uid-membre', tontineId: 't-1', membreId: 'm-1'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(currentPath(router), AppRouter.espaceMembrePath);
     },
   );
 }
@@ -352,6 +406,10 @@ class FakeTontineRepository implements TontineRepository {
   @override
   Future<void> saveCotisation(String tontineId, Cotisation cotisation) async {}
   @override
+  String nouvelIdCotisation(String tontineId) => 'cotisation-${_nextId++}';
+  @override
+  Stream<List<Cotisation>> watchCotisations(String tontineId) => Stream.value(const []);
+  @override
   Future<List<Declaration>> getDeclarations(String tontineId) async =>
       const [];
   @override
@@ -364,23 +422,45 @@ class FakeTontineRepository implements TontineRepository {
   @override
   Future<void> savePreuve(String tontineId, Preuve preuve) async {}
   @override
+  String nouvelIdDeclaration(String tontineId) => 'declaration-${_nextId++}';
+  @override
+  Stream<List<Declaration>> watchDeclarations(String tontineId) => Stream.value(const []);
+  @override
+  String nouvelIdPreuve(String tontineId) => 'preuve-${_nextId++}';
+  @override
   Future<List<Changement>> getChangements(String tontineId) async => const [];
   @override
   Future<void> saveChangement(
     String tontineId,
     Changement changement,
   ) async {}
+  @override
+  Stream<List<Changement>> watchChangements(String tontineId) => Stream.value(const []);
 }
 
 class FakeProfilRepository implements ProfilRepository {
   final Map<String, Profil> profils = {};
   final Map<String, Invitation> invitations = {};
 
-  @override
-  Future<Profil?> getProfil(String uid) async => profils[uid];
+  // Un vrai flux (pas `Stream.value`, qui n'émettrait qu'une fois) : sans
+  // ça, un profil ajouté après le premier abonnement de `watchProfil`
+  // (le cas exact d'une adhésion via code pendant que l'app est déjà sur un
+  // écran "sans profil") ne serait jamais répercuté au routeur.
+  final _controller = StreamController<Profil?>.broadcast();
 
   @override
-  Future<void> saveProfil(Profil profil) async => profils[profil.uid] = profil;
+  Future<Profil?> getProfil(String uid) async => profils[uid];
+  @override
+  Stream<Profil?> watchProfil(String uid) async* {
+    yield profils[uid];
+    yield* _controller.stream.map((_) => profils[uid]);
+  }
+
+  @override
+  Future<void> saveProfil(Profil profil) async {
+    profils[profil.uid] = profil;
+    _controller.add(profil);
+  }
 
   @override
   Future<Invitation?> getInvitation(String code) async => invitations[code];

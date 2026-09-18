@@ -9,6 +9,7 @@ class MembreModel {
     this.whatsapp,
     this.uid,
     this.actif = true,
+    this.codeInvitation,
   });
 
   final String id;
@@ -17,6 +18,7 @@ class MembreModel {
   final String? whatsapp;
   final String? uid;
   final bool actif;
+  final String? codeInvitation;
 
   factory MembreModel.fromFirestore(
     Map<String, dynamic> data, {
@@ -31,6 +33,7 @@ class MembreModel {
       actif: data['actif'] == null
           ? true
           : FirestoreCodec.requiredBool(data, 'actif'),
+      codeInvitation: FirestoreCodec.optionalString(data, 'codeInvitation'),
     );
   }
 
@@ -41,6 +44,7 @@ class MembreModel {
         whatsapp: entity.whatsapp,
         uid: entity.uid,
         actif: entity.actif,
+        codeInvitation: entity.codeInvitation,
       );
 
   Membre toEntity() => Membre(
@@ -50,6 +54,7 @@ class MembreModel {
         whatsapp: whatsapp,
         uid: uid,
         actif: actif,
+        codeInvitation: codeInvitation,
       );
 
   Map<String, dynamic> toFirestore() => {
@@ -58,5 +63,6 @@ class MembreModel {
         if (whatsapp != null) 'whatsapp': whatsapp,
         if (uid != null) 'uid': uid,
         'actif': actif,
+        if (codeInvitation != null) 'codeInvitation': codeInvitation,
       };
 }

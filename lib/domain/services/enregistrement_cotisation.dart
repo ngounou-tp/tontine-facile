@@ -28,6 +28,7 @@ class EnregistrementCotisation {
     required DateTime datePaiement,
     String? preuveId,
     String? motifException,
+    bool exonererPenalite = false,
   }) {
     _verifierEntrees(id, adminUid, membreId, tour);
     final montantDu = calculateur.calculerMontantDuPourMembre(
@@ -35,15 +36,20 @@ class EnregistrementCotisation {
       nom: nom,
       membreId: membreId,
     );
-    final penalite = calculateur.calculerPenalite(
-      tontine: tontine,
-      nom: nom,
-      datePaiement: datePaiement,
-      dateEcheance: tour.datePrevue,
-    );
     if (motifException != null && motifException.trim().isEmpty) {
       throw ArgumentError('Le motif d’exception ne peut pas être vide.');
     }
+    if (exonererPenalite && (motifException == null || motifException.trim().isEmpty)) {
+      throw ArgumentError('La levée de la pénalité exige un motif non vide.');
+    }
+    final penalite = exonererPenalite
+        ? 0
+        : calculateur.calculerPenalite(
+            tontine: tontine,
+            nom: nom,
+            datePaiement: datePaiement,
+            dateEcheance: tour.datePrevue,
+          );
 
     final cotisation = Cotisation(
       id: id,

@@ -64,18 +64,24 @@ abstract interface class TontineRepository {
   Stream<List<Tour>> watchTours(String tontineId);
 
   // Cotisations
+  String nouvelIdCotisation(String tontineId);
   Future<List<Cotisation>> getCotisations(String tontineId);
   Future<void> saveCotisation(String tontineId, Cotisation cotisation);
+  Stream<List<Cotisation>> watchCotisations(String tontineId);
 
   // Declarations
+  String nouvelIdDeclaration(String tontineId);
   Future<List<Declaration>> getDeclarations(String tontineId);
   Future<void> saveDeclaration(String tontineId, Declaration declaration);
+  Stream<List<Declaration>> watchDeclarations(String tontineId);
 
   // Preuves
+  String nouvelIdPreuve(String tontineId);
   Future<List<Preuve>> getPreuves(String tontineId);
   Future<void> savePreuve(String tontineId, Preuve preuve);
 
   // Changements
   Future<List<Changement>> getChangements(String tontineId);
   Future<void> saveChangement(String tontineId, Changement changement);
+  Stream<List<Changement>> watchChangements(String tontineId);
 }

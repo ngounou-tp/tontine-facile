@@ -11,13 +11,19 @@ import '../features/auth/presentation/pages/connexion_page.dart';
 import '../features/auth/presentation/pages/inscription_page.dart';
 import '../features/auth/presentation/pages/rejoindre_tontine_page.dart';
 import '../features/auth/presentation/pages/verify_email_page.dart';
+import '../features/cotisations/presentation/pages/declarations_en_attente_page.dart';
+import '../features/cotisations/presentation/pages/detail_declaration_page.dart';
+import '../features/cotisations/presentation/pages/saisir_cotisation_page.dart';
 import '../features/echeancier/presentation/pages/echeancier_page.dart';
+import '../features/espace_membre/presentation/pages/declarer_paiement_page.dart';
+import '../features/espace_membre/presentation/pages/espace_membre_page.dart';
 import '../features/membres/presentation/pages/ajouter_membre_page.dart';
 import '../features/membres/presentation/pages/attribuer_nom_page.dart';
 import '../features/membres/presentation/pages/fiche_membre_page.dart';
 import '../features/membres/presentation/pages/membres_page.dart';
 import '../features/tontine/presentation/pages/creer_tontine_page.dart';
 import '../features/tontine/presentation/pages/home_page.dart';
+import '../features/tontine/presentation/pages/modifier_tontine_page.dart';
 import '../features/tontine/presentation/pages/reglages_page.dart';
 import '../shared/pages/route_placeholder_page.dart';
 import 'firebase_setup.dart';
@@ -94,7 +100,12 @@ abstract final class AppRouter {
     GoRoute(
       path: espaceMembrePath,
       name: 'espace-membre',
-      builder: (_, _) => const RoutePlaceholderPage(title: 'Mon espace'),
+      builder: (_, _) => const EspaceMembrePage(),
+    ),
+    GoRoute(
+      path: '$espaceMembrePath/declarer/:nomId',
+      name: 'declarer-paiement',
+      builder: (_, state) => DeclarerPaiementPage(nomId: state.pathParameters['nomId']!),
     ),
     GoRoute(
       path: membresPath,
@@ -132,18 +143,25 @@ abstract final class AppRouter {
       builder: (_, _) => const ReglagesPage(),
     ),
     GoRoute(
+      path: '$reglagesPath/tontine',
+      name: 'modifier-tontine',
+      builder: (_, _) => const ModifierTontinePage(),
+    ),
+    GoRoute(
       path: '$cotisationsPath/:tourId',
       name: 'cotisations',
-      builder: (_, state) => RoutePlaceholderPage(
-        title: 'Cotisations — tour ${state.pathParameters['tourId']}',
-      ),
+      builder: (_, state) => SaisirCotisationPage(tourId: state.pathParameters['tourId']!),
     ),
     GoRoute(
       path: declarationsPath,
       name: 'declarations',
-      builder: (_, _) => const RoutePlaceholderPage(
-        title: 'Déclarations en attente',
-      ),
+      builder: (_, _) => const DeclarationsEnAttentePage(),
+    ),
+    GoRoute(
+      path: '$declarationsPath/:declarationId',
+      name: 'detail-declaration',
+      builder: (_, state) =>
+          DetailDeclarationPage(declarationId: state.pathParameters['declarationId']!),
     ),
   ];
 
@@ -185,16 +203,22 @@ abstract final class AppRouter {
     final isAdmin = tontine.adminUid == session.utilisateur.uid;
     if (isAdmin) {
       if (_isPublic(location) || _isNoProfileDestination(location) ||
-          location == rootPath || location == espaceMembrePath ||
+          location == rootPath ||
+          location == espaceMembrePath || location.startsWith('$espaceMembrePath/') ||
           location == verifyEmailPath) {
         return accueilPath;
       }
       return null;
     }
 
-    if (_isAdminDestination(location) || _isPublic(location) ||
-        _isNoProfileDestination(location) || location == rootPath ||
-        location == verifyEmailPath) {
+    // Membre : les mêmes sections que l'administratrice (Accueil, Membres,
+    // Échéancier, Réglages, Déclarations) sont ouvertes, mais en lecture
+    // seule — chaque écran masque ses propres actions via `isAdminProvider`.
+    // Seules les routes de création/édition/traitement restent bloquées ici
+    // en plus (défense en profondeur, cohérent avec les règles Firestore).
+    if (_isPublic(location) || _isNoProfileDestination(location) ||
+        location == rootPath || location == verifyEmailPath ||
+        _isAdminOnlyWriteDestination(location)) {
       return espaceMembrePath;
     }
     return null;
@@ -208,14 +232,12 @@ abstract final class AppRouter {
       location == creerTontinePath ||
       location == choixPath;
 
-  static bool _isAdminDestination(String location) =>
-      location == accueilPath ||
-      location == membresPath ||
-      location.startsWith('$membresPath/') ||
-      location == echeancierPath ||
-      location == reglagesPath ||
-      location == declarationsPath ||
-      location.startsWith('$cotisationsPath/');
+  // `$reglagesPath/tontine` et `$cotisationsPath/` n'y figurent pas :
+  // `ModifierTontinePage` et `SaisirCotisationPage` restent accessibles en
+  // lecture seule à un membre (voir `isAdminProvider`) — la seconde lui
+  // permet de voir qui a déjà contribué à un tour.
+  static bool _isAdminOnlyWriteDestination(String location) =>
+      location == '$membresPath/ajouter' || location.startsWith('$membresPath/noms/');
 }
 
 class _RouterRefreshNotifier extends ChangeNotifier {

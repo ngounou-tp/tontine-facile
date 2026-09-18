@@ -82,39 +82,81 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
     final busy = ref.watch(authControllerProvider).isLoading;
     final authentifie = ref.watch(sessionProvider).value != null;
     return Scaffold(
-      appBar: AppBar(leading: IconButton(icon: const Icon(Icons.arrow_back), tooltip: 'Retour', onPressed: () => context.go(authentifie ? AppRouter.choixPath : AppRouter.connexionPath))),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Retour',
+          onPressed: () => context.go(authentifie ? AppRouter.choixPath : AppRouter.connexionPath),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 560),
-              child: Column(children: [
-                const SizedBox(height: AppSpacing.xl),
-                Text('Entrez votre code d’invitation', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium),
-                const SizedBox(height: AppSpacing.xl),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List.generate(6, (index) => SizedBox(
-                    width: 48,
-                    child: TextField(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      enabled: !busy,
-                      maxLength: 1,
-                      textAlign: TextAlign.center,
-                      textCapitalization: TextCapitalization.characters,
-                      style: _codeStyle,
-                      decoration: const InputDecoration(counterText: ''),
-                      onChanged: (value) => _onCharacterChanged(index, value),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: AppSpacing.md),
+                  const Text(
+                    'Entrez votre code d’invitation',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.screenTitle,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  const Text(
+                    'Six caractères, remis par la trésorière du groupe.',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.secondary,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      border: Border.all(color: AppColors.indigo, width: 2),
+                      borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
                     ),
-                  )),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                if (_code.length == 6) _ApercuTontine(code: _code),
-                const SizedBox(height: AppSpacing.lg),
-                SizedBox(width: double.infinity, child: AppButton(label: 'Rejoindre', variant: AppButtonVariant.accent, busy: busy, onPressed: busy ? null : _rejoindre)),
-              ]),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: List.generate(6, (index) => Expanded(
+                        child: SizedBox(
+                          width: 48,
+                          child: TextField(
+                            controller: _controllers[index],
+                            focusNode: _focusNodes[index],
+                            enabled: !busy,
+                            maxLength: 1,
+                            textAlign: TextAlign.center,
+                            textCapitalization: TextCapitalization.characters,
+                            style: _codeStyle,
+                            decoration: const InputDecoration(
+                              counterText: '',
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                            ),
+                            onChanged: (value) => _onCharacterChanged(index, value),
+                          ),
+                        ),
+                      )),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text('Clavier majuscules · collage autorisé', style: AppTypography.secondary),
+                      Text('6 / 6', style: AppTypography.micro),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  if (_code.length == 6) _ApercuTontine(code: _code),
+                  const SizedBox(height: AppSpacing.lg),
+                  SizedBox(width: double.infinity, child: AppButton(label: 'Rejoindre', variant: AppButtonVariant.accent, busy: busy, onPressed: busy ? null : _rejoindre)),
+                ],
+              ),
             ),
           ),
         ),

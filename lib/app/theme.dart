@@ -50,27 +50,64 @@ abstract final class AppTheme {
         secondary: AppColors.accent,
         onSurface: AppColors.ink,
       ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.indigo,
+        foregroundColor: AppColors.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: AppColors.surface),
+        actionsIconTheme: IconThemeData(color: AppColors.surface),
+        titleTextStyle: TextStyle(
+          color: AppColors.surface,
+          fontFamily: 'Sora',
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      // Chaque TabBar de l'app est logée dans l'AppBar (son paramètre
+      // `bottom`) : sans ce thème, les libellés/indicateur reprennent les
+      // couleurs par défaut prévues pour un fond clair et deviennent
+      // quasi invisibles sur le nouveau fond bleu indigo.
+      tabBarTheme: const TabBarThemeData(
+        labelColor: AppColors.surface,
+        unselectedLabelColor: Color(0xB3FFFFFF),
+        indicatorColor: AppColors.accent,
+        labelStyle: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w400),
+      ),
       textTheme: base.textTheme.apply(fontFamily: 'Inter').copyWith(
         headlineMedium: const TextStyle(color: AppColors.ink, fontFamily: 'Sora', fontSize: 28, fontWeight: FontWeight.w600, height: 1.1),
         titleLarge: const TextStyle(color: AppColors.ink, fontFamily: 'Sora', fontSize: 20, fontWeight: FontWeight.w600),
         bodyLarge: const TextStyle(color: AppColors.ink, fontSize: 16, height: 1.4),
         bodyMedium: const TextStyle(color: AppColors.slate, fontSize: 14, height: 1.35),
       ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        indicatorColor: AppColors.canvas,
+        labelTextStyle: WidgetStatePropertyAll(
+          const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size.fromHeight(48),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.controlRadius)),
+          textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(48),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.controlRadius)),
+          textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.controlRadius)),
+          textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       cardTheme: CardThemeData(
@@ -82,9 +119,11 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppSpacing.controlRadius), borderSide: const BorderSide(color: AppColors.line)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppSpacing.controlRadius), borderSide: const BorderSide(color: AppColors.line)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppSpacing.controlRadius), borderSide: const BorderSide(color: AppColors.indigo, width: 2)),
+        hintStyle: const TextStyle(color: AppColors.slate, fontFamily: 'Inter', fontSize: 15),
       ),
     );
   }

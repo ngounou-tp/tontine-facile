@@ -265,12 +265,92 @@ void main() {
       ..sort();
     expect(fractions, [0.5, 1.0]);
   });
+
+  test(
+    'attribuerNomsSupplementaires ajoute des noms à un membre déjà enregistré',
+    () async {
+      tontines.membres['m-1'] = const Membre(id: 'm-1', nomComplet: 'Rose Domche');
+      final notifier = container.read(membresControllerProvider.notifier);
+
+      await notifier.attribuerNomsSupplementaires(
+        tontineId: 't-1',
+        membreId: 'm-1',
+        nombreDeNoms: 2,
+      );
+
+      expect(tontines.noms, hasLength(2));
+      expect(
+        tontines.noms.values.every((n) => n.parts.single.membreId == 'm-1'),
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'attribuerNomsSupplementaires refuse de dépasser le nombre de noms de '
+    'la tontine',
+    () async {
+      // La tontine du setUp() prévoit nombreDeNoms: 10.
+      tontines.membres['m-1'] = const Membre(id: 'm-1', nomComplet: 'Rose Domche');
+      final notifier = container.read(membresControllerProvider.notifier);
+
+      await expectLater(
+        () => notifier.attribuerNomsSupplementaires(
+          tontineId: 't-1',
+          membreId: 'm-1',
+          nombreDeNoms: 11,
+        ),
+        throwsArgumentError,
+      );
+      expect(tontines.noms, isEmpty);
+    },
+  );
+
+  test(
+    'attribuerNomsSupplementaires accepte exactement le quota restant',
+    () async {
+      tontines.membres['m-1'] = const Membre(id: 'm-1', nomComplet: 'Rose Domche');
+      final notifier = container.read(membresControllerProvider.notifier);
+
+      await notifier.attribuerNomsSupplementaires(
+        tontineId: 't-1',
+        membreId: 'm-1',
+        nombreDeNoms: 10,
+      );
+
+      expect(tontines.noms, hasLength(10));
+    },
+  );
+
+  test(
+    'modifierMembre et desactiverMembre conservent le codeInvitation existant',
+    () async {
+      tontines.membres['m-1'] = const Membre(
+        id: 'm-1',
+        nomComplet: 'Rose Domche',
+        codeInvitation: 'ABC123',
+      );
+      final notifier = container.read(membresControllerProvider.notifier);
+
+      await notifier.modifierMembre(
+        tontineId: 't-1',
+        membre: tontines.membres['m-1']!,
+        nomComplet: 'Rose D.',
+      );
+      expect(tontines.membres['m-1']!.codeInvitation, 'ABC123');
+
+      await notifier.desactiverMembre(tontineId: 't-1', membre: tontines.membres['m-1']!);
+      expect(tontines.membres['m-1']!.codeInvitation, 'ABC123');
+      expect(tontines.membres['m-1']!.actif, isFalse);
+    },
+  );
 }
 
 class FakeTontineRepository implements TontineRepository {
   final Map<String, Tontine> saved = {};
   final Map<String, Membre> membres = {};
   final Map<String, Nom> noms = {};
+  final Map<String, Tour> tours = {};
   var _nextId = 0;
 
   @override
@@ -334,28 +414,57 @@ class FakeTontineRepository implements TontineRepository {
   @override
   Stream<List<Nom>> watchNoms(String tontineId) => Stream.value(noms.values.toList());
   @override
-  Stream<List<Tour>> watchTours(String tontineId) => Stream.value(const []);
+  Stream<List<Tour>> watchTours(String tontineId) => Stream.value(tours.values.toList());
 
   @override
-  Future<List<Tour>> getTours(String tontineId) async => const [];
+  Future<List<Tour>> getTours(String tontineId) async => tours.values.toList();
   @override
-  Future<void> saveTour(String tontineId, Tour tour) async {}
+  Future<void> saveTour(String tontineId, Tour tour) async => tours[tour.id] = tour;
+
+  final Map<String, Cotisation> cotisations = {};
   @override
-  Future<List<Cotisation>> getCotisations(String tontineId) async => const [];
+  String nouvelIdCotisation(String tontineId) => 'cotisation-${_nextId++}';
   @override
-  Future<void> saveCotisation(String tontineId, Cotisation cotisation) async {}
+  Future<List<Cotisation>> getCotisations(String tontineId) async =>
+      cotisations.values.toList();
   @override
-  Future<List<Declaration>> getDeclarations(String tontineId) async => const [];
+  Future<void> saveCotisation(String tontineId, Cotisation cotisation) async =>
+      cotisations[cotisation.id] = cotisation;
   @override
-  Future<void> saveDeclaration(String tontineId, Declaration declaration) async {}
+  Stream<List<Cotisation>> watchCotisations(String tontineId) =>
+      Stream.value(cotisations.values.toList());
+
+  final Map<String, Declaration> declarations = {};
   @override
-  Future<List<Preuve>> getPreuves(String tontineId) async => const [];
+  String nouvelIdDeclaration(String tontineId) => 'declaration-${_nextId++}';
   @override
-  Future<void> savePreuve(String tontineId, Preuve preuve) async {}
+  Future<List<Declaration>> getDeclarations(String tontineId) async =>
+      declarations.values.toList();
   @override
-  Future<List<Changement>> getChangements(String tontineId) async => const [];
+  Future<void> saveDeclaration(String tontineId, Declaration declaration) async =>
+      declarations[declaration.id] = declaration;
   @override
-  Future<void> saveChangement(String tontineId, Changement changement) async {}
+  Stream<List<Declaration>> watchDeclarations(String tontineId) =>
+      Stream.value(declarations.values.toList());
+
+  final Map<String, Preuve> preuves = {};
+  @override
+  String nouvelIdPreuve(String tontineId) => 'preuve-${_nextId++}';
+  @override
+  Future<List<Preuve>> getPreuves(String tontineId) async => preuves.values.toList();
+  @override
+  Future<void> savePreuve(String tontineId, Preuve preuve) async =>
+      preuves[preuve.id] = preuve;
+
+  final Map<String, Changement> changements = {};
+  @override
+  Future<List<Changement>> getChangements(String tontineId) async => changements.values.toList();
+  @override
+  Future<void> saveChangement(String tontineId, Changement changement) async =>
+      changements[changement.id] = changement;
+  @override
+  Stream<List<Changement>> watchChangements(String tontineId) =>
+      Stream.value(changements.values.toList());
 }
 
 class FakeAuthService implements AuthService {
@@ -399,6 +508,8 @@ class FakeProfilRepository implements ProfilRepository {
 
   @override
   Future<Profil?> getProfil(String uid) async => profils[uid];
+  @override
+  Stream<Profil?> watchProfil(String uid) => Stream.value(profils[uid]);
   @override
   Future<void> saveProfil(Profil profil) async => profils[profil.uid] = profil;
   @override

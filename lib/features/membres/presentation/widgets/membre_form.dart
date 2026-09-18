@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../shared/widgets/app_button.dart';
+import 'nombre_de_noms_field.dart';
 
 /// Valeur soumise par [MembreForm] : nom complet, au moins un moyen de
 /// contact (email ou WhatsApp), et le nombre de noms attribués — un
@@ -87,14 +88,6 @@ class _MembreFormState extends State<MembreForm> {
     ));
   }
 
-  String _formatterNombreDeNoms(double valeur) {
-    final entier = valeur.truncate();
-    final demi = valeur - entier >= 0.5 - 1e-9;
-    if (entier == 0 && demi) return '½ nom';
-    if (!demi) return '$entier nom${entier > 1 ? 's' : ''}';
-    return '$entier½ noms';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -137,36 +130,9 @@ class _MembreFormState extends State<MembreForm> {
             const SizedBox(height: AppSpacing.md),
             const Text('Nombre de noms', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: AppSpacing.xs),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                border: Border.all(color: AppColors.line),
-                borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    tooltip: 'Retirer une demie',
-                    icon: const Icon(Icons.remove_circle_outline),
-                    onPressed: _nombreDeNoms > 0
-                        ? () => setState(() => _nombreDeNoms -= 0.5)
-                        : null,
-                  ),
-                  Expanded(
-                    child: Text(
-                      _formatterNombreDeNoms(_nombreDeNoms),
-                      textAlign: TextAlign.center,
-                      style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Ajouter une demie',
-                    icon: const Icon(Icons.add_circle_outline),
-                    onPressed: () => setState(() => _nombreDeNoms += 0.5),
-                  ),
-                ],
-              ),
+            NombreDeNomsField(
+              value: _nombreDeNoms,
+              onChanged: (valeur) => setState(() => _nombreDeNoms = valeur),
             ),
             const SizedBox(height: AppSpacing.xs),
             const Text(

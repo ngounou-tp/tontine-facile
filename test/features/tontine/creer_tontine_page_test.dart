@@ -36,17 +36,35 @@ void main() {
         GoRoute(path: '/bienvenue', builder: (_, _) => const Text('BIENVENUE_PAGE')),
       ],
     );
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          inscriptionServiceProvider.overrideWithValue(
-            InscriptionService(
-              authService: auth,
-              tontineRepository: tontines,
-              profilRepository: profils,
-            ),
+    final container = ProviderContainer(
+      overrides: [
+        inscriptionServiceProvider.overrideWithValue(
+          InscriptionService(
+            authService: auth,
+            tontineRepository: tontines,
+            profilRepository: profils,
           ),
-        ],
+        ),
+        // `currentTontineProvider` (utilisé par
+        // `CreerTontinePage._attendreTontine`) dépend directement de ces
+        // providers, pas seulement de `inscriptionServiceProvider` : sans
+        // ça, il tombe sur les implémentations Firestore réelles et échoue
+        // (Firebase non initialisé sous `flutter_test`).
+        tontineRepositoryProvider.overrideWithValue(tontines),
+        profilRepositoryProvider.overrideWithValue(profils),
+      ],
+    );
+    addTearDown(container.dispose);
+    // `CreerTontinePage._attendreTontine` `ref.read`/`listenManual` la
+    // session et `currentTontineProvider` : sans un abonnement actif établi
+    // dès le départ, ces StreamProvider/FutureProvider ne quittent jamais
+    // `AsyncLoading` sous `flutter_test` (voir le même commentaire dans
+    // `router_test.dart`).
+    container.listen(sessionProvider, (_, _) {});
+    container.listen(currentTontineProvider, (_, _) {});
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
         child: MaterialApp.router(routerConfig: router),
       ),
     );
@@ -137,8 +155,15 @@ class FakeAuthService implements AuthService {
 
   final _controller = StreamController<AppUser?>.broadcast();
 
+  // Émet l'utilisateur courant dès l'abonnement (comme `FirebaseAuth`), afin
+  // que `sessionProvider` (suivi par `CreerTontinePage._attendreTontine`)
+  // sorte immédiatement de l'état `loading` même si `signUp` a déjà eu lieu
+  // avant que quiconque écoute ce flux.
   @override
-  Stream<AppUser?> get authStateChanges => _controller.stream;
+  Stream<AppUser?> get authStateChanges async* {
+    yield _currentUser;
+    yield* _controller.stream;
+  }
 
   @override
   Future<AppUser> signUp({required String email, required String password}) async {
@@ -245,6 +270,10 @@ class FakeTontineRepository implements TontineRepository {
   @override
   Future<void> saveCotisation(String tontineId, Cotisation cotisation) async {}
   @override
+  String nouvelIdCotisation(String tontineId) => 'cotisation-${_nextId++}';
+  @override
+  Stream<List<Cotisation>> watchCotisations(String tontineId) => Stream.value(const []);
+  @override
   Future<List<Declaration>> getDeclarations(String tontineId) async => const [];
   @override
   Future<void> saveDeclaration(String tontineId, Declaration declaration) async {}
@@ -253,19 +282,42 @@ class FakeTontineRepository implements TontineRepository {
   @override
   Future<void> savePreuve(String tontineId, Preuve preuve) async {}
   @override
+  String nouvelIdDeclaration(String tontineId) => 'declaration-${_nextId++}';
+  @override
+  Stream<List<Declaration>> watchDeclarations(String tontineId) => Stream.value(const []);
+  @override
+  String nouvelIdPreuve(String tontineId) => 'preuve-${_nextId++}';
+  @override
   Future<List<Changement>> getChangements(String tontineId) async => const [];
   @override
   Future<void> saveChangement(String tontineId, Changement changement) async {}
+  @override
+  Stream<List<Changement>> watchChangements(String tontineId) => Stream.value(const []);
 }
 
 class FakeProfilRepository implements ProfilRepository {
   final Map<String, Profil> profils = {};
   final Map<String, Invitation> invitations = {};
 
+  // Un vrai flux (pas `Stream.value`, qui n'émettrait qu'une fois) : la
+  // page attend désormais que le profil apparaisse (voir
+  // `CreerTontinePage._attendreTontine`) avant de naviguer.
+  final _controller = StreamController<Profil?>.broadcast();
+
   @override
   Future<Profil?> getProfil(String uid) async => profils[uid];
   @override
-  Future<void> saveProfil(Profil profil) async => profils[profil.uid] = profil;
+  Stream<Profil?> watchProfil(String uid) async* {
+    yield profils[uid];
+    yield* _controller.stream.map((_) => profils[uid]);
+  }
+
+  @override
+  Future<void> saveProfil(Profil profil) async {
+    profils[profil.uid] = profil;
+    _controller.add(profil);
+  }
+
   @override
   Future<Invitation?> getInvitation(String code) async => invitations[code];
   @override

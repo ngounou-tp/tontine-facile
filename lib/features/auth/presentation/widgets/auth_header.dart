@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
+import '../../../../shared/widgets/tontine_logo.dart';
 
 class AuthHeader extends StatelessWidget {
   const AuthHeader({super.key});
@@ -9,7 +10,7 @@ class AuthHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Image.asset('assets/images/logo_placeholder.png', width: 88, height: 88),
+        const TontineLogo(size: 88, activeIndex: 0),
         const SizedBox(height: AppSpacing.md),
         const Text('TontineFacile', style: AppTypography.pageTitle),
         const SizedBox(height: AppSpacing.xs),

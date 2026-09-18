@@ -13,10 +13,16 @@ const _glyphsParDenominateur = {
   8: {1: '⅛', 3: '⅜', 5: '⅝', 7: '⅞'},
 };
 
-/// Formate une fraction pour affichage : « part entière », un glyphe usuel
-/// (« ½ », « ⅓ »…) ou un pourcentage arrondi en dernier recours.
+/// Formate une fraction pour affichage, en phrase comme en badge : « 1 »,
+/// un glyphe usuel (« ½ », « ⅓ »…) ou un pourcentage arrondi en dernier
+/// recours. Volontairement court partout — « Part entière » débordait des
+/// badges circulaires et des colonnes étroites (éditeur de parts).
 String formatFraction(double fraction) {
-  if ((fraction - 1).abs() < 1e-6) return 'Part entière';
+  if ((fraction - 1).abs() < 1e-6) return '1';
+  return _glyphe(fraction);
+}
+
+String _glyphe(double fraction) {
   for (final entry in _glyphsParDenominateur.entries) {
     final numerateur = (fraction * entry.key).round();
     if ((numerateur / entry.key - fraction).abs() < 1e-6) {

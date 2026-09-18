@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +12,7 @@ import '../../../../domain/enums/regle_penalite.dart';
 import '../../../../domain/value_objects/regle_periodicite.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/state/flash_message.dart';
+import '../../../auth/application/auth_providers.dart';
 import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAuth;
 import '../../application/creation_tontine_controller.dart';
 import '../widgets/mode_parts_selector.dart';
@@ -148,6 +151,14 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
             nomCompletAdmin: _nomAdmin.text.trim(),
             tontineSansId: tontineSansId,
           );
+      // La tontine et le profil viennent d'être écrits dans Firestore, mais
+      // la session/tontine courantes (qui les suivent en direct) peuvent ne
+      // pas l'avoir encore répercuté : naviguer tout de suite ferait
+      // rebondir le routeur sur /bienvenue, qui traite un profil pas encore
+      // propagé comme absent (voir `AppRouter.redirect`). On attend.
+      if (ref.read(currentTontineProvider).value == null) {
+        await _attendreTontine();
+      }
       if (mounted) {
         ref.read(flashMessageProvider.notifier).set(
             'Tontine créée avec succès. Ajoutez vos premiers membres.');
@@ -155,6 +166,26 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
       }
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
+    }
+  }
+
+  /// Attend la prochaine émission de [currentTontineProvider] non nulle
+  /// (avec une limite raisonnable pour ne jamais bloquer indéfiniment si la
+  /// propagation échoue).
+  Future<void> _attendreTontine() async {
+    final completeur = Completer<void>();
+    final abonnement = ref.listenManual(currentTontineProvider, (_, next) {
+      if (next.value != null && !completeur.isCompleted) {
+        completeur.complete();
+      }
+    });
+    try {
+      await completeur.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {},
+      );
+    } finally {
+      abonnement.close();
     }
   }
 
@@ -176,16 +207,41 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
               : (_etape > 0 ? _precedent : () => context.go(AppRouter.choixPath)),
         ),
         automaticallyImplyLeading: false,
-        title: Text('Étape ${_etape + 1} sur ${_titresEtapes.length}'),
+        title: const Text('Créer une tontine'),
       ),
       body: SafeArea(
         child: Column(
           children: [
-            LinearProgressIndicator(
-              value: (_etape + 1) / _titresEtapes.length,
-              backgroundColor: AppColors.line,
-              color: AppColors.indigo,
-              minHeight: 4,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Étape ${_etape + 1} sur ${_titresEtapes.length}',
+                    style: AppTypography.micro.copyWith(color: AppColors.slate),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(_titresEtapes[_etape], style: AppTypography.screenTitle),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: List.generate(
+                      _titresEtapes.length,
+                      (index) => Expanded(
+                        child: Container(
+                          margin: EdgeInsets.only(right: index < _titresEtapes.length - 1 ? AppSpacing.xs : 0),
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: index <= _etape ? AppColors.indigo : AppColors.surface,
+                            border: Border.all(color: AppColors.line),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -195,8 +251,6 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(_titresEtapes[_etape], style: AppTypography.screenTitle),
-                      const SizedBox(height: AppSpacing.lg),
                       _contenuEtape(),
                     ],
                   ),
@@ -256,19 +310,38 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
       children: [
         const Text('Nom du groupe', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
-        TextFormField(controller: _nomGroupe, textCapitalization: TextCapitalization.words),
+        TextFormField(
+          controller: _nomGroupe,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(hintText: 'Tontine des Dames'),
+        ),
         const SizedBox(height: AppSpacing.md),
         const Text('Votre nom complet', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
-        TextFormField(controller: _nomAdmin, textCapitalization: TextCapitalization.words),
+        TextFormField(
+          controller: _nomAdmin,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(hintText: 'Adèle Tchoumi'),
+        ),
         const SizedBox(height: AppSpacing.md),
-        const Text('Montant par nom (FCFA)', style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text('Montant par nom', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
-        TextFormField(controller: _montant, keyboardType: TextInputType.number),
+        TextFormField(
+          controller: _montant,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            hintText: '25 000',
+            suffixText: 'FCFA',
+          ),
+        ),
         const SizedBox(height: AppSpacing.md),
         const Text('Nombre de noms', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
-        TextFormField(controller: _nombreDeNoms, keyboardType: TextInputType.number),
+        TextFormField(
+          controller: _nombreDeNoms,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(hintText: '20'),
+        ),
         const SizedBox(height: AppSpacing.xs),
         const Text(
           'Combien de noms (parts) comptera la tontine au total ? Vous les attribuerez '
@@ -281,15 +354,30 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
         InkWell(
           borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
           onTap: _choisirDate,
-          child: InputDecorator(
-            decoration: const InputDecoration(),
-            child: Text(
-              _datePremiereEcheance == null
-                  ? 'Choisir une date'
-                  : '${_datePremiereEcheance!.day.toString().padLeft(2, '0')}/'
-                    '${_datePremiereEcheance!.month.toString().padLeft(2, '0')}/'
-                    '${_datePremiereEcheance!.year}',
-              style: AppTypography.body,
+          child: Container(
+            height: 56,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              border: Border.all(color: AppColors.line),
+              borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today_outlined, color: AppColors.slate, size: 18),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    _datePremiereEcheance == null
+                        ? 'Choisir une date'
+                        : '${_datePremiereEcheance!.day.toString().padLeft(2, '0')}/'
+                          '${_datePremiereEcheance!.month.toString().padLeft(2, '0')}/'
+                          '${_datePremiereEcheance!.year}',
+                    style: AppTypography.body,
+                  ),
+                ),
+                const Icon(Icons.expand_more, color: AppColors.slate),
+              ],
             ),
           ),
         ),

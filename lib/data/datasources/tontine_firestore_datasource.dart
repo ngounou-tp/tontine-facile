@@ -44,6 +44,12 @@ abstract interface class TontineDataSource {
   String nouvelIdNom(String tontineId);
   Future<void> saveNom(String tontineId, NomModel nom);
   Future<void> saveTour(String tontineId, TourModel tour);
+
+  /// Identifiants frais (aucun accès réseau) pour une nouvelle cotisation,
+  /// déclaration ou preuve de [tontineId].
+  String nouvelIdCotisation(String tontineId);
+  String nouvelIdDeclaration(String tontineId);
+  String nouvelIdPreuve(String tontineId);
   Future<void> saveCotisation(String tontineId, CotisationModel cotisation);
   Future<void> saveDeclaration(String tontineId, DeclarationModel declaration);
   Future<void> savePreuve(String tontineId, PreuveModel preuve);
@@ -64,6 +70,17 @@ abstract interface class TontineDataSource {
 
   /// Programme, triée par position.
   Stream<List<TourModel>> watchTours(String tontineId);
+
+  /// Cotisations officielles, mises à jour en direct (tableau de bord,
+  /// écran de collecte).
+  Stream<List<CotisationModel>> watchCotisations(String tontineId);
+
+  /// Déclarations de paiement des membres, mises à jour en direct (bannière
+  /// « en attente », espace membre).
+  Stream<List<DeclarationModel>> watchDeclarations(String tontineId);
+
+  /// Historique des réorganisations de l'échéancier, mis à jour en direct.
+  Stream<List<ChangementModel>> watchChangements(String tontineId);
 }
 
 class FirestoreTontineDataSource implements TontineDataSource {
@@ -177,6 +194,18 @@ class FirestoreTontineDataSource implements TontineDataSource {
   Future<void> saveTour(String tontineId, TourModel tour) => _avecDelai(
         () => _subcollection(tontineId, 'tours').doc(tour.id).set(tour.toFirestore()),
       );
+
+  @override
+  String nouvelIdCotisation(String tontineId) =>
+      _subcollection(tontineId, 'cotisations').doc().id;
+
+  @override
+  String nouvelIdDeclaration(String tontineId) =>
+      _subcollection(tontineId, 'declarations').doc().id;
+
+  @override
+  String nouvelIdPreuve(String tontineId) =>
+      _subcollection(tontineId, 'preuves').doc().id;
 
   @override
   Future<void> saveCotisation(
@@ -322,6 +351,34 @@ class FirestoreTontineDataSource implements TontineDataSource {
         'tours',
         (data, id) => TourModel.fromFirestore(data, id: id),
         orderBy: 'position',
+      );
+
+  @override
+  Stream<List<CotisationModel>> watchCotisations(String tontineId) =>
+      _watchSubcollection(
+        tontineId,
+        'cotisations',
+        (data, id) => CotisationModel.fromFirestore(data, id: id),
+        orderBy: 'datePaiement',
+        descending: true,
+      );
+
+  @override
+  Stream<List<DeclarationModel>> watchDeclarations(String tontineId) =>
+      _watchSubcollection(
+        tontineId,
+        'declarations',
+        (data, id) => DeclarationModel.fromFirestore(data, id: id),
+        orderBy: 'createdAt',
+      );
+
+  @override
+  Stream<List<ChangementModel>> watchChangements(String tontineId) =>
+      _watchSubcollection(
+        tontineId,
+        'changements',
+        (data, id) => ChangementModel.fromFirestore(data, id: id),
+        orderBy: 'createdAt',
       );
 
   Stream<List<T>> _watchSubcollection<T>(

@@ -12,11 +12,13 @@ import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../../../../shared/state/flash_message.dart';
+import '../../../auth/application/auth_providers.dart';
 import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAuth;
 import '../../../echeancier/application/echeancier_controller.dart';
 import '../../../echeancier/application/echeancier_providers.dart';
 import '../../../tontine/application/tontine_providers.dart';
 import '../../application/membres_providers.dart';
+import '../widgets/nombre_de_noms_field.dart' show formatterNombreDeNoms;
 import '../widgets/parts_editor.dart';
 
 /// Liste des membres et des noms de la tontine courante, avec les actions
@@ -30,39 +32,66 @@ class MembresPage extends ConsumerWidget {
     FlashMessageListener.attach(ref, context);
     final membresAsync = ref.watch(membresProvider);
     final nomsAsync = ref.watch(nomsProvider);
+    final noms = nomsAsync.value ?? const [];
+    final membres = membresAsync.value ?? const [];
+    final isAdmin = ref.watch(isAdminProvider);
 
-    return AppScaffold(
-      selectedNavIndex: 1,
-      appBar: AppBar(title: const Text('Membres')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('${AppRouter.membresPath}/ajouter'),
-        backgroundColor: AppColors.accent,
-        foregroundColor: AppColors.ink,
-        icon: const Icon(Icons.add),
-        label: const Text('Ajouter'),
+    return DefaultTabController(
+      length: 2,
+      child: AppScaffold(
+        selectedNavIndex: 1,
+        appBar: AppBar(
+          title: const Text('Membres'),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: 'Noms (${noms.length})'),
+              Tab(text: 'Membres (${membres.length})'),
+            ],
+          ),
+        ),
+        floatingActionButton: !isAdmin
+            ? null
+            : FloatingActionButton.extended(
+                onPressed: () => context.go('${AppRouter.membresPath}/ajouter'),
+                backgroundColor: AppColors.accent,
+                foregroundColor: AppColors.ink,
+                icon: const Icon(Icons.add),
+                label: const Text('Ajouter'),
+              ),
+        body: membresAsync.hasError || nomsAsync.hasError
+            ? ErrorView(
+                message: 'Impossible de charger les membres.',
+                onRetry: () {
+                  ref.invalidate(membresProvider);
+                  ref.invalidate(nomsProvider);
+                },
+              )
+            : (membresAsync.isLoading || nomsAsync.isLoading) &&
+                    !membresAsync.hasValue &&
+                    !nomsAsync.hasValue
+                ? const LoadingView()
+                : _Contenu(membres: membres, noms: noms, isAdmin: isAdmin),
       ),
-      body: membresAsync.hasError || nomsAsync.hasError
-          ? ErrorView(
-              message: 'Impossible de charger les membres.',
-              onRetry: () {
-                ref.invalidate(membresProvider);
-                ref.invalidate(nomsProvider);
-              },
-            )
-          : (membresAsync.isLoading || nomsAsync.isLoading) &&
-                  !membresAsync.hasValue &&
-                  !nomsAsync.hasValue
-              ? const LoadingView()
-              : _Contenu(membres: membresAsync.value ?? const [], noms: nomsAsync.value ?? const []),
     );
   }
 }
 
 class _Contenu extends ConsumerWidget {
-  const _Contenu({required this.membres, required this.noms});
+  const _Contenu({required this.membres, required this.noms, required this.isAdmin});
 
   final List<Membre> membres;
   final List<Nom> noms;
+  final bool isAdmin;
+
+  double _totalParts(String membreId) {
+    var total = 0.0;
+    for (final nom in noms) {
+      for (final part in nom.parts) {
+        if (part.membreId == membreId) total += part.fraction;
+      }
+    }
+    return total;
+  }
 
   Future<void> _genererEcheancier(BuildContext context, WidgetRef ref) async {
     final tontine = ref.read(tontineProvider).value;
@@ -95,98 +124,101 @@ class _Contenu extends ConsumerWidget {
     final peutGenerer = tousLesNomsValides && quotaAtteint && tours.isEmpty;
 
     return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          AppSpacing.sm,
-          AppSpacing.md,
-          AppSpacing.xl,
-        ),
+      child: TabBarView(
         children: [
-            if (tontine != null) ...[
-              Text(
-                '${actifs.length} membre${actifs.length > 1 ? 's' : ''} · '
-                '${noms.length}/${tontine.nombreDeNoms} noms',
-                style: AppTypography.secondary,
-              ),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Noms & parts', style: AppTypography.screenTitle),
+          ListView(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xl),
+            children: [
+              if (tontine != null) ...[
+                Text(
+                  '${noms.length}/${tontine.nombreDeNoms} noms attribués',
+                  style: AppTypography.secondary,
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              if (isAdmin && !quotaAtteint) ...[
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: AppButton(
+                    label: 'Attribuer',
+                    icon: Icons.add,
+                    variant: AppButtonVariant.tertiary,
+                    onPressed: () => context.go('${AppRouter.membresPath}/noms/nouveau'),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+              ],
+              if (noms.isEmpty)
+                const _CarteVide(
+                  message: "Aucun nom n'a encore été créé. Attribuez le premier pour commencer.",
+                )
+              else
+                ...noms.map(
+                  (nom) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: _NomCard(
+                      nom: nom,
+                      membres: membres,
+                      onTap: !isAdmin
+                          ? null
+                          : () => context.go('${AppRouter.membresPath}/noms/${nom.id}'),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: AppSpacing.lg),
+              if (isAdmin && peutGenerer)
                 AppButton(
-                  label: 'Attribuer',
-                  icon: Icons.add,
-                  variant: AppButtonVariant.tertiary,
-                  onPressed: () => context.go('${AppRouter.membresPath}/noms/nouveau'),
+                  label: 'Générer l\'échéancier',
+                  icon: Icons.event_available_outlined,
+                  variant: AppButtonVariant.accent,
+                  busy: busyEcheancier,
+                  onPressed: busyEcheancier ? null : () => _genererEcheancier(context, ref),
+                )
+              else if (isAdmin && tousLesNomsValides && !quotaAtteint && tours.isEmpty && tontine != null)
+                _CarteVide(
+                  message: 'Encore ${tontine.nombreDeNoms - noms.length} nom(s) à attribuer avant '
+                      "de pouvoir générer l'échéancier.",
+                ),
+            ],
+          ),
+          ListView(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xl),
+            children: [
+              Text('Membres actifs (${actifs.length})', style: AppTypography.screenTitle),
+              const SizedBox(height: AppSpacing.sm),
+              if (actifs.isEmpty)
+                const _CarteVide(message: 'Aucun membre actif pour le moment.')
+              else
+                ...actifs.map(
+                  (membre) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: _MembreCard(
+                      membre: membre,
+                      totalParts: _totalParts(membre.id),
+                      onTap: () => context.go('${AppRouter.membresPath}/${membre.id}'),
+                    ),
+                  ),
+                ),
+              if (inactifs.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.lg),
+                Text('Membres désactivés (${inactifs.length})', style: AppTypography.screenTitle),
+                const SizedBox(height: AppSpacing.sm),
+                ...inactifs.map(
+                  (membre) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: _MembreCard(
+                      membre: membre,
+                      totalParts: _totalParts(membre.id),
+                      onTap: () => context.go('${AppRouter.membresPath}/${membre.id}'),
+                    ),
+                  ),
                 ),
               ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            if (noms.isEmpty)
-              const _CarteVide(
-                message: "Aucun nom n'a encore été créé. Attribuez le premier pour commencer.",
-              )
-            else
-              ...noms.map(
-                (nom) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: _NomCard(
-                    nom: nom,
-                    membres: membres,
-                    onTap: () => context.go('${AppRouter.membresPath}/noms/${nom.id}'),
-                  ),
-                ),
-              ),
-            const SizedBox(height: AppSpacing.lg),
-            if (peutGenerer) ...[
-              AppButton(
-                label: 'Générer l\'échéancier',
-                icon: Icons.event_available_outlined,
-                variant: AppButtonVariant.accent,
-                busy: busyEcheancier,
-                onPressed: busyEcheancier ? null : () => _genererEcheancier(context, ref),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-            ] else if (tousLesNomsValides && !quotaAtteint && tours.isEmpty && tontine != null) ...[
-              _CarteVide(
-                message: 'Encore ${tontine.nombreDeNoms - noms.length} nom(s) à attribuer avant '
-                    "de pouvoir générer l'échéancier.",
-              ),
-              const SizedBox(height: AppSpacing.lg),
             ],
-            Text('Membres actifs (${actifs.length})', style: AppTypography.screenTitle),
-            const SizedBox(height: AppSpacing.sm),
-            if (actifs.isEmpty)
-              const _CarteVide(message: 'Aucun membre actif pour le moment.')
-            else
-              ...actifs.map(
-                (membre) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: _MembreCard(
-                    membre: membre,
-                    onTap: () => context.go('${AppRouter.membresPath}/${membre.id}'),
-                  ),
-                ),
-              ),
-            if (inactifs.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.lg),
-              Text('Membres désactivés (${inactifs.length})', style: AppTypography.screenTitle),
-              const SizedBox(height: AppSpacing.sm),
-              ...inactifs.map(
-                (membre) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: _MembreCard(
-                    membre: membre,
-                    onTap: () => context.go('${AppRouter.membresPath}/${membre.id}'),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -195,7 +227,7 @@ class _NomCard extends StatelessWidget {
 
   final Nom nom;
   final List<Membre> membres;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   String _nomComplet(String membreId) {
     for (final membre in membres) {
@@ -253,9 +285,10 @@ class _NomCard extends StatelessWidget {
 }
 
 class _MembreCard extends StatelessWidget {
-  const _MembreCard({required this.membre, required this.onTap});
+  const _MembreCard({required this.membre, required this.totalParts, required this.onTap});
 
   final Membre membre;
+  final double totalParts;
   final VoidCallback onTap;
 
   @override
@@ -290,15 +323,34 @@ class _MembreCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (enAttente)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(AppSpacing.xs),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.canvas,
+                      borderRadius: BorderRadius.circular(AppSpacing.xs),
+                    ),
+                    child: Text(
+                      formatterNombreDeNoms(totalParts),
+                      style: AppTypography.micro.copyWith(color: AppColors.indigo),
+                    ),
                   ),
-                  child: const Text('En attente', style: AppTypography.micro),
-                ),
+                  if (enAttente) ...[
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(AppSpacing.xs),
+                      ),
+                      child: const Text('En attente', style: AppTypography.micro),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(width: AppSpacing.xs),
               const Icon(Icons.chevron_right, color: AppColors.slate),
             ],
           ),

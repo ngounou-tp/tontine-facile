@@ -28,8 +28,8 @@ void main() {
   }
 
   group('formatFraction', () {
-    test('affiche "Part entière" pour 1', () {
-      expect(formatFraction(1), 'Part entière');
+    test('affiche "1" pour une part entière', () {
+      expect(formatFraction(1), '1');
     });
 
     test('affiche les glyphes usuels', () {
@@ -66,7 +66,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Total : 100 %'), findsOneWidget);
-    expect(find.text('Part entière'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget);
   });
 
   testWidgets('sélectionner deux membres répartit également 50 / 50', (tester) async {

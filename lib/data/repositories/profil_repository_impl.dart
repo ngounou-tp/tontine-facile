@@ -20,6 +20,10 @@ class FirestoreProfilRepository implements ProfilRepository {
       _dataSource.saveProfil(ProfilModel.fromEntity(profil));
 
   @override
+  Stream<Profil?> watchProfil(String uid) =>
+      _dataSource.watchProfil(uid).map((model) => model?.toEntity());
+
+  @override
   Future<Invitation?> getInvitation(String code) async =>
       (await _dataSource.getInvitation(code))?.toEntity();
 

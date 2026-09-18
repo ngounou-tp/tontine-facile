@@ -77,59 +77,68 @@ class _ConnexionPageState extends ConsumerState<ConnexionPage> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 460),
-              child: Column(children: [
-                const SizedBox(height: AppSpacing.xl),
-                const AuthHeader(),
-                const SizedBox(height: AppSpacing.xl),
-                AuthForm(
-                  formKey: _formKey,
-                  emailController: _email,
-                  passwordController: _password,
-                  submitLabel: 'Se connecter',
-                  onSubmit: _connecter,
-                  busy: busy,
-                  extraBeforeSubmit: Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: busy ? null : _reinitialiserMotDePasse,
-                      child: const Text('Mot de passe oublié ?'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: AppSpacing.xl),
+                  const AuthHeader(),
+                  const SizedBox(height: AppSpacing.xl),
+                  AuthForm(
+                    formKey: _formKey,
+                    emailController: _email,
+                    passwordController: _password,
+                    submitLabel: 'Se connecter',
+                    onSubmit: _connecter,
+                    busy: busy,
+                    extraBeforeSubmit: Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: busy ? null : _reinitialiserMotDePasse,
+                        child: const Text('Mot de passe oublié ?'),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                const Text('— ou —', textAlign: TextAlign.center, style: AppTypography.secondary),
-                const SizedBox(height: AppSpacing.md),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: busy ? null : _continuerAvecGoogle,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset('assets/images/google_logo.png', width: 20, height: 20),
-                        const SizedBox(width: AppSpacing.xs),
-                        const Text('Continuer avec Google'),
-                      ],
+                  const SizedBox(height: AppSpacing.md),
+                  const Row(
+                    children: [
+                      Expanded(child: Divider(color: AppColors.line)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                        child: Text('ou', style: AppTypography.secondary),
+                      ),
+                      Expanded(child: Divider(color: AppColors.line)),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: busy ? null : _continuerAvecGoogle,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.ink,
+                        side: const BorderSide(color: AppColors.indigo),
+                        minimumSize: const Size.fromHeight(56),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.controlRadius)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset('assets/images/google_logo.png', width: 20, height: 20),
+                          const SizedBox(width: AppSpacing.xs),
+                          const Text('Continuer avec Google'),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppButton(label: 'Créer un compte', variant: AppButtonVariant.tertiary, onPressed: busy ? null : () => context.go(AppRouter.inscriptionPath)),
-                const SizedBox(height: AppSpacing.lg),
-                InkWell(
-                  borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
-                  onTap: busy ? null : () => context.go(AppRouter.rejoindrePath),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                    child: Text(
-                      'Vous rejoignez une tontine existante ?\nUn code vous a été remis par votre trésorier.',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.secondary,
-                    ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppButton(
+                    label: 'Créer un compte',
+                    variant: AppButtonVariant.tertiary,
+                    onPressed: busy ? null : () => context.go(AppRouter.inscriptionPath),
                   ),
-                ),
-              ]),
+                ],
+              ),
             ),
           ),
         ),

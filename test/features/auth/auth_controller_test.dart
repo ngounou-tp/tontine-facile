@@ -362,6 +362,10 @@ class FakeTontineRepository implements TontineRepository {
   @override
   Future<void> saveCotisation(String tontineId, Cotisation cotisation) async {}
   @override
+  String nouvelIdCotisation(String tontineId) => 'cotisation-${_nextId++}';
+  @override
+  Stream<List<Cotisation>> watchCotisations(String tontineId) => Stream.value(const []);
+  @override
   Future<List<Declaration>> getDeclarations(String tontineId) async =>
       const [];
   @override
@@ -374,12 +378,20 @@ class FakeTontineRepository implements TontineRepository {
   @override
   Future<void> savePreuve(String tontineId, Preuve preuve) async {}
   @override
+  String nouvelIdDeclaration(String tontineId) => 'declaration-${_nextId++}';
+  @override
+  Stream<List<Declaration>> watchDeclarations(String tontineId) => Stream.value(const []);
+  @override
+  String nouvelIdPreuve(String tontineId) => 'preuve-${_nextId++}';
+  @override
   Future<List<Changement>> getChangements(String tontineId) async => const [];
   @override
   Future<void> saveChangement(
     String tontineId,
     Changement changement,
   ) async {}
+  @override
+  Stream<List<Changement>> watchChangements(String tontineId) => Stream.value(const []);
 }
 
 class FakeProfilRepository implements ProfilRepository {
@@ -388,6 +400,8 @@ class FakeProfilRepository implements ProfilRepository {
 
   @override
   Future<Profil?> getProfil(String uid) async => profils[uid];
+  @override
+  Stream<Profil?> watchProfil(String uid) => Stream.value(profils[uid]);
 
   @override
   Future<void> saveProfil(Profil profil) async => profils[profil.uid] = profil;
