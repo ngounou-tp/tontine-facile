@@ -7,19 +7,21 @@ import '../../../../app/theme.dart';
 import '../../../../domain/entities/membre.dart';
 import '../../../../domain/entities/tontine.dart';
 import '../../../../domain/enums/statut_cotisation.dart';
+import '../../../../domain/enums/statut_tour.dart';
 import '../../../../shared/state/flash_message.dart';
+import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
+import '../../../../shared/widgets/member_avatar.dart';
+import '../../../../shared/widgets/section_header.dart';
 import '../../../auth/application/auth_providers.dart';
 import '../../../cotisations/application/cotisations_providers.dart';
 import '../../../echeancier/application/echeancier_providers.dart';
 import '../../../membres/application/membres_providers.dart';
 import '../../application/tontine_providers.dart';
-import '../widgets/contribution_progress.dart';
 import '../widgets/current_tour_card.dart';
 import '../widgets/dashboard_stats_grid.dart';
-import '../widgets/dashboard_summary_card.dart';
 import '../widgets/pending_declarations_banner.dart';
 
 /// Tableau de bord de l'administratrice : vue d'ensemble de sa tontine
@@ -56,8 +58,11 @@ class HomePage extends ConsumerWidget {
               onPressed: () => context.go('${AppRouter.membresPath}/ajouter'),
               backgroundColor: AppColors.accent,
               foregroundColor: AppColors.ink,
-              icon: const Icon(Icons.add),
-              label: const Text('Ajouter'),
+              elevation: 2,
+              icon: const Icon(Icons.person_add_alt_1_outlined),
+              // « Ajouter » seul ne dit pas quoi : sur l'accueil, l'action
+              // n'a pas de contexte implicite.
+              label: const Text('Ajouter un membre'),
             ),
       body: tontineAsync.when(
         loading: () => const LoadingView(message: 'Chargement de votre tontine…'),
@@ -102,97 +107,151 @@ class _Contenu extends ConsumerWidget {
       }
     }
     final prenom = moi != null ? moi.nomComplet.split(' ').first : '';
-    final actifs = membres.where((m) => m.actif).length;
+    final membresActifs = membres.where((m) => m.actif).toList(growable: false);
+    final actifs = membresActifs.length;
 
     final cotisationsValidees =
         cotisations.where((c) => c.statut == StatutCotisation.validee);
     final paiementsATemps = cotisationsValidees.where((c) => c.penalite == 0).length;
     final paiementsEnRetard = cotisationsValidees.where((c) => c.penalite > 0).length;
-    final tauxCollecte = tourActuel == null || totalAttendu <= 0
-        ? null
-        : totalCollecte / totalAttendu;
+    final toursRemis = tours.where((t) => t.statut == StatutTour.remis).length;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xl),
+      // Marge basse élargie pour l'administratrice : le bouton flottant
+      // « Ajouter un membre » ne doit pas masquer la dernière carte.
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        isAdmin ? 96 : AppSpacing.xl,
+      ),
       children: [
         Text(
           prenom.isEmpty ? 'Bonjour' : 'Bonjour, $prenom',
-          style: Theme.of(context).textTheme.headlineMedium,
+          style: AppTypography.screenTitle,
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Text('Voici le résumé de votre tontine.', style: Theme.of(context).textTheme.bodyMedium),
-        const SizedBox(height: AppSpacing.lg),
-        DashboardStatsGrid(
-          membresActifs: actifs,
-          nomsAttribues: noms.length,
-          nomsAttendus: tontine.nombreDeNoms,
-          tauxCollecte: tauxCollecte,
-          paiementsATemps: paiementsATemps,
-          paiementsEnRetard: paiementsEnRetard,
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          isAdmin ? _sousTitre(declarationsEnAttente.length) : 'Voici le résumé de votre tontine.',
+          style: AppTypography.secondary,
         ),
         const SizedBox(height: AppSpacing.lg),
-        PendingDeclarationsBanner(
-          nombre: declarationsEnAttente.length,
-          onTap: () => context.go(AppRouter.declarationsPath),
-        ),
-        if (declarationsEnAttente.isNotEmpty) const SizedBox(height: AppSpacing.lg),
-        DashboardSummaryCard(montantParTour: tontine.montantParNom * noms.length),
-        const SizedBox(height: AppSpacing.xl),
-        Text('Tour en cours', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: AppSpacing.sm),
         CurrentTourCard(
           tour: tourActuel,
           noms: noms,
           membres: membres,
           tourGenere: tours.isNotEmpty,
+          totalCollecte: totalCollecte,
+          totalAttendu: totalAttendu,
           onCollecter: !isAdmin || tourActuel == null
               ? null
               : () => context.go('${AppRouter.cotisationsPath}/${tourActuel.id}'),
+          onPreparer: isAdmin ? () => context.go(AppRouter.membresPath) : null,
         ),
-        if (tourActuel != null) ...[
-          const SizedBox(height: AppSpacing.sm),
-          ContributionProgress(collecte: totalCollecte, attendu: totalAttendu),
-        ],
-        const SizedBox(height: AppSpacing.lg),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Membres', style: Theme.of(context).textTheme.titleLarge),
-            TextButton(
-              onPressed: () => context.go(AppRouter.membresPath),
-              child: const Text('Voir tous'),
-            ),
-          ],
+        PendingDeclarationsBanner(
+          nombre: declarationsEnAttente.length,
+          onTap: () => context.go(AppRouter.declarationsPath),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        Card(
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () => context.go(AppRouter.membresPath),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    backgroundColor: AppColors.canvas,
-                    child: Icon(Icons.groups_rounded, color: AppColors.indigo),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Text(
-                      actifs == 0
-                          ? 'Aucun membre actif pour le moment'
-                          : '$actifs membre${actifs > 1 ? 's' : ''} actif${actifs > 1 ? 's' : ''}',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right, color: AppColors.slate),
-                ],
+        const SizedBox(height: AppSpacing.xl),
+        const SectionHeader(title: "En un coup d'œil"),
+        DashboardStatsGrid(
+          membresActifs: actifs,
+          nomsAttribues: noms.length,
+          nomsAttendus: tontine.nombreDeNoms,
+          toursRemis: toursRemis,
+          toursTotal: tours.length,
+          paiementsATemps: paiementsATemps,
+          paiementsEnRetard: paiementsEnRetard,
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        SectionHeader(
+          title: 'Membres',
+          actionLabel: 'Voir tout',
+          onAction: () => context.go(AppRouter.membresPath),
+        ),
+        AppCard(
+          onTap: () => context.go(AppRouter.membresPath),
+          child: Row(
+            children: [
+              if (membresActifs.isEmpty)
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(color: AppColors.canvas, shape: BoxShape.circle),
+                  child: const Icon(Icons.groups_rounded, color: AppColors.indigo, size: 20),
+                )
+              else
+                _PileAvatars(membres: membresActifs),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  actifs == 0
+                      ? 'Aucun membre actif pour le moment'
+                      : '$actifs membre${actifs > 1 ? 's' : ''} actif${actifs > 1 ? 's' : ''}',
+                  style: AppTypography.body,
+                ),
               ),
-            ),
+              const Icon(Icons.chevron_right, color: AppColors.slate),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  String _sousTitre(int declarationsEnAttente) => switch (declarationsEnAttente) {
+        0 => 'Voici le résumé de votre tontine.',
+        1 => 'Un paiement attend votre validation.',
+        final n => '$n paiements attendent votre validation.',
+      };
+}
+
+/// Jusqu'à quatre avatars qui se chevauchent, puis « +N » : on voit qui
+/// compose le groupe sans ouvrir la liste.
+class _PileAvatars extends StatelessWidget {
+  const _PileAvatars({required this.membres});
+
+  final List<Membre> membres;
+
+  static const _taille = 36.0;
+  static const _decalage = 24.0;
+  static const _maximum = 4;
+
+  @override
+  Widget build(BuildContext context) {
+    final visibles = membres.take(_maximum).toList(growable: false);
+    final reste = membres.length - visibles.length;
+    final pastilles = [
+      for (final membre in visibles) MemberAvatar(nomComplet: membre.nomComplet, size: _taille),
+      if (reste > 0)
+        Container(
+          width: _taille,
+          height: _taille,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(color: AppColors.canvas, shape: BoxShape.circle),
+          child: Text('+$reste', style: AppTypography.micro),
+        ),
+    ];
+    return SizedBox(
+      width: _taille + _decalage * (pastilles.length - 1),
+      height: _taille,
+      child: Stack(
+        children: [
+          for (var i = 0; i < pastilles.length; i++)
+            Positioned(
+              left: i * _decalage,
+              // Liseré blanc : sépare les avatars qui se chevauchent.
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.surface, width: 2),
+                ),
+                child: pastilles[i],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

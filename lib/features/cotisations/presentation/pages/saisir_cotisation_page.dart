@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,9 +11,16 @@ import '../../../../domain/entities/tontine.dart';
 import '../../../../domain/entities/tour.dart';
 import '../../../../domain/enums/statut_cotisation.dart';
 import '../../../../domain/services/calculateur_cotisation.dart';
+import '../../../../core/utils/amount_formatter.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../shared/state/flash_message.dart';
+import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_pill.dart';
+import '../../../../shared/widgets/app_progress_bar.dart';
+import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
+import '../../../../shared/widgets/member_avatar.dart';
 import '../../../auth/application/auth_providers.dart';
 import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAuth;
 import '../../../echeancier/application/echeancier_providers.dart';
@@ -270,6 +278,9 @@ class _Contenu extends ConsumerWidget {
             exonererPenalite: valeur.exonererPenalite,
           );
       if (context.mounted) {
+        // Vibration courte : confirme physiquement l'encaissement, le geste
+        // le plus important de l'app.
+        HapticFeedback.mediumImpact();
         ref.read(flashMessageProvider.notifier).set(
               'Cotisation de ${detenteur.membre.nomComplet} enregistrée.',
             );
@@ -317,40 +328,11 @@ class _Contenu extends ConsumerWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                child: Card(
-                  color: AppColors.ink,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Collecté',
-                                style: AppTypography.secondary.copyWith(color: AppColors.accent),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '$totalCollecte / $totalAttendu FCFA',
-                                style: AppTypography.screenTitle.copyWith(color: AppColors.surface),
-                              ),
-                            ],
-                          ),
-                        ),
-                        CircleAvatar(
-                          backgroundColor: AppColors.accent,
-                          child: Icon(
-                            totalCollecte >= totalAttendu && totalAttendu > 0
-                                ? Icons.check
-                                : Icons.hourglass_top_outlined,
-                            color: AppColors.ink,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                child: _ResumeCollecte(
+                  tour: tour,
+                  totalCollecte: totalCollecte,
+                  totalAttendu: totalAttendu,
+                  restants: nonSoldes.length,
                 ),
               ),
               Expanded(
@@ -390,6 +372,87 @@ class _Contenu extends ConsumerWidget {
   }
 }
 
+/// En-tête de la collecte : combien est rentré, sur combien, et combien de
+/// personnes restent à relancer. La jauge avance sous les yeux de
+/// l'administratrice à chaque cotisation enregistrée.
+class _ResumeCollecte extends StatelessWidget {
+  const _ResumeCollecte({
+    required this.tour,
+    required this.totalCollecte,
+    required this.totalAttendu,
+    required this.restants,
+  });
+
+  final Tour tour;
+  final int totalCollecte;
+  final int totalAttendu;
+  final int restants;
+
+  @override
+  Widget build(BuildContext context) {
+    final complet = totalAttendu > 0 && totalCollecte >= totalAttendu;
+    final progression = totalAttendu <= 0 ? 0.0 : totalCollecte / totalAttendu;
+    return Card(
+      color: AppColors.ink,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.lg)),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'ÉCHÉANCE · ${formatDateCourte(tour.datePrevue).toUpperCase()}',
+              style: AppTypography.overline.copyWith(color: AppColors.accent),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              formatAmount(totalCollecte),
+              style: AppTypography.amountXl.copyWith(color: AppColors.surface),
+            ),
+            Text(
+              'collectés sur ${formatAmount(totalAttendu)}',
+              style: AppTypography.secondary.copyWith(color: AppColors.onInkMuted),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            AppProgressBar(
+              value: progression,
+              color: complet ? AppColors.success : AppColors.accent,
+              trackColor: AppColors.surface.withValues(alpha: 0.14),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            AnimatedSwitcher(
+              duration: AppMotion.medium,
+              child: Row(
+                key: ValueKey(complet),
+                children: [
+                  Icon(
+                    complet ? Icons.check_circle : Icons.schedule,
+                    size: 16,
+                    color: complet ? AppColors.success : AppColors.onInkMuted,
+                  ),
+                  const SizedBox(width: AppSpacing.xxs),
+                  Flexible(
+                    child: Text(
+                      complet
+                          ? 'Collecte complète'
+                          : '$restants personne${restants > 1 ? 's' : ''} à encaisser',
+                      style: AppTypography.secondary.copyWith(
+                        color: complet ? AppColors.surface : AppColors.onInkMuted,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ListeDetenteurs extends StatelessWidget {
   const _ListeDetenteurs({
     required this.detenteurs,
@@ -406,7 +469,7 @@ class _ListeDetenteurs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (detenteurs.isEmpty) {
-      return Center(child: Text(messageVide, style: AppTypography.secondary));
+      return EmptyState(icon: Icons.task_alt, message: messageVide);
     }
     return ListView(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xl),
@@ -435,89 +498,56 @@ class _DetenteurCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enRetard = !detenteur.solde && DateTime.now().isAfter(tour.datePrevue);
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: AppColors.canvas,
-                    child: Text(
-                      formatFraction(detenteur.fraction),
-                      style: AppTypography.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.indigo,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          detenteur.membre.nomComplet,
-                          style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          detenteur.nom.libelle,
-                          style: AppTypography.secondary,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  _StatutChip(detenteur: detenteur, enRetard: enRetard),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  detenteur.solde
-                      ? '${detenteur.montantDu} FCFA'
-                      : '${detenteur.resteADu} FCFA restants sur ${detenteur.montantDu}',
-                  style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+    final (statut, ton) = switch (true) {
+      _ when detenteur.solde => ('Payé', AppTone.success),
+      _ when enRetard => ('En retard', AppTone.danger),
+      _ when detenteur.montantVerse > 0 => ('Partiel', AppTone.warning),
+      _ => ('Impayé', AppTone.neutral),
+    };
+    return AppCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          MemberAvatar(nomComplet: detenteur.membre.nomComplet),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  detenteur.membre.nomComplet,
+                  style: AppTypography.bodyStrong,
+                  overflow: TextOverflow.ellipsis,
                 ),
+                Text(
+                  [
+                    '${detenteur.nom.libelle} · ${formatFraction(detenteur.fraction)}',
+                    if (!detenteur.solde && detenteur.montantVerse > 0)
+                      'reste sur ${formatAmount(detenteur.montantDu)}',
+                  ].join(' · '),
+                  style: AppTypography.secondary,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          // Montant et statut à droite, alignés en colonne d'une ligne à
+          // l'autre (chiffres tabulaires) : ce qui reste à encaisser se lit
+          // en premier.
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                formatAmount(detenteur.solde ? detenteur.montantDu : detenteur.resteADu),
+                style: AppTypography.amountInline,
               ),
+              const SizedBox(height: AppSpacing.xxs),
+              AppPill(label: statut, tone: ton),
             ],
           ),
-        ),
+        ],
       ),
-    );
-  }
-}
-
-class _StatutChip extends StatelessWidget {
-  const _StatutChip({required this.detenteur, required this.enRetard});
-
-  final _Detenteur detenteur;
-  final bool enRetard;
-
-  @override
-  Widget build(BuildContext context) {
-    final (label, color) = switch (true) {
-      _ when detenteur.solde => ('Payé', AppColors.success),
-      _ when enRetard => ('En retard', AppColors.danger),
-      _ when detenteur.montantVerse > 0 => ('Partiel', AppColors.warning),
-      _ => ('Impayé', AppColors.slate),
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppSpacing.xs),
-      ),
-      child: Text(label, style: AppTypography.micro.copyWith(color: color)),
     );
   }
 }

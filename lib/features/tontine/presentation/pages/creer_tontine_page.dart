@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
+import '../../../../core/utils/amount_formatter.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../domain/entities/tontine.dart';
 import '../../../../domain/enums/mode_parts.dart';
 import '../../../../domain/enums/regle_penalite.dart';
@@ -370,10 +372,10 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
                   child: Text(
                     _datePremiereEcheance == null
                         ? 'Choisir une date'
-                        : '${_datePremiereEcheance!.day.toString().padLeft(2, '0')}/'
-                          '${_datePremiereEcheance!.month.toString().padLeft(2, '0')}/'
-                          '${_datePremiereEcheance!.year}',
-                    style: AppTypography.body,
+                        : formatDate(_datePremiereEcheance!),
+                    style: _datePremiereEcheance == null
+                        ? AppTypography.body.copyWith(color: AppColors.slate)
+                        : AppTypography.body,
                   ),
                 ),
                 const Icon(Icons.expand_more, color: AppColors.slate),
@@ -405,15 +407,14 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
           children: [
             _ligneRecap('Groupe', _nomGroupe.text.trim()),
             _ligneRecap('Administratrice', _nomAdmin.text.trim()),
-            _ligneRecap('Montant par nom', '${_montant.text} FCFA'),
+            _ligneRecap(
+              'Montant par nom',
+              int.tryParse(_montant.text) == null ? '${_montant.text} FCFA' : formatAmount(int.parse(_montant.text)),
+            ),
             _ligneRecap('Nombre de noms', _nombreDeNoms.text),
             _ligneRecap(
               'Première échéance',
-              _datePremiereEcheance == null
-                  ? '—'
-                  : '${_datePremiereEcheance!.day.toString().padLeft(2, '0')}/'
-                    '${_datePremiereEcheance!.month.toString().padLeft(2, '0')}/'
-                    '${_datePremiereEcheance!.year}',
+              _datePremiereEcheance == null ? '—' : formatDate(_datePremiereEcheance!),
             ),
             _ligneRecap('Fréquence', periodiciteLabel),
             _ligneRecap('Pénalité', libellePenalite(_reglePenalite)),

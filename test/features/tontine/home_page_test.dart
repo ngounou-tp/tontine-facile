@@ -141,12 +141,15 @@ void main() {
       expect(tester.takeException(), isNull);
       // Bénéficiaire du tour en cours (nom 1, détenu par Rose Domche).
       expect(find.text('Rose Domche'), findsOneWidget);
-      // Collecte du tour : 25000/50000 = 50 %.
-      expect(find.text('25000 / 50000 FCFA'), findsOneWidget);
-      expect(find.text('50 %', skipOffstage: false), findsWidgets);
-      // Stats : 2 membres actifs, 2/2 noms attribués, 1 paiement à temps, 0 en retard.
+      // Collecte du tour : 25000/50000 = 50 %, montants formatés à la française.
+      expect(find.text('25 000 FCFA'), findsOneWidget);
+      expect(find.text('collectés sur 50 000 FCFA'), findsOneWidget);
+      expect(find.text('50 %', skipOffstage: false), findsOneWidget);
+      // Stats : 2 membres actifs, 2/2 noms attribués, 0/2 tours remis,
+      // 1 paiement à temps, 0 en retard.
       expect(find.text('2', skipOffstage: false), findsWidgets);
       expect(find.text('2/2', skipOffstage: false), findsOneWidget);
+      expect(find.text('0/2', skipOffstage: false), findsOneWidget);
       expect(find.text('1 / 0', skipOffstage: false), findsOneWidget);
     },
   );

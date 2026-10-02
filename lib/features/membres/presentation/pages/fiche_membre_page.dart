@@ -9,9 +9,16 @@ import '../../../../domain/entities/membre.dart';
 import '../../../../domain/entities/nom.dart';
 import '../../../../domain/entities/tontine.dart';
 import '../../../../domain/services/calculateur_cotisation.dart';
+import '../../../../core/utils/amount_formatter.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_pill.dart';
+import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
+import '../../../../shared/widgets/member_avatar.dart';
+import '../../../../shared/widgets/section_header.dart';
 import '../../../auth/application/auth_providers.dart';
 import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAuth;
 import '../../../tontine/application/tontine_providers.dart';
@@ -58,6 +65,18 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
   }
 
   Future<void> _basculerActif(String tontineId, Membre membre) async {
+    // Désactiver retire le membre des collectes : on confirme d'abord. La
+    // réactivation, sans conséquence fâcheuse, reste immédiate.
+    if (membre.actif) {
+      final confirme = await confirmer(
+        context,
+        titre: 'Désactiver ${membre.nomComplet} ?',
+        message: "Ce membre n'apparaîtra plus dans les membres actifs. Vous pourrez le réactiver à tout moment.",
+        libelleConfirmation: 'Désactiver',
+        destructif: true,
+      );
+      if (!confirme || !mounted) return;
+    }
     try {
       final notifier = ref.read(membresControllerProvider.notifier);
       if (membre.actif) {
@@ -81,9 +100,6 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
     final choix = await showModalBottomSheet<double>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.cardRadius)),
-      ),
       builder: (sheetContext) => _FeuilleAttribuerNoms(nomComplet: membre.nomComplet),
     );
     if (choix == null || choix <= 0 || !mounted) return;
@@ -189,20 +205,17 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
                       _EnTeteMembre(membre: membreActuel),
                       const SizedBox(height: AppSpacing.lg),
                       if (membreActuel.whatsapp != null || membreActuel.email != null)
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppSpacing.md),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (membreActuel.whatsapp != null)
-                                  _ligneContact(Icons.chat_outlined, membreActuel.whatsapp!),
-                                if (membreActuel.whatsapp != null && membreActuel.email != null)
-                                  const SizedBox(height: AppSpacing.xs),
-                                if (membreActuel.email != null)
-                                  _ligneContact(Icons.mail_outline, membreActuel.email!),
-                              ],
-                            ),
+                        AppCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (membreActuel.whatsapp != null)
+                                _ligneContact(Icons.chat_outlined, 'WhatsApp', membreActuel.whatsapp!),
+                              if (membreActuel.whatsapp != null && membreActuel.email != null)
+                                const Divider(height: AppSpacing.lg),
+                              if (membreActuel.email != null)
+                                _ligneContact(Icons.mail_outline, 'E-mail', membreActuel.email!),
+                            ],
                           ),
                         ),
                       if (membreActuel.codeInvitation != null &&
@@ -210,31 +223,24 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
                         const SizedBox(height: AppSpacing.lg),
                         _carteCodeInvitation(membreActuel),
                       ],
-                      const SizedBox(height: AppSpacing.lg),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Expanded(
-                            child: Text('Noms détenus', style: TextStyle(fontWeight: FontWeight.w600)),
-                          ),
-                          if (isAdmin && (tontine == null || noms.length < tontine.nombreDeNoms))
-                            TextButton.icon(
-                              onPressed: () => _attribuerNoms(tontineId, membreActuel),
-                              icon: const Icon(Icons.add, size: 18),
-                              label: const Text('Attribuer'),
-                            ),
-                        ],
+                      if (tontine != null && nomsDetenus.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        _carteMontantDu(tontine, membreActuel, nomsDetenus),
+                      ],
+                      const SizedBox(height: AppSpacing.xl),
+                      SectionHeader(
+                        title: 'Noms détenus',
+                        actionLabel: isAdmin && (tontine == null || noms.length < tontine.nombreDeNoms)
+                            ? 'Attribuer'
+                            : null,
+                        actionIcon: Icons.add,
+                        onAction: () => _attribuerNoms(tontineId, membreActuel),
                       ),
-                      const SizedBox(height: AppSpacing.xs),
                       if (nomsDetenus.isEmpty)
-                        const Card(
-                          child: Padding(
-                            padding: EdgeInsets.all(AppSpacing.md),
-                            child: Text(
-                              'Aucun nom attribué pour le moment.',
-                              style: AppTypography.secondary,
-                            ),
-                          ),
+                        const EmptyState(
+                          compact: true,
+                          icon: Icons.badge_outlined,
+                          message: 'Aucun nom attribué pour le moment.',
                         )
                       else
                         Card(
@@ -266,10 +272,6 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
                             ],
                           ),
                         ),
-                      if (tontine != null && nomsDetenus.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.lg),
-                        _carteMontantDu(tontine, membreActuel, nomsDetenus),
-                      ],
                       if (isAdmin) ...[
                         const SizedBox(height: AppSpacing.xl),
                         AppButton(
@@ -293,63 +295,68 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
     );
   }
 
-  Widget _ligneContact(IconData icon, String valeur) {
+  Widget _ligneContact(IconData icon, String type, String valeur) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: AppColors.slate),
-        const SizedBox(width: AppSpacing.xs),
-        Expanded(child: Text(valeur, style: AppTypography.body)),
+        Icon(icon, size: 20, color: AppColors.indigo),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(type, style: AppTypography.micro),
+              Text(valeur, style: AppTypography.body, overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        ),
       ],
     );
   }
 
   Widget _carteCodeInvitation(Membre membre) {
     final inscrit = membre.uid != null;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  inscrit ? Icons.check_circle_outline : Icons.vpn_key_outlined,
-                  size: 18,
-                  color: inscrit ? AppColors.success : AppColors.slate,
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(
-                  inscrit ? 'Membre inscrit' : "Code d'invitation",
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  inscrit ? "Code d'invitation (utilisé)" : "Code d'invitation",
                   style: AppTypography.secondary,
                 ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    membre.codeInvitation!,
-                    style: AppTypography.screenTitle.copyWith(letterSpacing: 4),
+              ),
+              if (inscrit) const AppPill(label: 'Inscrit', tone: AppTone.success),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  membre.codeInvitation!,
+                  style: AppTypography.screenTitle.copyWith(
+                    letterSpacing: 4,
+                    color: inscrit ? AppColors.slate : AppColors.ink,
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Copier le code',
-                  icon: const Icon(Icons.copy_outlined),
-                  onPressed: () => _copierCode(membre.codeInvitation!),
-                ),
-              ],
-            ),
-            if (!inscrit) ...[
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'À transmettre à ${membre.nomComplet} pour qu\'il ou elle rejoigne la tontine.',
-                style: AppTypography.secondary,
+              ),
+              IconButton.filledTonal(
+                tooltip: 'Copier le code',
+                icon: const Icon(Icons.copy_outlined, size: 20),
+                onPressed: () => _copierCode(membre.codeInvitation!),
               ),
             ],
+          ),
+          if (!inscrit) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'À transmettre à ${membre.nomComplet} pour qu\'il ou elle rejoigne la tontine.',
+              style: AppTypography.secondary,
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -369,17 +376,21 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
             membreId: membre.id,
           ),
     );
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Dû par échéance', style: AppTypography.secondary),
-            const SizedBox(height: 4),
-            Text('$total FCFA', style: AppTypography.amount),
-          ],
-        ),
+    return AppCard(
+      color: AppColors.ink,
+      borderColor: AppColors.ink,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('DÛ PAR ÉCHÉANCE', style: AppTypography.overline.copyWith(color: AppColors.accent)),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(formatAmount(total), style: AppTypography.amountXl.copyWith(color: AppColors.surface)),
+          Text(
+            '${nomsDetenus.length} nom${nomsDetenus.length > 1 ? 's' : ''} détenu${nomsDetenus.length > 1 ? 's' : ''}',
+            style: AppTypography.secondary.copyWith(color: AppColors.onInkMuted),
+          ),
+        ],
       ),
     );
   }
@@ -390,55 +401,24 @@ class _EnTeteMembre extends StatelessWidget {
 
   final Membre membre;
 
-  String _initiales(String nom) {
-    final mots = nom.trim().split(RegExp(r'\s+'));
-    if (mots.isEmpty || mots.first.isEmpty) return '?';
-    final premiere = mots.first[0];
-    final derniere = mots.length > 1 ? mots.last[0] : '';
-    return (premiere + derniere).toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 56,
-          height: 56,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(color: AppColors.canvas, shape: BoxShape.circle),
-          child: Text(
-            _initiales(membre.nomComplet),
-            style: AppTypography.screenTitle.copyWith(color: AppColors.indigo),
-          ),
-        ),
+        MemberAvatar(nomComplet: membre.nomComplet, size: 64),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(membre.nomComplet, style: AppTypography.screenTitle),
-              if (!membre.actif) ...[
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(AppSpacing.xs),
-                  ),
-                  child: const Text('Désactivé', style: AppTypography.micro),
-                ),
-              ] else if (membre.uid == null) ...[
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(AppSpacing.xs),
-                  ),
-                  child: const Text('En attente d\'inscription', style: AppTypography.micro),
-                ),
-              ],
+              const SizedBox(height: AppSpacing.xxs),
+              if (!membre.actif)
+                const AppPill(label: 'Désactivé', tone: AppTone.neutral)
+              else if (membre.uid == null)
+                const AppPill(label: 'En attente d\'inscription', tone: AppTone.warning)
+              else
+                const AppPill(label: 'Actif', tone: AppTone.success),
             ],
           ),
         ),
@@ -483,7 +463,7 @@ class _FeuilleAttribuerNomsState extends State<_FeuilleAttribuerNoms> {
               ),
             ),
           ),
-          Text('Attribuer des noms', style: AppTypography.screenTitle),
+          Text('Attribuer des noms', style: AppTypography.sectionTitle),
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Combien de noms supplémentaires pour ${widget.nomComplet} ?',

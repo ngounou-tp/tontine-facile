@@ -21,6 +21,8 @@ import '../features/membres/presentation/pages/ajouter_membre_page.dart';
 import '../features/membres/presentation/pages/attribuer_nom_page.dart';
 import '../features/membres/presentation/pages/fiche_membre_page.dart';
 import '../features/membres/presentation/pages/membres_page.dart';
+import '../features/onboarding/application/onboarding_provider.dart';
+import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../features/tontine/presentation/pages/creer_tontine_page.dart';
 import '../features/tontine/presentation/pages/home_page.dart';
 import '../features/tontine/presentation/pages/modifier_tontine_page.dart';
@@ -43,6 +45,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 abstract final class AppRouter {
   static const rootPath = '/';
+  static const onboardingPath = '/decouvrir';
   static const connexionPath = '/connexion';
   static const inscriptionPath = '/inscription';
   static const rejoindrePath = '/rejoindre';
@@ -61,6 +64,11 @@ abstract final class AppRouter {
     GoRoute(
       path: rootPath,
       builder: (_, _) => const RoutePlaceholderPage(title: 'TontineFacile'),
+    ),
+    GoRoute(
+      path: onboardingPath,
+      name: 'decouvrir',
+      builder: (_, _) => const OnboardingPage(),
     ),
     GoRoute(
       path: connexionPath,
@@ -174,6 +182,12 @@ abstract final class AppRouter {
 
     final Session? session = sessionState.value;
     if (session == null) {
+      // Premier lancement : la découverte de l'app passe avant tout le
+      // reste. Une fois vue (ou passée), elle ne revient plus.
+      final onboardingVu = ref.read(onboardingVuProvider);
+      if (!onboardingVu) return location == onboardingPath ? null : onboardingPath;
+      if (location == onboardingPath) return connexionPath;
+
       // /rejoindre reste accessible sans compte : on peut y prévisualiser une
       // tontine avant de créer un compte pour la rejoindre.
       return (_isPublic(location) || location == rejoindrePath)
@@ -225,7 +239,7 @@ abstract final class AppRouter {
   }
 
   static bool _isPublic(String location) =>
-      location == connexionPath || location == inscriptionPath;
+      location == connexionPath || location == inscriptionPath || location == onboardingPath;
 
   static bool _isNoProfileDestination(String location) =>
       location == rejoindrePath ||
@@ -246,6 +260,9 @@ class _RouterRefreshNotifier extends ChangeNotifier {
       notifyListeners();
     });
     ref.listen<AsyncValue<Tontine?>>(currentTontineProvider, (_, _) {
+      notifyListeners();
+    });
+    ref.listen<bool>(onboardingVuProvider, (_, _) {
       notifyListeners();
     });
   }

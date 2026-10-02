@@ -10,7 +10,7 @@ import '../../../../domain/entities/tontine.dart';
 import '../../../../domain/entities/tour.dart';
 import '../../../../domain/enums/statut_tour.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
-import '../../../../shared/widgets/coming_soon_view.dart';
+import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../../../auth/application/auth_providers.dart';
@@ -111,7 +111,8 @@ class _Contenu extends ConsumerWidget {
   ) async {
     final tontineActuelle = tontine;
     if (tontineActuelle == null) return;
-    if (oldIndex < newIndex) newIndex -= 1;
+    // `onReorderItem` fournit déjà l'index d'arrivée corrigé (élément
+    // retiré de sa place d'origine) : pas d'ajustement manuel.
     if (oldIndex == newIndex) return;
     final depart = aVenir[oldIndex];
     final arrivee = aVenir[newIndex];
@@ -144,11 +145,13 @@ class _Contenu extends ConsumerWidget {
     final isAdmin = ref.watch(isAdminProvider);
 
     if (tours.isEmpty) {
-      return const ComingSoonView(
-        title: 'Échéancier',
+      return EmptyState(
+        title: 'Pas encore de calendrier',
         message: "L'échéancier n'a pas encore été généré. Attribuez les noms puis "
             'générez-le depuis Membres.',
         icon: Icons.calendar_month_outlined,
+        actionLabel: isAdmin ? 'Aller aux membres' : null,
+        onAction: isAdmin ? () => context.go(AppRouter.membresPath) : null,
       );
     }
 
@@ -194,7 +197,7 @@ class _Contenu extends ConsumerWidget {
                             AppSpacing.md,
                             AppSpacing.xl,
                           ),
-                          onReorder: (oldIndex, newIndex) =>
+                          onReorderItem: (oldIndex, newIndex) =>
                               _deplacer(context, ref, aVenir, oldIndex, newIndex),
                           children: [
                             for (final tour in aVenir)
@@ -243,11 +246,9 @@ class _Contenu extends ConsumerWidget {
             ],
           ),
           historique.isEmpty
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppSpacing.md),
-                    child: Text('Aucun tour remis pour le moment.', style: AppTypography.secondary),
-                  ),
+              ? const EmptyState(
+                  icon: Icons.history,
+                  message: 'Aucun tour remis pour le moment. Les tours apparaîtront ici une fois la cagnotte remise.',
                 )
               : ListView(
                   padding: const EdgeInsets.fromLTRB(

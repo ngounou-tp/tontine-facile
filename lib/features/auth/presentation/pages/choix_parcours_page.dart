@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/tontine_logo.dart';
 import '../../application/auth_controller.dart';
 
 /// Écran d'accueil du compte fraîchement créé (sans profil) : l'utilisateur
@@ -29,7 +31,10 @@ class ChoixParcoursPage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: AppSpacing.xl),
-                  Image.asset('assets/images/logo_placeholder.png', width: 72, height: 72),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: TontineLogo(size: 64),
+                  ),
                   const SizedBox(height: AppSpacing.lg),
                   const Text('Bienvenue sur TontineFacile', style: AppTypography.screenTitle),
                   const SizedBox(height: AppSpacing.xs),
@@ -90,43 +95,38 @@ class _OptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: iconBackground,
-                  borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
-                ),
-                child: Icon(icon, color: AppColors.surface, size: 28),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 4),
-                    Text(description, style: AppTypography.secondary),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              const Padding(
-                padding: EdgeInsets.only(top: AppSpacing.xs),
-                child: Icon(Icons.chevron_right, color: AppColors.slate),
-              ),
-            ],
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: iconBackground,
+              borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
+            ),
+            child: Icon(icon, color: AppColors.surface, size: 28),
           ),
-        ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: AppTypography.sectionTitle),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(description, style: AppTypography.secondary),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          const Padding(
+            padding: EdgeInsets.only(top: AppSpacing.xs),
+            child: Icon(Icons.chevron_right, color: AppColors.slate),
+          ),
+        ],
       ),
     );
   }

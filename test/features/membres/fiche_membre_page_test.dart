@@ -109,7 +109,10 @@ void main() {
       expect(find.text('ABCDEF'), findsOneWidget);
       expect(find.text('Nom 1'), findsOneWidget);
 
-      // Ouvrir la feuille d'attribution de noms supplémentaires.
+      // Ouvrir la feuille d'attribution de noms supplémentaires (la section
+      // « Noms détenus » suit la carte du montant dû : on y fait défiler).
+      await tester.ensureVisible(find.text('Attribuer'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Attribuer'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -120,6 +123,8 @@ void main() {
       expect(tester.takeException(), isNull);
 
       // Tapoter sur le nom détenu navigue vers sa page dédiée.
+      await tester.ensureVisible(find.text('Nom 1'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Nom 1'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);

@@ -114,7 +114,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text('Enregistrer la cotisation'), findsOneWidget);
-    expect(find.text('Montant dû : 25000 FCFA'), findsOneWidget);
+    expect(find.text('Montant dû : 25 000 FCFA'), findsOneWidget);
 
     await tester.tap(find.text('Enregistrer la cotisation'));
     await tester.pumpAndSettle();

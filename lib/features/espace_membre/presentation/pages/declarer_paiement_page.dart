@@ -1,11 +1,12 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
+import '../../../../core/utils/amount_formatter.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../shared/state/flash_message.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/error_view.dart';
@@ -34,7 +35,13 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
   final _montant = TextEditingController();
   var _datePaiement = DateTime.now();
   Uint8List? _preuve;
+
+  /// Erreur liée au montant : affichée sous le champ montant.
   String? _erreur;
+
+  /// Erreur liée à la preuve ou à l'envoi : affichée près du bouton, et non
+  /// sous le montant (qui laisserait croire que c'est lui le problème).
+  String? _erreurEnvoi;
   var _initialise = false;
 
   @override
@@ -64,10 +71,16 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
       return;
     }
     if (_preuve == null) {
-      setState(() => _erreur = 'Une preuve est obligatoire pour déclarer un paiement.');
+      setState(() {
+        _erreur = null;
+        _erreurEnvoi = 'Une preuve est obligatoire pour déclarer un paiement.';
+      });
       return;
     }
-    setState(() => _erreur = null);
+    setState(() {
+      _erreur = null;
+      _erreurEnvoi = null;
+    });
 
     try {
       await ref.read(declarationControllerProvider.notifier).declarerPaiement(
@@ -80,13 +93,14 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
             preuveBytes: _preuve!,
           );
       if (mounted) {
+        HapticFeedback.mediumImpact();
         ref.read(flashMessageProvider.notifier).set(
               'Déclaration envoyée. En attente de validation par l\'administratrice.',
             );
         context.go(AppRouter.espaceMembrePath);
       }
     } catch (error) {
-      if (mounted) setState(() => _erreur = messageErreurAuth(error));
+      if (mounted) setState(() => _erreurEnvoi = messageErreurAuth(error));
     }
   }
 
@@ -135,22 +149,28 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
                           Text(situation!.nom.libelle, style: AppTypography.screenTitle),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
-                            'Reste à devoir : ${situation.montantDu - situation.montantVerse} FCFA',
+                            'Reste à devoir : ${formatAmount(situation.montantDu - situation.montantVerse)}',
                             style: AppTypography.secondary,
                           ),
                           const SizedBox(height: AppSpacing.lg),
-                          const Text('Montant versé', style: TextStyle(fontWeight: FontWeight.w600)),
+                          const Text('Montant versé', style: AppTypography.bodyStrong),
                           const SizedBox(height: AppSpacing.xs),
                           TextFormField(
                             controller: _montant,
                             keyboardType: TextInputType.number,
-                            decoration: InputDecoration(suffixText: 'FCFA', errorText: _erreur),
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            style: AppTypography.amountXl.copyWith(fontSize: 28),
+                            decoration: InputDecoration(
+                              suffixText: 'FCFA',
+                              suffixStyle: AppTypography.bodyStrong.copyWith(color: AppColors.slate),
+                              errorText: _erreur,
+                            ),
                             onChanged: (_) {
                               if (_erreur != null) setState(() => _erreur = null);
                             },
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          const Text('Date du paiement', style: TextStyle(fontWeight: FontWeight.w600)),
+                          const Text('Date du paiement', style: AppTypography.bodyStrong),
                           const SizedBox(height: AppSpacing.xs),
                           InkWell(
                             borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
@@ -161,19 +181,16 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
                                 vertical: AppSpacing.sm,
                               ),
                               decoration: BoxDecoration(
+                                color: AppColors.surface,
                                 border: Border.all(color: AppColors.line),
                                 borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    '${_datePaiement.day.toString().padLeft(2, '0')}/'
-                                    '${_datePaiement.month.toString().padLeft(2, '0')}/'
-                                    '${_datePaiement.year}',
-                                    style: AppTypography.body,
-                                  ),
-                                  const Icon(Icons.calendar_month_outlined, color: AppColors.slate),
+                                  const Icon(Icons.calendar_today_outlined, size: 20, color: AppColors.indigo),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Expanded(child: Text(formatDate(_datePaiement), style: AppTypography.body)),
+                                  Text(formatEcheanceRelative(_datePaiement), style: AppTypography.secondary),
                                 ],
                               ),
                             ),
@@ -182,7 +199,32 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
                           PreuvePicker(
                             value: _preuve,
                             obligatoire: true,
-                            onChanged: (valeur) => setState(() => _preuve = valeur),
+                            onChanged: (valeur) => setState(() {
+                              _preuve = valeur;
+                              if (valeur != null) _erreurEnvoi = null;
+                            }),
+                          ),
+                          AnimatedSize(
+                            duration: AppMotion.medium,
+                            curve: AppMotion.easeOut,
+                            child: _erreurEnvoi == null
+                                ? const SizedBox(width: double.infinity)
+                                : Padding(
+                                    padding: const EdgeInsets.only(top: AppSpacing.sm),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(Icons.error_outline, size: 18, color: AppColors.danger),
+                                        const SizedBox(width: AppSpacing.xs),
+                                        Expanded(
+                                          child: Text(
+                                            _erreurEnvoi!,
+                                            style: AppTypography.secondary.copyWith(color: AppColors.danger),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                           ),
                           const SizedBox(height: AppSpacing.xl),
                           AppButton(

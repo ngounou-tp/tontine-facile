@@ -7,6 +7,7 @@ import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
 import '../../../../domain/entities/invitation.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/state/flash_message.dart';
 import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAuth;
 import '../../../tontine/application/tontine_providers.dart';
@@ -41,6 +42,7 @@ class _AjouterMembrePageState extends ConsumerState<AjouterMembrePage> {
                 nombreDeNoms: valeur.nombreDeNoms,
               );
       if (mounted) {
+        HapticFeedback.mediumImpact();
         setState(() {
           _invitation = invitation;
           _nomAjoute = valeur.nomComplet;
@@ -82,7 +84,12 @@ class _AjouterMembrePageState extends ConsumerState<AjouterMembrePage> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 460),
-            child: invitation == null
+            // Fondu entre le formulaire et la confirmation, plutôt qu'un
+            // remplacement sec.
+            child: AnimatedSwitcher(
+              duration: AppMotion.medium,
+              switchInCurve: AppMotion.easeOut,
+              child: invitation == null
                 ? MembreForm(
                     submitLabel: 'Ajouter et générer le code',
                     busy: busy,
@@ -100,6 +107,7 @@ class _AjouterMembrePageState extends ConsumerState<AjouterMembrePage> {
                       context.go(AppRouter.membresPath);
                     },
                   ),
+            ),
           ),
         ),
       ),
@@ -133,46 +141,85 @@ class _Confirmation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduireAnimations = MediaQuery.disableAnimationsOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          width: 72,
-          height: 72,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.success.withValues(alpha: 0.12),
-            shape: BoxShape.circle,
+        const SizedBox(height: AppSpacing.md),
+        // Moment de réussite : la coche « éclot » (0,6 → 1 avec un léger
+        // dépassement) au lieu d'être simplement là. Jamais depuis 0 :
+        // rien n'apparaît de nulle part.
+        Center(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: reduireAnimations ? 1 : 0, end: 1),
+            duration: const Duration(milliseconds: 520),
+            curve: Curves.easeOutBack,
+            builder: (context, t, child) => Opacity(
+              opacity: t.clamp(0.0, 1.0),
+              child: Transform.scale(scale: 0.6 + 0.4 * t, child: child),
+            ),
+            child: Container(
+              width: 88,
+              height: 88,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_rounded, color: AppColors.success, size: 48),
+            ),
           ),
-          child: const Icon(Icons.check_circle, color: AppColors.success, size: 40),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('$nomComplet a été ajouté(e)', style: AppTypography.screenTitle),
+        Text(
+          '$nomComplet a été ajouté(e)',
+          textAlign: TextAlign.center,
+          style: AppTypography.screenTitle,
+        ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           '${_libelleNoms()[0].toUpperCase()}${_libelleNoms().substring(1)}. '
           'Transmettez-lui ce code pour qu\'il ou elle rejoigne la tontine.',
+          textAlign: TextAlign.center,
           style: AppTypography.secondary,
         ),
         const SizedBox(height: AppSpacing.xl),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              children: [
-                Text(
-                  invitation.code,
-                  style: AppTypography.pageTitle.copyWith(letterSpacing: 6),
+        AppCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            children: [
+              const Text("CODE D'INVITATION", style: AppTypography.overline),
+              const SizedBox(height: AppSpacing.sm),
+              Semantics(
+                label: "Code d'invitation ${invitation.code.split('').join(' ')}",
+                child: ExcludeSemantics(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (final caractere in invitation.code.split(''))
+                        Container(
+                          width: 40,
+                          height: 52,
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.canvas,
+                            borderRadius: BorderRadius.circular(AppSpacing.xs),
+                          ),
+                          child: Text(caractere, style: AppTypography.screenTitle),
+                        ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.md),
-                AppButton(
-                  label: 'Copier le code',
-                  icon: Icons.copy_outlined,
-                  variant: AppButtonVariant.secondary,
-                  onPressed: onCopier,
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              AppButton(
+                label: 'Copier le code',
+                icon: Icons.copy_outlined,
+                variant: AppButtonVariant.secondary,
+                onPressed: onCopier,
+              ),
+            ],
           ),
         ),
         const SizedBox(height: AppSpacing.xl),

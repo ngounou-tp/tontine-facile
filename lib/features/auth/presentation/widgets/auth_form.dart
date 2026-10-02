@@ -24,23 +24,29 @@ class _AuthFormState extends State<AuthForm> {
   bool _hidePassword = true;
   bool _hideConfirmation = true;
 
+  /// La touche « Terminé » du clavier valide le formulaire : pas besoin de
+  /// fermer le clavier pour aller chercher le bouton.
+  void _soumettreDepuisClavier() {
+    if (!widget.busy) widget.onSubmit();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
       key: widget.formKey,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('E-mail', style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text('E-mail', style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.xs),
         TextFormField(controller: widget.emailController, keyboardType: TextInputType.emailAddress, autofillHints: const [AutofillHints.email], textInputAction: TextInputAction.next, validator: _emailValidator),
         const SizedBox(height: AppSpacing.md),
-        const Text('Mot de passe', style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text('Mot de passe', style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.xs),
-        TextFormField(controller: widget.passwordController, obscureText: _hidePassword, autofillHints: const [AutofillHints.password], textInputAction: widget.confirmPasswordController == null ? TextInputAction.done : TextInputAction.next, validator: _passwordValidator, decoration: InputDecoration(suffixIcon: IconButton(onPressed: () => setState(() => _hidePassword = !_hidePassword), icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined), tooltip: 'Afficher ou masquer le mot de passe'))),
+        TextFormField(controller: widget.passwordController, obscureText: _hidePassword, autofillHints: const [AutofillHints.password], textInputAction: widget.confirmPasswordController == null ? TextInputAction.done : TextInputAction.next, onFieldSubmitted: widget.confirmPasswordController == null ? (_) => _soumettreDepuisClavier() : null, validator: _passwordValidator, decoration: InputDecoration(suffixIcon: IconButton(onPressed: () => setState(() => _hidePassword = !_hidePassword), icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined), tooltip: 'Afficher ou masquer le mot de passe'))),
         if (widget.confirmPasswordController case final confirmation?) ...[
           const SizedBox(height: AppSpacing.md),
-          const Text('Confirmer le mot de passe', style: TextStyle(fontWeight: FontWeight.w600)),
+          const Text('Confirmer le mot de passe', style: AppTypography.bodyStrong),
           const SizedBox(height: AppSpacing.xs),
-          TextFormField(controller: confirmation, obscureText: _hideConfirmation, autofillHints: const [AutofillHints.newPassword], textInputAction: TextInputAction.done, validator: (value) => value != widget.passwordController.text ? 'Les mots de passe ne correspondent pas.' : null, decoration: InputDecoration(suffixIcon: IconButton(onPressed: () => setState(() => _hideConfirmation = !_hideConfirmation), icon: Icon(_hideConfirmation ? Icons.visibility_outlined : Icons.visibility_off_outlined), tooltip: 'Afficher ou masquer le mot de passe'))),
+          TextFormField(controller: confirmation, obscureText: _hideConfirmation, autofillHints: const [AutofillHints.newPassword], textInputAction: TextInputAction.done, onFieldSubmitted: (_) => _soumettreDepuisClavier(), validator: (value) => value != widget.passwordController.text ? 'Les mots de passe ne correspondent pas.' : null, decoration: InputDecoration(suffixIcon: IconButton(onPressed: () => setState(() => _hideConfirmation = !_hideConfirmation), icon: Icon(_hideConfirmation ? Icons.visibility_outlined : Icons.visibility_off_outlined), tooltip: 'Afficher ou masquer le mot de passe'))),
         ],
         if (widget.extraBeforeSubmit case final extra?) ...[
           const SizedBox(height: AppSpacing.xs),

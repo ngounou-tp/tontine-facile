@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
+import '../../../../core/utils/amount_formatter.dart';
+import '../../../../core/utils/date_formatter.dart';
+import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_pill.dart';
 import '../../../../domain/entities/changement.dart';
 import '../../../../domain/entities/membre.dart';
 import '../../../../domain/entities/nom.dart';
@@ -14,11 +18,11 @@ String libelleStatutTour(StatutTour statut) => switch (statut) {
       StatutTour.reporte => 'Reporté',
     };
 
-Color couleurStatutTour(StatutTour statut) => switch (statut) {
-      StatutTour.aVenir => AppColors.slate,
-      StatutTour.enCours => AppColors.indigo,
-      StatutTour.remis => AppColors.success,
-      StatutTour.reporte => AppColors.warning,
+AppTone tonStatutTour(StatutTour statut) => switch (statut) {
+      StatutTour.aVenir => AppTone.neutral,
+      StatutTour.enCours => AppTone.info,
+      StatutTour.remis => AppTone.success,
+      StatutTour.reporte => AppTone.warning,
     };
 
 /// Ligne de l'échéancier (lecture seule) : position, bénéficiaire, date
@@ -60,9 +64,6 @@ class TourCard extends StatelessWidget {
     return noms.isEmpty ? courant.libelle : noms.join(' & ');
   }
 
-  String _formatDate(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-
   List<Changement> get _historiqueDuTour =>
       changements.where((c) => c.tourId == tour.id).toList(growable: false);
 
@@ -70,32 +71,42 @@ class TourCard extends StatelessWidget {
     final historique = _historiqueDuTour;
     showModalBottomSheet<void>(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.cardRadius)),
-      ),
+      showDragHandle: true,
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Historique — $_beneficiaires', style: AppTypography.screenTitle),
-              const SizedBox(height: AppSpacing.md),
+              Text('Historique du tour', style: AppTypography.sectionTitle),
+              Text(_beneficiaires, style: AppTypography.secondary),
+              const SizedBox(height: AppSpacing.lg),
               for (final changement in historique)
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Position ${changement.anciennePosition} → ${changement.nouvellePosition}',
-                        style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(Icons.swap_vert, size: 18, color: AppColors.indigo),
                       ),
-                      const SizedBox(height: 2),
-                      Text(changement.motif, style: AppTypography.secondary),
-                      const SizedBox(height: 2),
-                      Text(_formatDate(changement.createdAt), style: AppTypography.micro),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Position ${changement.anciennePosition} → ${changement.nouvellePosition}',
+                              style: AppTypography.bodyStrong,
+                            ),
+                            Text(changement.motif, style: AppTypography.secondary),
+                            const SizedBox(height: AppSpacing.xxs),
+                            Text(formatDate(changement.createdAt), style: AppTypography.micro),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -108,99 +119,95 @@ class TourCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final couleur = couleurStatutTour(tour.statut);
     final historique = _historiqueDuTour;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      shape: enEvidence
-          ? RoundedRectangleBorder(
-              side: const BorderSide(color: AppColors.indigo, width: 2),
-              borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-            )
-          : null,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    final remis = tour.statut == StatutTour.remis;
+    return AppCard(
+      onTap: onTap,
+      borderColor: enEvidence ? AppColors.indigo : null,
+      borderWidth: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: AppColors.canvas,
-                    child: Text(
-                      '${tour.position}',
-                      style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _beneficiaires,
-                          style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          tour.statut == StatutTour.remis
-                              ? 'Remis le ${_formatDate(tour.datePrevue)}'
-                              : 'Prévu le ${_formatDate(tour.datePrevue)}',
-                          style: AppTypography.secondary,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: couleur.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppSpacing.xs),
-                    ),
-                    child: Text(
-                      libelleStatutTour(tour.statut),
-                      style: AppTypography.micro.copyWith(color: couleur),
-                    ),
-                  ),
-                ],
-              ),
-              if (tour.statut == StatutTour.remis && tour.montantRemis != null) ...[
-                const SizedBox(height: AppSpacing.xs),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text('${tour.montantRemis} FCFA', style: AppTypography.secondary),
+              // Numéro du tour : plein pour le tour en cours, coché une fois
+              // remis — la colonne se lit comme une frise.
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: enEvidence
+                      ? AppColors.indigo
+                      : remis
+                          ? AppColors.success.withValues(alpha: 0.12)
+                          : AppColors.canvas,
+                  shape: BoxShape.circle,
                 ),
-              ],
-              if (historique.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.xs),
-                InkWell(
-                  onTap: () => _ouvrirHistorique(context),
-                  borderRadius: BorderRadius.circular(AppSpacing.xs),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.history, size: 14, color: AppColors.slate),
-                      const SizedBox(width: 4),
-                      Text(
-                        historique.length > 1
-                            ? '${historique.length} changements — voir l\'historique'
-                            : 'Repositionné — voir l\'historique',
-                        style: AppTypography.micro.copyWith(
-                          color: AppColors.indigo,
-                          decoration: TextDecoration.underline,
+                child: remis
+                    ? const Icon(Icons.check, size: 20, color: AppColors.success)
+                    : Text(
+                        '${tour.position}',
+                        style: AppTypography.bodyStrong.copyWith(
+                          color: enEvidence ? AppColors.surface : AppColors.ink,
                         ),
                       ),
-                    ],
-                  ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _beneficiaires,
+                      style: AppTypography.bodyStrong,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      remis
+                          ? 'Remis le ${formatDate(tour.datePrevue)}'
+                          : 'Prévu le ${formatDate(tour.datePrevue)}',
+                      style: AppTypography.secondary,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-              ],
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  AppPill(label: libelleStatutTour(tour.statut), tone: tonStatutTour(tour.statut)),
+                  if (remis && tour.montantRemis != null) ...[
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(formatAmount(tour.montantRemis!), style: AppTypography.amountInline),
+                  ],
+                ],
+              ),
             ],
           ),
-        ),
+          if (historique.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => _ouvrirHistorique(context),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                  minimumSize: const Size(0, 36),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  textStyle: AppTypography.micro,
+                ),
+                icon: const Icon(Icons.history, size: 16),
+                label: Text(
+                  historique.length > 1
+                      ? '${historique.length} changements — voir l\'historique'
+                      : 'Repositionné — voir l\'historique',
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

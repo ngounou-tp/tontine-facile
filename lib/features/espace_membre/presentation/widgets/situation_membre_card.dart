@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../domain/entities/nom.dart';
 import '../../../../domain/entities/tour.dart';
 
 /// Carte de synthèse de l'espace membre : nom du groupe, noms détenus et
-/// prochain tour où l'un d'eux sera bénéficiaire.
+/// prochain tour où l'un d'eux sera bénéficiaire — le moment que chaque
+/// membre attend, mis en avant comme un compte à rebours.
 class SituationMembreCard extends StatelessWidget {
   const SituationMembreCard({
     required this.nomTontine,
@@ -20,48 +22,56 @@ class SituationMembreCard extends StatelessWidget {
   final Tour? prochainTour;
   final Nom? prochainNom;
 
-  String _formatDate(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-
   @override
   Widget build(BuildContext context) {
+    final tour = prochainTour;
+    final nom = prochainNom;
     return Card(
       color: AppColors.ink,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.lg)),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              nomTontine,
-              style: AppTypography.screenTitle.copyWith(color: AppColors.surface),
+              nomTontine.toUpperCase(),
+              style: AppTypography.overline.copyWith(color: AppColors.accent),
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              nombreDeNoms > 1 ? '$nombreDeNoms noms détenus' : '$nombreDeNoms nom détenu',
-              style: AppTypography.secondary.copyWith(color: AppColors.accent),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (prochainTour == null || prochainNom == null)
+            const SizedBox(height: AppSpacing.sm),
+            if (tour == null || nom == null) ...[
               Text(
                 'Aucun tour à venir pour vos noms.',
-                style: AppTypography.secondary.copyWith(color: AppColors.surface),
-              )
-            else
-              Row(
-                children: [
-                  const Icon(Icons.event_available_outlined, color: AppColors.accent, size: 18),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: Text(
-                      '${prochainNom!.libelle} bénéficie le ${_formatDate(prochainTour!.datePrevue)}',
-                      style: AppTypography.secondary.copyWith(color: AppColors.surface),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+                style: AppTypography.sectionTitle.copyWith(color: AppColors.surface),
               ),
+            ] else ...[
+              Text(
+                'Votre prochain tour',
+                style: AppTypography.secondary.copyWith(color: AppColors.onInkMuted),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Text(
+                formatDate(tour.datePrevue),
+                style: AppTypography.amountXl.copyWith(color: AppColors.surface, fontSize: 30),
+              ),
+              Text(
+                '${nom.libelle} · tour ${tour.position} · ${formatEcheanceRelative(tour.datePrevue)}',
+                style: AppTypography.secondary.copyWith(color: AppColors.onInkMuted),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                const Icon(Icons.badge_outlined, size: 16, color: AppColors.accent),
+                const SizedBox(width: AppSpacing.xxs),
+                Text(
+                  nombreDeNoms > 1 ? '$nombreDeNoms noms détenus' : '$nombreDeNoms nom détenu',
+                  style: AppTypography.secondary.copyWith(color: AppColors.surface),
+                ),
+              ],
+            ),
           ],
         ),
       ),

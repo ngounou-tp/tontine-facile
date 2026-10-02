@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
+import '../../../../shared/widgets/app_card.dart';
 
 /// Bannière du tableau de bord signalant des déclarations de paiement en
-/// attente de traitement — masquée si [nombre] vaut 0.
+/// attente de traitement — masquée si [nombre] vaut 0. Apparaît et
+/// disparaît en douceur (hauteur + fondu) au lieu de faire sauter la page.
 class PendingDeclarationsBanner extends StatelessWidget {
   const PendingDeclarationsBanner({required this.nombre, this.onTap, super.key});
 
@@ -12,30 +14,56 @@ class PendingDeclarationsBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (nombre == 0) return const SizedBox.shrink();
-    return Card(
-      color: AppColors.warning.withValues(alpha: 0.12),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            children: [
-              const Icon(Icons.notifications_active_outlined, color: AppColors.warning),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  nombre == 1
-                      ? '1 déclaration de paiement à traiter'
-                      : '$nombre déclarations de paiement à traiter',
-                  style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+    return AnimatedSize(
+      duration: AppMotion.medium,
+      curve: AppMotion.easeOut,
+      alignment: Alignment.topCenter,
+      child: AnimatedSwitcher(
+        duration: AppMotion.medium,
+        child: nombre == 0
+            ? const SizedBox(width: double.infinity)
+            : Padding(
+                key: const ValueKey('banniere'),
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: AppCard(
+                  onTap: onTap,
+                  color: AppColors.warning.withValues(alpha: 0.12),
+                  borderColor: AppColors.warning.withValues(alpha: 0.35),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(color: AppColors.warning, shape: BoxShape.circle),
+                        child: Text(
+                          '$nombre',
+                          style: AppTypography.bodyStrong.copyWith(color: AppColors.surface, height: 1),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nombre == 1
+                                  ? '1 déclaration de paiement à traiter'
+                                  : '$nombre déclarations de paiement à traiter',
+                              style: AppTypography.bodyStrong,
+                            ),
+                            Text(
+                              'Vérifiez les preuves pour valider les paiements.',
+                              style: AppTypography.secondary.copyWith(color: AppColors.warningInk),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (onTap != null) const Icon(Icons.chevron_right, color: AppColors.warningInk),
+                    ],
+                  ),
                 ),
               ),
-              if (onTap != null) const Icon(Icons.chevron_right, color: AppColors.slate),
-            ],
-          ),
-        ),
       ),
     );
   }

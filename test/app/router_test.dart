@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tontinefacile/app/router.dart';
 import 'package:tontinefacile/core/errors/app_exception.dart';
 import 'package:tontinefacile/data/repositories/profil_repository.dart';
@@ -24,6 +25,7 @@ import 'package:tontinefacile/domain/enums/mode_parts.dart';
 import 'package:tontinefacile/domain/enums/regle_penalite.dart';
 import 'package:tontinefacile/domain/value_objects/regle_periodicite.dart';
 import 'package:tontinefacile/features/auth/application/auth_providers.dart';
+import 'package:tontinefacile/features/onboarding/application/onboarding_provider.dart';
 
 void main() {
   Future<GoRouter> pumpRouter(
@@ -72,6 +74,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(currentPath(router), AppRouter.connexionPath);
+    },
+  );
+
+  testWidgets(
+    "au premier lancement, un visiteur découvre l'app (/decouvrir) ; une fois "
+    "l'onboarding vu, il n'y revient plus et atterrit sur /connexion",
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final preferences = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [
+          authServiceProvider.overrideWithValue(FakeAuthService(null)),
+          tontineRepositoryProvider.overrideWithValue(FakeTontineRepository()),
+          profilRepositoryProvider.overrideWithValue(FakeProfilRepository()),
+          sharedPreferencesProvider.overrideWithValue(preferences),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final router = await pumpRouter(tester, container: container);
+      router.go(AppRouter.connexionPath);
+      await tester.pumpAndSettle();
+      expect(currentPath(router), AppRouter.onboardingPath);
+
+      await container.read(onboardingVuProvider.notifier).terminer();
+      router.go(AppRouter.onboardingPath);
+      await tester.pumpAndSettle();
+      expect(currentPath(router), AppRouter.connexionPath);
+      expect(preferences.getBool('onboarding_vu_v1'), isTrue);
     },
   );
 

@@ -8,9 +8,15 @@ import '../../../../domain/entities/membre.dart';
 import '../../../../domain/entities/nom.dart';
 import '../../../../domain/rules/validation_parts.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_pill.dart';
+import '../../../../shared/widgets/app_progress_bar.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
+import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
+import '../../../../shared/widgets/member_avatar.dart';
+import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/state/flash_message.dart';
 import '../../../auth/application/auth_providers.dart';
 import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAuth;
@@ -130,27 +136,22 @@ class _Contenu extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xl),
             children: [
               if (tontine != null) ...[
-                Text(
-                  '${noms.length}/${tontine.nombreDeNoms} noms attribués',
-                  style: AppTypography.secondary,
-                ),
+                _AvancementNoms(attribues: noms.length, attendus: tontine.nombreDeNoms),
                 const SizedBox(height: AppSpacing.md),
               ],
-              if (isAdmin && !quotaAtteint) ...[
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: AppButton(
-                    label: 'Attribuer',
-                    icon: Icons.add,
-                    variant: AppButtonVariant.tertiary,
-                    onPressed: () => context.go('${AppRouter.membresPath}/noms/nouveau'),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-              ],
+              SectionHeader(
+                title: 'Noms',
+                actionLabel: isAdmin && !quotaAtteint && noms.isNotEmpty ? 'Attribuer' : null,
+                actionIcon: Icons.add,
+                onAction: () => context.go('${AppRouter.membresPath}/noms/nouveau'),
+              ),
               if (noms.isEmpty)
-                const _CarteVide(
+                EmptyState(
+                  compact: true,
+                  icon: Icons.badge_outlined,
                   message: "Aucun nom n'a encore été créé. Attribuez le premier pour commencer.",
+                  actionLabel: isAdmin ? 'Attribuer un nom' : null,
+                  onAction: isAdmin ? () => context.go('${AppRouter.membresPath}/noms/nouveau') : null,
                 )
               else
                 ...noms.map(
@@ -175,19 +176,26 @@ class _Contenu extends ConsumerWidget {
                   onPressed: busyEcheancier ? null : () => _genererEcheancier(context, ref),
                 )
               else if (isAdmin && tousLesNomsValides && !quotaAtteint && tours.isEmpty && tontine != null)
-                _CarteVide(
+                EmptyState(
+                  compact: true,
+                  icon: Icons.event_available_outlined,
                   message: 'Encore ${tontine.nombreDeNoms - noms.length} nom(s) à attribuer avant '
                       "de pouvoir générer l'échéancier.",
                 ),
             ],
           ),
           ListView(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xl),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 96),
             children: [
-              Text('Membres actifs (${actifs.length})', style: AppTypography.screenTitle),
-              const SizedBox(height: AppSpacing.sm),
+              SectionHeader(title: 'Membres actifs (${actifs.length})'),
               if (actifs.isEmpty)
-                const _CarteVide(message: 'Aucun membre actif pour le moment.')
+                EmptyState(
+                  compact: true,
+                  icon: Icons.person_add_alt_1_outlined,
+                  message: 'Aucun membre actif pour le moment.',
+                  actionLabel: isAdmin ? 'Ajouter un membre' : null,
+                  onAction: isAdmin ? () => context.go('${AppRouter.membresPath}/ajouter') : null,
+                )
               else
                 ...actifs.map(
                   (membre) => Padding(
@@ -201,8 +209,7 @@ class _Contenu extends ConsumerWidget {
                 ),
               if (inactifs.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.lg),
-                Text('Membres désactivés (${inactifs.length})', style: AppTypography.screenTitle),
-                const SizedBox(height: AppSpacing.sm),
+                SectionHeader(title: 'Membres désactivés (${inactifs.length})'),
                 ...inactifs.map(
                   (membre) => Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -239,46 +246,45 @@ class _NomCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sommeValide = const ValidationParts().estValide(nom.parts);
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: AppColors.canvas,
-                child: Icon(Icons.badge_outlined, color: AppColors.indigo, size: 20),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(nom.libelle, style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    Text(
-                      nom.parts.isEmpty
-                          ? 'Aucun détenteur'
-                          : nom.parts
-                              .map((p) => '${formatFraction(p.fraction)} ${_nomComplet(p.membreId)}')
-                              .join(', '),
-                      style: AppTypography.secondary,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              if (!sommeValide)
-                const Padding(
-                  padding: EdgeInsets.only(left: AppSpacing.xs),
-                  child: Icon(Icons.error_outline, color: AppColors.danger, size: 18),
-                ),
-              const Icon(Icons.chevron_right, color: AppColors.slate),
-            ],
+    return AppCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.canvas,
+              borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
+            ),
+            child: Text('${nom.position}', style: AppTypography.bodyStrong.copyWith(color: AppColors.indigo)),
           ),
-        ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(nom.libelle, style: AppTypography.bodyStrong),
+                Text(
+                  nom.parts.isEmpty
+                      ? 'Aucun détenteur'
+                      : nom.parts
+                          .map((p) => '${formatFraction(p.fraction)} ${_nomComplet(p.membreId)}')
+                          .join(', '),
+                  style: AppTypography.secondary,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          if (!sommeValide)
+            const Padding(
+              padding: EdgeInsets.only(left: AppSpacing.xs),
+              child: AppPill(label: 'À compléter', tone: AppTone.danger),
+            ),
+          if (onTap != null) const Icon(Icons.chevron_right, color: AppColors.slate),
+        ],
       ),
     );
   }
@@ -294,91 +300,79 @@ class _MembreCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enAttente = membre.uid == null;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
+    return Opacity(
+      // Membre désactivé : estompé, mais toujours lisible et ouvrable.
+      opacity: membre.actif ? 1 : 0.6,
+      child: AppCard(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: AppColors.canvas,
-                child: Text(
-                  _initiales(membre.nomComplet),
-                  style: AppTypography.secondary.copyWith(fontWeight: FontWeight.w600),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(membre.nomComplet, style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    Text(
-                      membre.whatsapp ?? membre.email ?? 'Aucun contact',
-                      style: AppTypography.secondary,
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+        child: Row(
+          children: [
+            MemberAvatar(nomComplet: membre.nomComplet),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.canvas,
-                      borderRadius: BorderRadius.circular(AppSpacing.xs),
-                    ),
-                    child: Text(
-                      formatterNombreDeNoms(totalParts),
-                      style: AppTypography.micro.copyWith(color: AppColors.indigo),
-                    ),
+                  Text(membre.nomComplet, style: AppTypography.bodyStrong, overflow: TextOverflow.ellipsis),
+                  Text(
+                    membre.whatsapp ?? membre.email ?? 'Aucun contact',
+                    style: AppTypography.secondary,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  if (enAttente) ...[
-                    const SizedBox(height: 2),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(AppSpacing.xs),
-                      ),
-                      child: const Text('En attente', style: AppTypography.micro),
-                    ),
-                  ],
                 ],
               ),
-              const SizedBox(width: AppSpacing.xs),
-              const Icon(Icons.chevron_right, color: AppColors.slate),
-            ],
-          ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                AppPill(label: formatterNombreDeNoms(totalParts), tone: AppTone.info),
+                if (enAttente) ...[
+                  const SizedBox(height: AppSpacing.xxs),
+                  const AppPill(label: 'En attente', tone: AppTone.warning),
+                ],
+              ],
+            ),
+            const SizedBox(width: AppSpacing.xxs),
+            const Icon(Icons.chevron_right, color: AppColors.slate),
+          ],
         ),
       ),
     );
   }
-
-  String _initiales(String nom) {
-    final mots = nom.trim().split(RegExp(r'\s+'));
-    if (mots.isEmpty || mots.first.isEmpty) return '?';
-    final premiere = mots.first[0];
-    final derniere = mots.length > 1 ? mots.last[0] : '';
-    return (premiere + derniere).toUpperCase();
-  }
 }
 
-class _CarteVide extends StatelessWidget {
-  const _CarteVide({required this.message});
+/// Jauge « noms attribués / attendus » en tête de l'onglet Noms : tant
+/// qu'elle n'est pas pleine, l'échéancier ne peut pas être généré.
+class _AvancementNoms extends StatelessWidget {
+  const _AvancementNoms({required this.attribues, required this.attendus});
 
-  final String message;
+  final int attribues;
+  final int attendus;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text(message, style: AppTypography.secondary),
+    final complet = attendus > 0 && attribues >= attendus;
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text('$attribues', style: AppTypography.amount.copyWith(fontWeight: FontWeight.w600)),
+              Text('/$attendus noms attribués', style: AppTypography.secondary),
+              const Spacer(),
+              if (complet) const AppPill(label: 'Complet', tone: AppTone.success),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppProgressBar(
+            value: attendus == 0 ? 0 : attribues / attendus,
+            color: complet ? AppColors.success : AppColors.indigo,
+          ),
+        ],
       ),
     );
   }

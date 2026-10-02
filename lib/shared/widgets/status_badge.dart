@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme.dart';
+import 'app_pill.dart';
 
 enum StatusBadgeType { paid, late, partial, exception, toCollect }
 
+/// Statut de paiement standard, rendu avec la pastille commune [AppPill].
 class StatusBadge extends StatelessWidget {
   const StatusBadge({super.key, required this.type});
 
@@ -11,30 +12,13 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = _styles[type]!;
-    return Container(
-      height: 28,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(color: style.background, border: Border.all(color: style.border), borderRadius: BorderRadius.circular(AppSpacing.controlRadius)),
-      child: Text(style.label, style: AppTypography.micro.copyWith(color: style.foreground)),
-    );
+    final (label, tone) = switch (type) {
+      StatusBadgeType.paid => ('Payé', AppTone.success),
+      StatusBadgeType.late => ('En retard', AppTone.danger),
+      StatusBadgeType.partial => ('Partiel', AppTone.warning),
+      StatusBadgeType.exception => ('Exception', AppTone.warning),
+      StatusBadgeType.toCollect => ('À encaisser', AppTone.neutral),
+    };
+    return AppPill(label: label, tone: tone);
   }
 }
-
-class _BadgeStyle {
-  const _BadgeStyle(this.label, this.background, this.foreground, this.border);
-
-  final String label;
-  final Color background;
-  final Color foreground;
-  final Color border;
-}
-
-const _styles = <StatusBadgeType, _BadgeStyle>{
-  StatusBadgeType.paid: _BadgeStyle('Payé', AppColors.success, AppColors.surface, AppColors.success),
-  StatusBadgeType.late: _BadgeStyle('En retard', AppColors.danger, AppColors.surface, AppColors.danger),
-  StatusBadgeType.partial: _BadgeStyle('Partiel', AppColors.warning, AppColors.ink, AppColors.warning),
-  StatusBadgeType.exception: _BadgeStyle('Exception', AppColors.warning, AppColors.ink, AppColors.warning),
-  StatusBadgeType.toCollect: _BadgeStyle('À encaisser', AppColors.canvas, AppColors.slate, AppColors.line),
-};

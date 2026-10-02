@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
+import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
+import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../auth/application/auth_providers.dart';
 
@@ -14,24 +16,13 @@ class ReglagesPage extends ConsumerWidget {
   const ReglagesPage({super.key});
 
   Future<void> _confirmerDeconnexion(BuildContext context, WidgetRef ref) async {
-    final confirme = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Se déconnecter ?'),
-        content: const Text('Vous devrez vous reconnecter pour accéder à votre tontine.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Se déconnecter'),
-          ),
-        ],
-      ),
+    final confirme = await confirmer(
+      context,
+      titre: 'Se déconnecter ?',
+      message: 'Vous devrez vous reconnecter pour accéder à votre tontine.',
+      libelleConfirmation: 'Se déconnecter',
     );
-    if (confirme == true) {
+    if (confirme) {
       await ref.read(authControllerProvider.notifier).deconnecter();
     }
   }
@@ -118,14 +109,11 @@ class _CarteMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: AppCard(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
+        child: Row(
             children: [
               Container(
                 width: 40,
@@ -159,7 +147,6 @@ class _CarteMenu extends StatelessWidget {
               if (onTap != null) const Icon(Icons.chevron_right, color: AppColors.slate),
             ],
           ),
-        ),
       ),
     );
   }

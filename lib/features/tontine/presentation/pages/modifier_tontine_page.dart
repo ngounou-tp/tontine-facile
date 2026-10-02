@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
+import '../../../../core/utils/amount_formatter.dart';
 import '../../../../domain/entities/tontine.dart';
 import '../../../../domain/enums/mode_parts.dart';
 import '../../../../domain/enums/regle_penalite.dart';
@@ -288,7 +289,7 @@ class _ResumeFige extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             _ligne('Nom du groupe', tontine.nom),
             const SizedBox(height: 4),
-            _ligne('Montant par nom', '${tontine.montantParNom} FCFA'),
+            _ligne('Montant par nom', formatAmount(tontine.montantParNom)),
             const SizedBox(height: 4),
             _ligne('Nombre de noms', '${tontine.nombreDeNoms}'),
             const SizedBox(height: 4),

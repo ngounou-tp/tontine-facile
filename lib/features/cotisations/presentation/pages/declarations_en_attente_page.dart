@@ -8,7 +8,9 @@ import '../../../../domain/entities/declaration.dart';
 import '../../../../domain/entities/membre.dart';
 import '../../../../domain/entities/nom.dart';
 import '../../../../domain/entities/tour.dart';
+import '../../../../shared/widgets/app_pill.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
+import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../../../echeancier/application/echeancier_providers.dart';
@@ -117,15 +119,10 @@ class _Contenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (declarations.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.lg),
-          child: Text(
-            'Aucune déclaration pour le moment.',
-            style: AppTypography.secondary,
-            textAlign: TextAlign.center,
-          ),
-        ),
+      return const EmptyState(
+        icon: Icons.receipt_long_outlined,
+        title: 'Aucune déclaration',
+        message: 'Quand un membre signale avoir payé, sa déclaration et sa preuve apparaissent ici.',
       );
     }
 
@@ -199,12 +196,18 @@ class _GroupeTour extends StatelessWidget {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           initiallyExpanded: enAttente > 0,
-          title: Text(titre, style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
-          subtitle: Text(
-            enAttente > 0
-                ? '$enAttente en attente sur ${declarations.length}'
-                : '${declarations.length} déclaration${declarations.length > 1 ? 's' : ''}',
-            style: AppTypography.secondary,
+          title: Text(titre, style: AppTypography.bodyStrong),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xxs),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: enAttente > 0
+                  ? AppPill(label: '$enAttente en attente sur ${declarations.length}', tone: AppTone.warning)
+                  : Text(
+                      '${declarations.length} déclaration${declarations.length > 1 ? 's' : ''}',
+                      style: AppTypography.secondary,
+                    ),
+            ),
           ),
           childrenPadding: const EdgeInsets.fromLTRB(AppSpacing.sm, 0, AppSpacing.sm, AppSpacing.sm),
           children: [

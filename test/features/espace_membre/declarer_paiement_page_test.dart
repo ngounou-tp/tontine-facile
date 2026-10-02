@@ -95,7 +95,7 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('Nom 1'), findsOneWidget);
-    expect(find.text('Reste à devoir : 25000 FCFA'), findsOneWidget);
+    expect(find.text('Reste à devoir : 25 000 FCFA'), findsOneWidget);
     expect(find.text('Ajouter une preuve'), findsOneWidget);
   });
 

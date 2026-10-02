@@ -7,8 +7,15 @@ import '../../../../app/theme.dart';
 import '../../../../domain/entities/membre.dart';
 import '../../../../domain/entities/nom.dart';
 import '../../../../domain/entities/tontine.dart';
+import '../../../../core/utils/amount_formatter.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../shared/state/flash_message.dart';
+import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_navigation.dart';
+import '../../../../shared/widgets/app_pill.dart';
+import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../../../shared/widgets/empty_state.dart';
+import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../../../auth/application/auth_controller.dart';
@@ -31,24 +38,13 @@ class EspaceMembrePage extends ConsumerWidget {
   const EspaceMembrePage({super.key});
 
   Future<void> _confirmerDeconnexion(BuildContext context, WidgetRef ref) async {
-    final confirme = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Se déconnecter ?'),
-        content: const Text('Vous devrez vous reconnecter pour accéder à votre tontine.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Se déconnecter'),
-          ),
-        ],
-      ),
+    final confirme = await confirmer(
+      context,
+      titre: 'Se déconnecter ?',
+      message: 'Vous devrez vous reconnecter pour accéder à votre tontine.',
+      libelleConfirmation: 'Se déconnecter',
     );
-    if (confirme == true) {
+    if (confirme) {
       await ref.read(authControllerProvider.notifier).deconnecter();
     }
   }
@@ -126,25 +122,19 @@ class _Contenu extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.xl),
           if (tours.isEmpty)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(AppSpacing.md),
-                child: Text(
-                  "L'échéancier n'a pas encore été généré par l'administratrice.",
-                  style: AppTypography.secondary,
-                ),
-              ),
+            const EmptyState(
+              compact: true,
+              icon: Icons.event_note_outlined,
+              message: "L'échéancier n'a pas encore été généré par l'administratrice.",
             )
           else if (tourActuel == null)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(AppSpacing.md),
-                child: Text('Tous les tours ont été remis.', style: AppTypography.body),
-              ),
+            const EmptyState(
+              compact: true,
+              icon: Icons.celebration_outlined,
+              message: 'Tous les tours ont été remis.',
             )
           else ...[
-            Text('Mes noms — tour en cours', style: AppTypography.screenTitle),
-            const SizedBox(height: AppSpacing.sm),
+            const SectionHeader(title: 'À régler pour ce tour'),
             MesNomsList(
               situations: situations,
               onDeclarer: (situation) =>
@@ -153,74 +143,92 @@ class _Contenu extends ConsumerWidget {
           ],
           if (mesDeclarations.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xl),
-            Text('Mes déclarations', style: AppTypography.screenTitle),
-            const SizedBox(height: AppSpacing.sm),
-            for (final declaration in mesDeclarations)
-              Card(
-                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${declaration.montantDeclare} FCFA',
-                              style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                            if (declaration.motifContestation != null) ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                declaration.motifContestation!,
-                                style: AppTypography.secondary,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      Text(
-                        switch (declaration.statut.name) {
-                          'enAttente' => 'En attente',
-                          'validee' => 'Validée',
-                          _ => 'Contestée',
-                        },
-                        style: AppTypography.secondary,
-                      ),
-                    ],
-                  ),
-                ),
+            const SectionHeader(title: 'Mes déclarations'),
+            // Une seule carte, des lignes séparées : une liste de reçus se
+            // parcourt d'un trait, comme un relevé bancaire.
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (var i = 0; i < mesDeclarations.length; i++) ...[
+                    if (i > 0) const Divider(indent: AppSpacing.md, endIndent: AppSpacing.md),
+                    _LigneReleve(
+                      icone: Icons.receipt_long_outlined,
+                      titre: formatAmount(mesDeclarations[i].montantDeclare),
+                      sousTitre: mesDeclarations[i].motifContestation ??
+                          'Déclaré le ${formatDate(mesDeclarations[i].datePaiement)}',
+                      trailing: switch (mesDeclarations[i].statut.name) {
+                        'enAttente' => const AppPill(label: 'En attente', tone: AppTone.warning),
+                        'validee' => const AppPill(label: 'Validée', tone: AppTone.success),
+                        _ => const AppPill(label: 'Contestée', tone: AppTone.danger),
+                      },
+                    ),
+                  ],
+                ],
               ),
+            ),
           ],
           if (mesCotisations.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xl),
-            Text('Historique des cotisations', style: AppTypography.screenTitle),
-            const SizedBox(height: AppSpacing.sm),
-            for (final cotisation in mesCotisations)
-              Card(
-                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${cotisation.montantVerse} FCFA',
-                        style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        '${cotisation.datePaiement.day.toString().padLeft(2, '0')}/'
-                        '${cotisation.datePaiement.month.toString().padLeft(2, '0')}/'
-                        '${cotisation.datePaiement.year}',
-                        style: AppTypography.secondary,
-                      ),
-                    ],
-                  ),
-                ),
+            const SectionHeader(title: 'Historique des cotisations'),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (var i = 0; i < mesCotisations.length; i++) ...[
+                    if (i > 0) const Divider(indent: AppSpacing.md, endIndent: AppSpacing.md),
+                    _LigneReleve(
+                      icone: Icons.check_circle_outline,
+                      couleurIcone: AppColors.success,
+                      titre: formatAmount(mesCotisations[i].montantVerse),
+                      sousTitre: 'Payé le ${formatDate(mesCotisations[i].datePaiement)}',
+                    ),
+                  ],
+                ],
               ),
+            ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Ligne d'un relevé (déclaration ou cotisation) : icône, montant, détail
+/// et statut éventuel.
+class _LigneReleve extends StatelessWidget {
+  const _LigneReleve({
+    required this.icone,
+    required this.titre,
+    required this.sousTitre,
+    this.couleurIcone = AppColors.indigo,
+    this.trailing,
+  });
+
+  final IconData icone;
+  final Color couleurIcone;
+  final String titre;
+  final String sousTitre;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      child: Row(
+        children: [
+          Icon(icone, size: 22, color: couleurIcone),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(titre, style: AppTypography.amountInline),
+                Text(sousTitre, style: AppTypography.secondary, overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+          if (trailing != null) ...[const SizedBox(width: AppSpacing.xs), trailing!],
         ],
       ),
     );

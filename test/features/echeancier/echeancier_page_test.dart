@@ -138,7 +138,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(find.text('Rose Domche'), findsOneWidget);
-      expect(find.text('25000 FCFA'), findsOneWidget);
+      expect(find.text('25 000 FCFA'), findsOneWidget);
     },
   );
 }

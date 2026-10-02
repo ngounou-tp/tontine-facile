@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
+import '../../../../core/utils/amount_formatter.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../domain/entities/declaration.dart';
 import '../../../../domain/entities/membre.dart';
 import '../../../../domain/entities/nom.dart';
@@ -13,8 +16,13 @@ import '../../../../domain/entities/tontine.dart';
 import '../../../../domain/entities/tour.dart';
 import '../../../../shared/state/flash_message.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_pill.dart';
+import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
+import '../../../../shared/widgets/member_avatar.dart';
+import '../../../../shared/widgets/section_header.dart';
 import '../../../auth/application/auth_providers.dart';
 import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAuth;
 import '../../../echeancier/application/echeancier_providers.dart';
@@ -223,32 +231,72 @@ class _Contenu extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(membre?.nomComplet ?? 'Membre inconnu', style: AppTypography.screenTitle),
-              const SizedBox(height: 2),
-              Text(nom?.libelle ?? 'Nom inconnu', style: AppTypography.secondary),
-              const SizedBox(height: AppSpacing.lg),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _ligne('Montant déclaré', '${declaration.montantDeclare} FCFA'),
-                      const SizedBox(height: AppSpacing.xs),
-                      _ligne('Date de paiement', _formatDate(declaration.datePaiement)),
-                      const SizedBox(height: AppSpacing.xs),
-                      _ligne('Statut', _libelleStatut(declaration.statut.name)),
-                      if (declaration.motifContestation != null) ...[
-                        const SizedBox(height: AppSpacing.xs),
-                        _ligne('Motif du refus', declaration.motifContestation!),
+              Row(
+                children: [
+                  MemberAvatar(nomComplet: membre?.nomComplet ?? '?', size: 48),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          membre?.nomComplet ?? 'Membre inconnu',
+                          style: AppTypography.sectionTitle,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          [
+                            nom?.libelle ?? 'Nom inconnu',
+                            if (tour != null) 'Tour ${tour.position}',
+                          ].join(' · '),
+                          style: AppTypography.secondary,
+                        ),
                       ],
-                    ],
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              // Le montant est la seule information à vérifier contre la
+              // preuve : il passe en tête, en grand.
+              AppCard(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(child: Text('Montant déclaré', style: AppTypography.secondary)),
+                        _pastilleStatut(declaration.statut.name),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(formatAmount(declaration.montantDeclare), style: AppTypography.amountXl),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      'Payé le ${formatDate(declaration.datePaiement)}',
+                      style: AppTypography.secondary,
+                    ),
+                    if (declaration.motifContestation != null) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        decoration: BoxDecoration(
+                          color: AppPill.backgroundOf(AppTone.danger),
+                          borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
+                        ),
+                        child: Text(
+                          'Motif du refus : ${declaration.motifContestation!}',
+                          style: AppTypography.secondary.copyWith(color: AppColors.danger),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              const Text('Preuve', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: AppSpacing.xs),
+              const SectionHeader(title: 'Preuve de paiement'),
               _CartePreuve(preuveId: declaration.preuveId),
               if (peutTraiter) ...[
                 const SizedBox(height: AppSpacing.xl),
@@ -283,29 +331,10 @@ class _Contenu extends ConsumerWidget {
     );
   }
 
-  Widget _ligne(String label, String valeur) {
-    return Row(
-      children: [
-        Expanded(child: Text(label, style: AppTypography.secondary)),
-        Flexible(
-          child: Text(
-            valeur,
-            style: AppTypography.body,
-            textAlign: TextAlign.right,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _formatDate(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-
-  String _libelleStatut(String statut) => switch (statut) {
-        'enAttente' => 'En attente',
-        'validee' => 'Validée',
-        _ => 'Contestée',
+  Widget _pastilleStatut(String statut) => switch (statut) {
+        'enAttente' => const AppPill(label: 'En attente', tone: AppTone.warning),
+        'validee' => const AppPill(label: 'Validée', tone: AppTone.success),
+        _ => const AppPill(label: 'Contestée', tone: AppTone.danger),
       };
 }
 
@@ -317,31 +346,93 @@ class _CartePreuve extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preuveAsync = ref.watch(preuveProvider(preuveId));
-    return preuveAsync.when(
-      loading: () => const Card(
-        child: Padding(padding: EdgeInsets.all(AppSpacing.md), child: LoadingView()),
-      ),
-      error: (_, _) => const Card(
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.md),
-          child: Text('Impossible de charger la preuve.', style: AppTypography.secondary),
+    // Même hauteur réservée en chargement et une fois l'image affichée : la
+    // page ne saute pas quand la preuve arrive.
+    return AnimatedSwitcher(
+      duration: AppMotion.medium,
+      switchInCurve: AppMotion.easeOut,
+      child: preuveAsync.when(
+        loading: () => Container(
+          key: const ValueKey('chargement'),
+          height: 220,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.line.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+          ),
+          child: const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2.2),
+          ),
         ),
-      ),
-      data: (preuve) => preuve == null
-          ? const Card(
-              child: Padding(
-                padding: EdgeInsets.all(AppSpacing.md),
-                child: Text('Aucune preuve disponible.', style: AppTypography.secondary),
-              ),
-            )
-          : ClipRRect(
-              borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
-              child: Image.memory(
-                base64Decode(preuve.imageEncodee),
-                width: double.infinity,
-                fit: BoxFit.cover,
+        error: (_, _) => const EmptyState(
+          key: ValueKey('erreur'),
+          compact: true,
+          icon: Icons.broken_image_outlined,
+          message: 'Impossible de charger la preuve.',
+        ),
+        data: (preuve) {
+          if (preuve == null) {
+            return const EmptyState(
+              key: ValueKey('vide'),
+              compact: true,
+              icon: Icons.image_not_supported_outlined,
+              message: 'Aucune preuve disponible.',
+            );
+          }
+          final octets = base64Decode(preuve.imageEncodee);
+          return Semantics(
+            key: const ValueKey('image'),
+            button: true,
+            label: 'Agrandir la preuve',
+            child: GestureDetector(
+              onTap: () => _agrandir(context, octets),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                    child: Image.memory(octets, width: double.infinity, fit: BoxFit.cover),
+                  ),
+                  Positioned(
+                    right: AppSpacing.xs,
+                    bottom: AppSpacing.xs,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.ink.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(AppSpacing.xs),
+                      ),
+                      child: const Icon(Icons.zoom_out_map, size: 18, color: AppColors.surface),
+                    ),
+                  ),
+                ],
               ),
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Plein écran zoomable : une capture de reçu Mobile Money se lit mal en
+  /// vignette (montant, référence de transaction).
+  void _agrandir(BuildContext context, Uint8List octets) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            title: const Text('Preuve de paiement'),
+          ),
+          body: InteractiveViewer(
+            maxScale: 5,
+            child: Center(child: Image.memory(octets)),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -125,7 +125,7 @@ void main() {
       // Résumé en lecture seule de tous les champs, pas seulement
       // fréquence/répartition.
       expect(find.text('Cercle des amies'), findsOneWidget);
-      expect(find.text('25000 FCFA'), findsOneWidget);
+      expect(find.text('25 000 FCFA'), findsOneWidget);
       expect(find.text('10'), findsOneWidget);
       // Aucun moyen de modifier quoi que ce soit.
       expect(find.byType(TextFormField), findsNothing);

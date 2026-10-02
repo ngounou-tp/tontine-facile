@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,12 +12,7 @@ import '../../application/auth_controller.dart';
 import '../../application/auth_providers.dart';
 import '../widgets/auth_form.dart';
 
-const _codeStyle = TextStyle(
-  fontFamily: 'Sora',
-  fontSize: 32,
-  fontWeight: FontWeight.w600,
-  color: AppColors.ink,
-);
+const _longueurCode = 6;
 
 class RejoindreTontinePage extends ConsumerStatefulWidget {
   const RejoindreTontinePage({super.key});
@@ -26,19 +22,18 @@ class RejoindreTontinePage extends ConsumerStatefulWidget {
 }
 
 class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
-  final _controllers = List.generate(6, (_) => TextEditingController());
-  final _focusNodes = List.generate(6, (_) => FocusNode());
+  // Un seul champ, rendu sous forme de six cases : le collage d'un code
+  // reçu par WhatsApp et la touche Effacer fonctionnent naturellement, ce
+  // qu'aucune rangée de six champs séparés ne permet.
+  final _controller = TextEditingController();
+  final _focusNode = FocusNode();
 
-  String get _code => _controllers.map((controller) => controller.text).join();
+  String get _code => _controller.text;
 
   @override
   void dispose() {
-    for (final controller in _controllers) {
-      controller.dispose();
-    }
-    for (final focusNode in _focusNodes) {
-      focusNode.dispose();
-    }
+    _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -64,15 +59,6 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
     }
-  }
-
-  void _onCharacterChanged(int index, String value) {
-    final character = value.toUpperCase();
-    if (value != character) _controllers[index].value = TextEditingValue(text: character, selection: TextSelection.collapsed(offset: character.length));
-    if (character.isNotEmpty && index < _focusNodes.length - 1) {
-      _focusNodes[index + 1].requestFocus();
-    }
-    setState(() {});
   }
 
   void _message(String text) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
@@ -111,54 +97,171 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
                     style: AppTypography.secondary,
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      border: Border.all(color: AppColors.indigo, width: 2),
-                      borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(6, (index) => Expanded(
-                        child: SizedBox(
-                          width: 48,
-                          child: TextField(
-                            controller: _controllers[index],
-                            focusNode: _focusNodes[index],
-                            enabled: !busy,
-                            maxLength: 1,
-                            textAlign: TextAlign.center,
-                            textCapitalization: TextCapitalization.characters,
-                            style: _codeStyle,
-                            decoration: const InputDecoration(
-                              counterText: '',
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                            ),
-                            onChanged: (value) => _onCharacterChanged(index, value),
-                          ),
-                        ),
-                      )),
-                    ),
+                  _ChampCode(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    enabled: !busy,
+                    onChanged: (_) => setState(() {}),
+                    onComplete: busy ? null : _rejoindre,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text('Clavier majuscules · collage autorisé', style: AppTypography.secondary),
-                      Text('6 / 6', style: AppTypography.micro),
+                    children: [
+                      const Text('Vous pouvez coller le code', style: AppTypography.secondary),
+                      Text('${_code.length} / $_longueurCode', style: AppTypography.micro),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  if (_code.length == 6) _ApercuTontine(code: _code),
+                  // L'aperçu du groupe apparaît dès le 6e caractère : on sait
+                  // QUI on rejoint avant de valider.
+                  AnimatedSize(
+                    duration: AppMotion.medium,
+                    curve: AppMotion.easeOut,
+                    alignment: Alignment.topCenter,
+                    child: _code.length == _longueurCode
+                        ? _ApercuTontine(code: _code)
+                        : const SizedBox(width: double.infinity),
+                  ),
                   const SizedBox(height: AppSpacing.lg),
-                  SizedBox(width: double.infinity, child: AppButton(label: 'Rejoindre', variant: AppButtonVariant.accent, busy: busy, onPressed: busy ? null : _rejoindre)),
+                  SizedBox(
+                    width: double.infinity,
+                    child: AppButton(
+                      label: 'Rejoindre',
+                      variant: AppButtonVariant.accent,
+                      busy: busy,
+                      onPressed: busy || _code.length != _longueurCode ? null : _rejoindre,
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Saisie d'un code à six caractères affichée en six cases. Un unique
+/// [TextField] transparent, posé par-dessus les cases, reçoit le clavier :
+/// collage, effacement et autoremplissage marchent comme dans un champ
+/// normal. La case qui attend le prochain caractère est soulignée.
+class _ChampCode extends StatelessWidget {
+  const _ChampCode({
+    required this.controller,
+    required this.focusNode,
+    required this.enabled,
+    required this.onChanged,
+    this.onComplete,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool enabled;
+  final ValueChanged<String> onChanged;
+  final VoidCallback? onComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([controller, focusNode]),
+      builder: (context, _) {
+        final code = controller.text;
+        return Stack(
+          children: [
+            Row(
+              children: [
+                for (var i = 0; i < _longueurCode; i++) ...[
+                  if (i > 0) const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: _CaseCode(
+                      caractere: i < code.length ? code[i] : null,
+                      active: focusNode.hasFocus &&
+                          (i == code.length || (i == _longueurCode - 1 && code.length == _longueurCode)),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            Positioned.fill(
+              child: TextField(
+                controller: controller,
+                focusNode: focusNode,
+                enabled: enabled,
+                autofocus: true,
+                showCursor: false,
+                autocorrect: false,
+                enableSuggestions: false,
+                keyboardType: TextInputType.visiblePassword,
+                textCapitalization: TextCapitalization.characters,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
+                  LengthLimitingTextInputFormatter(_longueurCode),
+                  TextInputFormatter.withFunction(
+                    (_, valeur) => valeur.copyWith(text: valeur.text.toUpperCase()),
+                  ),
+                ],
+                // Texte invisible : seules les cases affichent les caractères.
+                style: const TextStyle(color: Colors.transparent, fontSize: 1),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  filled: false,
+                  counterText: '',
+                ),
+                onChanged: onChanged,
+                onSubmitted: (_) {
+                  if (controller.text.length == _longueurCode) onComplete?.call();
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _CaseCode extends StatelessWidget {
+  const _CaseCode({required this.caractere, required this.active});
+
+  final String? caractere;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final remplie = caractere != null;
+    return AnimatedContainer(
+      duration: AppMotion.fast,
+      curve: AppMotion.easeOut,
+      height: 60,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(
+          color: active ? AppColors.indigo : (remplie ? AppColors.ink.withValues(alpha: 0.35) : AppColors.line),
+          width: active ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
+      ),
+      // Chaque caractère arrive par un léger fondu + montée, pas d'un coup.
+      child: AnimatedSwitcher(
+        duration: AppMotion.fast,
+        switchInCurve: AppMotion.easeOut,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.85, end: 1).animate(animation),
+            child: child,
+          ),
+        ),
+        child: Text(
+          caractere ?? '',
+          key: ValueKey(caractere),
+          style: AppTypography.screenTitle,
         ),
       ),
     );

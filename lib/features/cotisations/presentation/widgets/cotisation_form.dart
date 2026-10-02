@@ -1,8 +1,9 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../app/theme.dart';
+import '../../../../core/utils/amount_formatter.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../shared/widgets/app_button.dart';
 import 'penalite_exception_dialog.dart';
 import 'preuve_picker.dart';
@@ -136,26 +137,31 @@ class _CotisationFormState extends State<CotisationForm> {
 
   @override
   Widget build(BuildContext context) {
-    final formatted =
-        '${_datePaiement.day.toString().padLeft(2, '0')}/${_datePaiement.month.toString().padLeft(2, '0')}/${_datePaiement.year}';
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Montant dû : ${widget.montantDu} FCFA', style: AppTypography.secondary),
+        Text('Montant dû : ${formatAmount(widget.montantDu)}', style: AppTypography.secondary),
         const SizedBox(height: AppSpacing.md),
-        const Text('Montant versé', style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text('Montant versé', style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.xs),
+        // Le montant est LA donnée de l'écran : saisie en grands chiffres,
+        // clavier numérique, chiffres seuls (ni espace, ni virgule).
         TextFormField(
           controller: _montant,
           keyboardType: TextInputType.number,
-          decoration: InputDecoration(suffixText: 'FCFA', errorText: _erreur),
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          style: AppTypography.amountXl.copyWith(fontSize: 28),
+          decoration: InputDecoration(
+            suffixText: 'FCFA',
+            suffixStyle: AppTypography.bodyStrong.copyWith(color: AppColors.slate),
+            errorText: _erreur,
+          ),
           onChanged: (_) {
             if (_erreur != null) setState(() => _erreur = null);
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        const Text('Date du paiement', style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text('Date du paiement', style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.xs),
         InkWell(
           borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
@@ -163,20 +169,22 @@ class _CotisationFormState extends State<CotisationForm> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
             decoration: BoxDecoration(
+              color: AppColors.surface,
               border: Border.all(color: AppColors.line),
               borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(formatted, style: AppTypography.body),
-                const Icon(Icons.calendar_month_outlined, color: AppColors.slate),
+                const Icon(Icons.calendar_today_outlined, size: 20, color: AppColors.indigo),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(child: Text(formatDate(_datePaiement), style: AppTypography.body)),
+                Text(formatEcheanceRelative(_datePaiement), style: AppTypography.secondary),
               ],
             ),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        const Text('Ce paiement est-il en retard ?', style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text('Ce paiement est-il en retard ?', style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.xs),
         SegmentedButton<bool>(
           segments: const [
@@ -192,45 +200,59 @@ class _CotisationFormState extends State<CotisationForm> {
             }
           }),
         ),
-        if (_paiementEnRetard) ...[
-          const SizedBox(height: AppSpacing.md),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.canvas,
-              borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _exonererPenalite ? 'Pénalité levée' : 'Pénalité calculée',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
+        // La section pénalité se déplie au lieu d'apparaître d'un coup :
+        // l'œil suit ce qui vient de s'ajouter sous le choix « En retard ».
+        AnimatedSize(
+          duration: AppMotion.medium,
+          curve: AppMotion.easeOut,
+          alignment: Alignment.topCenter,
+          child: !_paiementEnRetard
+              ? const SizedBox(width: double.infinity)
+              : Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.md),
+                  child: Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: _exonererPenalite ? AppColors.canvas : AppColors.warning.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
                     ),
-                    Text('$_penaliteCalculee FCFA', style: AppTypography.body),
-                  ],
-                ),
-                if (_exonererPenalite && _motifException != null) ...[
-                  const SizedBox(height: 4),
-                  Text(_motifException!, style: AppTypography.secondary),
-                ],
-                const SizedBox(height: AppSpacing.xs),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () => _basculerExoneration(!_exonererPenalite),
-                    child: Text(_exonererPenalite ? 'Annuler la levée' : 'Lever la pénalité'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _exonererPenalite ? 'Pénalité levée' : 'Pénalité calculée',
+                                style: AppTypography.bodyStrong,
+                              ),
+                            ),
+                            Text(
+                              formatAmount(_penaliteCalculee),
+                              style: AppTypography.amountInline.copyWith(
+                                color: _exonererPenalite ? AppColors.slate : AppColors.warningInk,
+                                decoration: _exonererPenalite ? TextDecoration.lineThrough : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_exonererPenalite && _motifException != null) ...[
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(_motifException!, style: AppTypography.secondary),
+                        ],
+                        const SizedBox(height: AppSpacing.xs),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: () => _basculerExoneration(!_exonererPenalite),
+                            child: Text(_exonererPenalite ? 'Annuler la levée' : 'Lever la pénalité'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
+        ),
         const SizedBox(height: AppSpacing.md),
         PreuvePicker(value: _preuve, onChanged: (valeur) => setState(() => _preuve = valeur)),
         const SizedBox(height: AppSpacing.xl),
