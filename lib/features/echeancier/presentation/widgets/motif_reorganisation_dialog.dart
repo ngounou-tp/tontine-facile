@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Demande le motif obligatoire d'un changement d'ordre dans l'échéancier
 /// ([ReorganisateurTours]). Retourne le motif (non vide) si confirmé,
@@ -33,7 +34,7 @@ class _MotifReorganisationDialogState extends State<_MotifReorganisationDialog> 
   void _confirmer() {
     final valeur = _motif.text.trim();
     if (valeur.isEmpty) {
-      setState(() => _erreur = 'Indiquez la raison de ce changement.');
+      setState(() => _erreur = context.l10n.reorderReasonRequired);
       return;
     }
     Navigator.of(context).pop(valeur);
@@ -42,14 +43,13 @@ class _MotifReorganisationDialogState extends State<_MotifReorganisationDialog> 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Déplacer ce tour"),
+      title: Text(context.l10n.reorderTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Les dates des tours suivants seront recalculées. Expliquez pourquoi "
-            "l'ordre change.",
+          Text(
+            context.l10n.reorderExplanation,
             style: AppTypography.secondary,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -58,7 +58,7 @@ class _MotifReorganisationDialogState extends State<_MotifReorganisationDialog> 
             autofocus: true,
             maxLines: 3,
             decoration: InputDecoration(
-              hintText: 'Ex. absence exceptionnelle, demande du membre…',
+              hintText: context.l10n.reorderHint,
               errorText: _erreur,
             ),
             onChanged: (_) {
@@ -69,12 +69,12 @@ class _MotifReorganisationDialogState extends State<_MotifReorganisationDialog> 
       ),
       actions: [
         AppButton(
-          label: 'Annuler',
+          label: context.l10n.commonCancel,
           variant: AppButtonVariant.tertiary,
           onPressed: () => Navigator.of(context).pop(),
         ),
         AppButton(
-          label: 'Confirmer',
+          label: context.l10n.commonConfirm,
           variant: AppButtonVariant.accent,
           onPressed: _confirmer,
         ),

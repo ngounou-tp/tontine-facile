@@ -13,6 +13,8 @@ import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAut
 import '../../../tontine/application/tontine_providers.dart';
 import '../../application/membres_controller.dart';
 import '../widgets/membre_form.dart';
+import '../../../../l10n/l10n.dart';
+import '../widgets/nombre_de_noms_field.dart' show formatterNombreDeNoms;
 
 /// Ajoute un nouveau membre (placeholder, sans compte) et lui génère aussitôt
 /// un code d'invitation à transmettre — l'ajout et la génération du code
@@ -61,7 +63,7 @@ class _AjouterMembrePageState extends ConsumerState<AjouterMembrePage> {
     await Clipboard.setData(ClipboardData(text: code));
     if (mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Code copié.')));
+          .showSnackBar(SnackBar(content: Text(context.l10n.addMemberCodeCopied)));
     }
   }
 
@@ -74,10 +76,10 @@ class _AjouterMembrePageState extends ConsumerState<AjouterMembrePage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Retour',
+          tooltip: context.l10n.commonBack,
           onPressed: () => context.go(AppRouter.membresPath),
         ),
-        title: const Text('Ajouter un membre'),
+        title: Text(context.l10n.addMemberTitle),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -91,7 +93,7 @@ class _AjouterMembrePageState extends ConsumerState<AjouterMembrePage> {
               switchInCurve: AppMotion.easeOut,
               child: invitation == null
                 ? MembreForm(
-                    submitLabel: 'Ajouter et générer le code',
+                    submitLabel: context.l10n.addMemberSubmit,
                     busy: busy,
                     afficherNombreDeNoms: true,
                     onSubmit: _ajouter,
@@ -102,8 +104,7 @@ class _AjouterMembrePageState extends ConsumerState<AjouterMembrePage> {
                     invitation: invitation,
                     onCopier: () => _copierCode(invitation.code),
                     onTermine: () {
-                      ref.read(flashMessageProvider.notifier).set(
-                          '$_nomAjoute a été ajouté(e) à la tontine.');
+                      ref.read(flashMessageProvider.notifier).set(context.l10n.addMemberAddedFlash(_nomAjoute!));
                       context.go(AppRouter.membresPath);
                     },
                   ),
@@ -130,14 +131,9 @@ class _Confirmation extends StatelessWidget {
   final VoidCallback onCopier;
   final VoidCallback onTermine;
 
-  String _libelleNoms() {
-    final entier = nombreDeNoms.truncate();
-    final demi = nombreDeNoms - entier >= 0.5 - 1e-9;
-    if (nombreDeNoms <= 0) return 'sans nom attribué pour le moment';
-    if (entier == 0 && demi) return 'avec ½ nom';
-    if (!demi) return 'avec $entier nom${entier > 1 ? 's' : ''}';
-    return 'avec $entier½ noms';
-  }
+  String _libelleNoms(AppLocalizations l10n) => nombreDeNoms <= 0
+      ? l10n.addMemberNoNamesYet
+      : l10n.addMemberWithNames(formatterNombreDeNoms(nombreDeNoms));
 
   @override
   Widget build(BuildContext context) {
@@ -172,14 +168,13 @@ class _Confirmation extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.lg),
         Text(
-          '$nomComplet a été ajouté(e)',
+          context.l10n.addMemberAddedTitle(nomComplet),
           textAlign: TextAlign.center,
           style: AppTypography.screenTitle,
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          '${_libelleNoms()[0].toUpperCase()}${_libelleNoms().substring(1)}. '
-          'Transmettez-lui ce code pour qu\'il ou elle rejoigne la tontine.',
+          '${_libelleNoms(context.l10n)} ${context.l10n.addMemberShareCode}',
           textAlign: TextAlign.center,
           style: AppTypography.secondary,
         ),
@@ -188,10 +183,10 @@ class _Confirmation extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             children: [
-              const Text("CODE D'INVITATION", style: AppTypography.overline),
+              Text(context.l10n.addMemberInviteCodeOverline, style: AppTypography.overline),
               const SizedBox(height: AppSpacing.sm),
               Semantics(
-                label: "Code d'invitation ${invitation.code.split('').join(' ')}",
+                label: context.l10n.addMemberInviteCodeSemantics(invitation.code.split('').join(' ')),
                 child: ExcludeSemantics(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -214,7 +209,7 @@ class _Confirmation extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               AppButton(
-                label: 'Copier le code',
+                label: context.l10n.addMemberCopyCode,
                 icon: Icons.copy_outlined,
                 variant: AppButtonVariant.secondary,
                 onPressed: onCopier,
@@ -223,7 +218,7 @@ class _Confirmation extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
-        AppButton(label: 'Terminé', variant: AppButtonVariant.accent, onPressed: onTermine),
+        AppButton(label: context.l10n.commonDone, variant: AppButtonVariant.accent, onPressed: onTermine),
       ],
     );
   }

@@ -10,12 +10,13 @@ import '../../../../domain/entities/membre.dart';
 import '../../../../domain/entities/nom.dart';
 import '../../../../domain/entities/tour.dart';
 import '../../../../domain/enums/statut_tour.dart';
+import '../../../../l10n/l10n.dart';
 
-String libelleStatutTour(StatutTour statut) => switch (statut) {
-      StatutTour.aVenir => 'À venir',
-      StatutTour.enCours => 'En cours',
-      StatutTour.remis => 'Remis',
-      StatutTour.reporte => 'Reporté',
+String libelleStatutTour(StatutTour statut, AppLocalizations l10n) => switch (statut) {
+      StatutTour.aVenir => l10n.turnStatusUpcoming,
+      StatutTour.enCours => l10n.turnStatusInProgress,
+      StatutTour.remis => l10n.turnStatusPaid,
+      StatutTour.reporte => l10n.turnStatusPostponed,
     };
 
 AppTone tonStatutTour(StatutTour statut) => switch (statut) {
@@ -51,7 +52,7 @@ class TourCard extends StatelessWidget {
 
   String get _beneficiaires {
     final courant = nom;
-    if (courant == null) return 'Nom inconnu';
+    if (courant == null) return L10n.current.unknownName;
     final noms = <String>[];
     for (final part in courant.parts) {
       for (final membre in membres) {
@@ -79,7 +80,7 @@ class TourCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Historique du tour', style: AppTypography.sectionTitle),
+              Text(context.l10n.turnHistoryTitle, style: AppTypography.sectionTitle),
               Text(_beneficiaires, style: AppTypography.secondary),
               const SizedBox(height: AppSpacing.lg),
               for (final changement in historique)
@@ -98,7 +99,7 @@ class TourCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Position ${changement.anciennePosition} → ${changement.nouvellePosition}',
+                              context.l10n.turnPositionChange(changement.anciennePosition, changement.nouvellePosition),
                               style: AppTypography.bodyStrong,
                             ),
                             Text(changement.motif, style: AppTypography.secondary),
@@ -165,8 +166,8 @@ class TourCard extends StatelessWidget {
                     ),
                     Text(
                       remis
-                          ? 'Remis le ${formatDate(tour.datePrevue)}'
-                          : 'Prévu le ${formatDate(tour.datePrevue)}',
+                          ? context.l10n.turnPaidOn(formatDate(tour.datePrevue))
+                          : context.l10n.turnPlannedOn(formatDate(tour.datePrevue)),
                       style: AppTypography.secondary,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -177,7 +178,7 @@ class TourCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  AppPill(label: libelleStatutTour(tour.statut), tone: tonStatutTour(tour.statut)),
+                  AppPill(label: libelleStatutTour(tour.statut, context.l10n), tone: tonStatutTour(tour.statut)),
                   if (remis && tour.montantRemis != null) ...[
                     const SizedBox(height: AppSpacing.xxs),
                     Text(formatAmount(tour.montantRemis!), style: AppTypography.amountInline),
@@ -200,9 +201,7 @@ class TourCard extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.history, size: 16),
                 label: Text(
-                  historique.length > 1
-                      ? '${historique.length} changements — voir l\'historique'
-                      : 'Repositionné — voir l\'historique',
+                  context.l10n.turnChangesSeeHistory(historique.length),
                 ),
               ),
             ),

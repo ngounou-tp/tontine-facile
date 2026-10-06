@@ -31,6 +31,7 @@ import '../../../tontine/application/tontine_providers.dart';
 import '../../application/cotisation_controller.dart';
 import '../../application/cotisations_providers.dart';
 import '../widgets/cotisation_form.dart';
+import '../../../../l10n/l10n.dart';
 
 const _calculateur = CalculateurCotisation();
 
@@ -73,7 +74,7 @@ class SaisirCotisationPage extends ConsumerWidget {
           ),
         ),
         body: ErrorView(
-          message: 'Impossible de charger la collecte.',
+          message: context.l10n.collectLoadError,
           onRetry: () {
             ref.invalidate(sessionProvider);
             ref.invalidate(tontineProvider);
@@ -101,7 +102,7 @@ class SaisirCotisationPage extends ConsumerWidget {
             onPressed: () => context.go(AppRouter.echeancierPath),
           ),
         ),
-        body: const ErrorView(message: 'Ce tour est introuvable.'),
+        body: ErrorView(message: context.l10n.collectTurnNotFound),
       );
     }
 
@@ -282,7 +283,7 @@ class _Contenu extends ConsumerWidget {
         // le plus important de l'app.
         HapticFeedback.mediumImpact();
         ref.read(flashMessageProvider.notifier).set(
-              'Cotisation de ${detenteur.membre.nomComplet} enregistrée.',
+              context.l10n.collectRecorded(detenteur.membre.nomComplet),
             );
         Navigator.of(context).pop();
       }
@@ -310,16 +311,18 @@ class _Contenu extends ConsumerWidget {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: 'Retour',
+            tooltip: context.l10n.commonBack,
             onPressed: () => context.go(AppRouter.echeancierPath),
           ),
           title: Text(
-            isAdmin ? 'Collecte — Tour ${tour.position}' : 'Tour ${tour.position} — Contributions',
+            isAdmin
+                ? context.l10n.collectTitleAdmin(tour.position)
+                : context.l10n.collectTitleMember(tour.position),
           ),
           bottom: TabBar(
             tabs: [
-              Tab(text: 'À collecter (${nonSoldes.length})'),
-              Tab(text: 'Réglé (${soldes.length})'),
+              Tab(text: context.l10n.collectTabToCollect(nonSoldes.length)),
+              Tab(text: context.l10n.collectTabSettled(soldes.length)),
             ],
           ),
         ),
@@ -337,11 +340,11 @@ class _Contenu extends ConsumerWidget {
               ),
               Expanded(
                 child: detenteurs.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Padding(
-                          padding: EdgeInsets.all(AppSpacing.md),
+                          padding: const EdgeInsets.all(AppSpacing.md),
                           child: Text(
-                            'Aucun détenteur de part pour ce tour.',
+                            context.l10n.collectNoHolders,
                             style: AppTypography.secondary,
                           ),
                         ),
@@ -351,7 +354,7 @@ class _Contenu extends ConsumerWidget {
                           _ListeDetenteurs(
                             detenteurs: nonSoldes,
                             tour: tour,
-                            messageVide: 'Tout le monde a réglé ce tour.',
+                            messageVide: context.l10n.collectEveryonePaid,
                             onTapDetenteur: !isAdmin
                                 ? null
                                 : (detenteur) => _ouvrirFormulaire(context, ref, detenteur),
@@ -359,7 +362,7 @@ class _Contenu extends ConsumerWidget {
                           _ListeDetenteurs(
                             detenteurs: soldes,
                             tour: tour,
-                            messageVide: 'Aucun règlement enregistré pour le moment.',
+                            messageVide: context.l10n.collectNoPaymentsYet,
                           ),
                         ],
                       ),
@@ -402,7 +405,7 @@ class _ResumeCollecte extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'ÉCHÉANCE · ${formatDateCourte(tour.datePrevue).toUpperCase()}',
+              context.l10n.collectDueOverline(formatDateCourte(tour.datePrevue).toUpperCase()),
               style: AppTypography.overline.copyWith(color: AppColors.accent),
             ),
             const SizedBox(height: AppSpacing.xs),
@@ -411,7 +414,7 @@ class _ResumeCollecte extends StatelessWidget {
               style: AppTypography.amountXl.copyWith(color: AppColors.surface),
             ),
             Text(
-              'collectés sur ${formatAmount(totalAttendu)}',
+              context.l10n.tourCollectedOf(formatAmount(totalAttendu)),
               style: AppTypography.secondary.copyWith(color: AppColors.onInkMuted),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -435,8 +438,8 @@ class _ResumeCollecte extends StatelessWidget {
                   Flexible(
                     child: Text(
                       complet
-                          ? 'Collecte complète'
-                          : '$restants personne${restants > 1 ? 's' : ''} à encaisser',
+                          ? context.l10n.collectComplete
+                          : context.l10n.collectPeopleLeft(restants),
                       style: AppTypography.secondary.copyWith(
                         color: complet ? AppColors.surface : AppColors.onInkMuted,
                       ),
@@ -499,10 +502,10 @@ class _DetenteurCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final enRetard = !detenteur.solde && DateTime.now().isAfter(tour.datePrevue);
     final (statut, ton) = switch (true) {
-      _ when detenteur.solde => ('Payé', AppTone.success),
-      _ when enRetard => ('En retard', AppTone.danger),
-      _ when detenteur.montantVerse > 0 => ('Partiel', AppTone.warning),
-      _ => ('Impayé', AppTone.neutral),
+      _ when detenteur.solde => (context.l10n.statusPaid, AppTone.success),
+      _ when enRetard => (context.l10n.statusLate, AppTone.danger),
+      _ when detenteur.montantVerse > 0 => (context.l10n.statusPartial, AppTone.warning),
+      _ => (context.l10n.statusUnpaid, AppTone.neutral),
     };
     return AppCard(
       onTap: onTap,
@@ -523,7 +526,7 @@ class _DetenteurCard extends StatelessWidget {
                   [
                     '${detenteur.nom.libelle} · ${formatFraction(detenteur.fraction)}',
                     if (!detenteur.solde && detenteur.montantVerse > 0)
-                      'reste sur ${formatAmount(detenteur.montantDu)}',
+                      context.l10n.collectRemainingOf(formatAmount(detenteur.montantDu)),
                   ].join(' · '),
                   style: AppTypography.secondary,
                   overflow: TextOverflow.ellipsis,

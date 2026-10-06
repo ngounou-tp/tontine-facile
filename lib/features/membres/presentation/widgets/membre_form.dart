@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme.dart';
 import '../../../../shared/widgets/app_button.dart';
 import 'nombre_de_noms_field.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Valeur soumise par [MembreForm] : nom complet, au moins un moyen de
 /// contact (email ou WhatsApp), et le nombre de noms attribués — un
@@ -73,7 +74,7 @@ class _MembreFormState extends State<MembreForm> {
 
   String? _erreurContact() {
     if (_email.text.trim().isEmpty && _whatsapp.text.trim().isEmpty) {
-      return 'Indiquez au moins un email ou un numéro WhatsApp.';
+      return context.l10n.memberFormContactRequired;
     }
     return null;
   }
@@ -96,17 +97,17 @@ class _MembreFormState extends State<MembreForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Nom complet', style: TextStyle(fontWeight: FontWeight.w600)),
+          Text(context.l10n.memberFormFullName, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: AppSpacing.xs),
           TextFormField(
             controller: _nomComplet,
             textCapitalization: TextCapitalization.words,
             validator: (value) => (value?.trim().length ?? 0) < 2
-                ? 'Le nom doit contenir au moins 2 caractères.'
+                ? context.l10n.memberFormNameTooShort
                 : null,
           ),
           const SizedBox(height: AppSpacing.md),
-          const Text('Numéro WhatsApp', style: TextStyle(fontWeight: FontWeight.w600)),
+          Text(context.l10n.memberFormWhatsApp, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: AppSpacing.xs),
           TextFormField(
             controller: _whatsapp,
@@ -114,7 +115,7 @@ class _MembreFormState extends State<MembreForm> {
             validator: (_) => _erreurContact(),
           ),
           const SizedBox(height: AppSpacing.md),
-          const Text('Email', style: TextStyle(fontWeight: FontWeight.w600)),
+          Text(context.l10n.memberFormEmail, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: AppSpacing.xs),
           TextFormField(
             controller: _email,
@@ -122,22 +123,21 @@ class _MembreFormState extends State<MembreForm> {
             validator: (_) => _erreurContact(),
           ),
           const SizedBox(height: AppSpacing.xs),
-          const Text(
-            'Au moins un des deux moyens de contact est requis.',
+          Text(
+            context.l10n.memberFormOneContactRequired,
             style: AppTypography.secondary,
           ),
           if (widget.afficherNombreDeNoms) ...[
             const SizedBox(height: AppSpacing.md),
-            const Text('Nombre de noms', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(context.l10n.fieldNamesCount, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: AppSpacing.xs),
             NombreDeNomsField(
               value: _nombreDeNoms,
               onChanged: (valeur) => setState(() => _nombreDeNoms = valeur),
             ),
             const SizedBox(height: AppSpacing.xs),
-            const Text(
-              'Un nom peut être partagé en demies entre deux membres ; le nom entier '
-              'lui appartient exclusivement.',
+            Text(
+              context.l10n.memberFormHalfNamesHelp,
               style: AppTypography.secondary,
             ),
           ],

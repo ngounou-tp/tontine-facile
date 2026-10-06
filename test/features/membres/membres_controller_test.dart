@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tontinefacile/core/errors/app_exception.dart';
 import 'package:tontinefacile/data/repositories/profil_repository.dart';
 import 'package:tontinefacile/data/repositories/tontine_repository.dart';
 import 'package:tontinefacile/data/services/auth_service.dart';
@@ -300,7 +301,7 @@ void main() {
           membreId: 'm-1',
           nombreDeNoms: 11,
         ),
-        throwsArgumentError,
+        throwsA(isA<NamesQuotaExceededException>()),
       );
       expect(tontines.noms, isEmpty);
     },

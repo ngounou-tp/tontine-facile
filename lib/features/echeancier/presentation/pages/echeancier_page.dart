@@ -22,6 +22,7 @@ import '../../application/reorganisation_controller.dart';
 import '../widgets/motif_reorganisation_dialog.dart';
 import '../widgets/tour_card.dart';
 import '../widgets/tour_progress.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Onglet Échéancier : programme complet des tours en lecture seule. Les
 /// tours pas encore remis (« À venir ») peuvent être réordonnés par
@@ -47,19 +48,19 @@ class EcheancierPage extends ConsumerWidget {
       child: AppScaffold(
         selectedNavIndex: 2,
         appBar: AppBar(
-          title: const Text('Échéancier'),
+          title: Text(context.l10n.navSchedule),
           bottom: tours.isEmpty
               ? null
               : TabBar(
                   tabs: [
-                    Tab(text: 'À venir ($aVenir)'),
-                    Tab(text: 'Historique ($historique)'),
+                    Tab(text: context.l10n.scheduleTabUpcoming(aVenir)),
+                    Tab(text: context.l10n.scheduleTabHistory(historique)),
                   ],
                 ),
         ),
         body: toursAsync.hasError || nomsAsync.hasError || membresAsync.hasError
             ? ErrorView(
-                message: "Impossible de charger l'échéancier.",
+                message: context.l10n.scheduleLoadError,
                 onRetry: () {
                   ref.invalidate(toursProvider);
                   ref.invalidate(nomsProvider);
@@ -146,11 +147,10 @@ class _Contenu extends ConsumerWidget {
 
     if (tours.isEmpty) {
       return EmptyState(
-        title: 'Pas encore de calendrier',
-        message: "L'échéancier n'a pas encore été généré. Attribuez les noms puis "
-            'générez-le depuis Membres.',
+        title: context.l10n.scheduleNoCalendarYet,
+        message: context.l10n.tourScheduleToPrepareMessage,
         icon: Icons.calendar_month_outlined,
-        actionLabel: isAdmin ? 'Aller aux membres' : null,
+        actionLabel: isAdmin ? context.l10n.tourGoToMembers : null,
         onAction: isAdmin ? () => context.go(AppRouter.membresPath) : null,
       );
     }
@@ -179,7 +179,7 @@ class _Contenu extends ConsumerWidget {
                       const SizedBox(width: AppSpacing.xs),
                       Expanded(
                         child: Text(
-                          'Maintenez et faites glisser pour changer l\'ordre.',
+                          context.l10n.scheduleDragHint,
                           style: AppTypography.secondary,
                         ),
                       ),
@@ -246,9 +246,9 @@ class _Contenu extends ConsumerWidget {
             ],
           ),
           historique.isEmpty
-              ? const EmptyState(
+              ? EmptyState(
                   icon: Icons.history,
-                  message: 'Aucun tour remis pour le moment. Les tours apparaîtront ici une fois la cagnotte remise.',
+                  message: context.l10n.scheduleNoTurnPaid,
                 )
               : ListView(
                   padding: const EdgeInsets.fromLTRB(

@@ -7,6 +7,8 @@ import '../../../domain/entities/nom.dart';
 import '../../../domain/entities/part.dart';
 import '../../../domain/rules/validation_parts.dart';
 import '../../auth/application/auth_providers.dart';
+import '../../../core/errors/app_exception.dart';
+import '../../../l10n/l10n.dart';
 
 /// État partagé des actions de gestion des membres et des parts. Les écrans
 /// peuvent écouter [membresControllerProvider] pour désactiver leur bouton
@@ -124,10 +126,7 @@ class MembresController extends AsyncNotifier<void> {
       final demiRestant = nombreDeNoms % 1 >= 0.5 - 1e-6 && !completeraUnNomExistant ? 1 : 0;
       final nouveauxNoms = nombreDeNoms.truncate() + demiRestant;
       if (noms.length + nouveauxNoms > tontine.nombreDeNoms) {
-        throw ArgumentError(
-          'Cette attribution dépasserait le nombre de noms prévu pour la '
-          'tontine (${tontine.nombreDeNoms}).',
-        );
+        throw NamesQuotaExceededException(tontine.nombreDeNoms);
       }
     }
 
@@ -140,7 +139,7 @@ class MembresController extends AsyncNotifier<void> {
         Nom(
           id: _tontines.nouvelIdNom(tontineId),
           position: prochainePosition,
-          libelle: 'Nom $prochainePosition',
+          libelle: L10n.current.defaultNameLabel(prochainePosition),
           parts: [Part(membreId: membreId, fraction: 1)],
         ),
       );
@@ -173,7 +172,7 @@ class MembresController extends AsyncNotifier<void> {
           Nom(
             id: _tontines.nouvelIdNom(tontineId),
             position: prochainePosition,
-            libelle: 'Nom $prochainePosition',
+            libelle: L10n.current.defaultNameLabel(prochainePosition),
             parts: [Part(membreId: membreId, fraction: 0.5)],
           ),
         );
@@ -251,7 +250,7 @@ class MembresController extends AsyncNotifier<void> {
         final nom = Nom(
           id: _tontines.nouvelIdNom(tontineId),
           position: position,
-          libelle: 'Nom $position',
+          libelle: L10n.current.defaultNameLabel(position),
           parts: parts,
         );
         await _tontines.saveNom(tontineId, nom);

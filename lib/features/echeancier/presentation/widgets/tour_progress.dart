@@ -4,6 +4,7 @@ import '../../../../app/theme.dart';
 import '../../../../domain/entities/tour.dart';
 import '../../../../domain/enums/statut_tour.dart';
 import '../../../../shared/widgets/app_progress_bar.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Résumé de progression de l'échéancier complet : proportion de tours
 /// remis sur le total.
@@ -32,12 +33,12 @@ class TourProgress extends StatelessWidget {
                 Text('$remis', style: AppTypography.amount.copyWith(fontWeight: FontWeight.w600)),
                 Expanded(
                   child: Text(
-                    ' / $total tours remis',
+                    context.l10n.turnsPaidOf(total),
                     style: AppTypography.secondary,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Text('${(progression * 100).round()} %', style: AppTypography.micro),
+                Text(context.l10n.percentValue((progression * 100).round()), style: AppTypography.micro),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),

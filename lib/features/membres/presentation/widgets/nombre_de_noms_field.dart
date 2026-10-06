@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Formate un nombre de noms (multiple de `0.5`) pour affichage : « 1 nom »,
 /// « ½ nom », « 2½ noms »...
 String formatterNombreDeNoms(double valeur) {
   final entier = valeur.truncate();
   final demi = valeur - entier >= 0.5 - 1e-9;
-  if (entier == 0 && demi) return '½ nom';
-  if (!demi) return '$entier nom${entier > 1 ? 's' : ''}';
-  return '$entier½ noms';
+  final l10n = L10n.current;
+  if (entier == 0 && demi) return l10n.namesCountHalfOnly;
+  if (!demi) return l10n.namesCountWhole(entier);
+  return l10n.namesCountWithHalf(entier);
 }
 
 /// Sélecteur pas-à-pas (par demies) du nombre de noms attribués à un
@@ -40,7 +42,7 @@ class NombreDeNomsField extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            tooltip: 'Retirer une demie',
+            tooltip: context.l10n.namesRemoveHalf,
             icon: const Icon(Icons.remove_circle_outline),
             onPressed: value > minimum ? () => onChanged(value - 0.5) : null,
           ),
@@ -52,7 +54,7 @@ class NombreDeNomsField extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Ajouter une demie',
+            tooltip: context.l10n.namesAddHalf,
             icon: const Icon(Icons.add_circle_outline),
             onPressed: () => onChanged(value + 0.5),
           ),

@@ -5,6 +5,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/theme.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Taille maximale d'une preuve compressée, en octets (150 Ko — voir
 /// `Preuve`, stockée encodée en base64 dans Firestore).
@@ -51,7 +52,7 @@ class _PreuvePickerState extends State<PreuvePicker> {
       final octets = await _compresser(await fichier.readAsBytes());
       widget.onChanged(octets);
     } catch (_) {
-      setState(() => _erreur = "Impossible de récupérer l'image. Réessayez.");
+      setState(() => _erreur = context.l10n.proofImageError);
     } finally {
       if (mounted) setState(() => _enCours = false);
     }
@@ -87,12 +88,12 @@ class _PreuvePickerState extends State<PreuvePicker> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Prendre une photo'),
+              title: Text(context.l10n.proofTakePhoto),
               onTap: () => Navigator.of(context).pop(ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choisir dans la galerie'),
+              title: Text(context.l10n.proofChooseFromGallery),
               onTap: () => Navigator.of(context).pop(ImageSource.gallery),
             ),
           ],
@@ -108,7 +109,7 @@ class _PreuvePickerState extends State<PreuvePicker> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.obligatoire ? 'Preuve (obligatoire)' : 'Preuve (optionnelle)',
+          widget.obligatoire ? context.l10n.proofRequired : context.l10n.proofOptional,
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.xs),
@@ -128,7 +129,7 @@ class _PreuvePickerState extends State<PreuvePicker> {
                       padding: EdgeInsets.zero,
                       iconSize: 18,
                       icon: const Icon(Icons.close, color: AppColors.danger),
-                      tooltip: 'Retirer la preuve',
+                      tooltip: context.l10n.proofRemove,
                       onPressed: () => widget.onChanged(null),
                     ),
                   ),
@@ -146,7 +147,7 @@ class _PreuvePickerState extends State<PreuvePicker> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.add_a_photo_outlined),
-            label: Text(_enCours ? 'Compression en cours…' : 'Ajouter une preuve'),
+            label: Text(_enCours ? context.l10n.proofCompressing : context.l10n.proofAdd),
           ),
         if (_erreur != null) ...[
           const SizedBox(height: AppSpacing.xs),

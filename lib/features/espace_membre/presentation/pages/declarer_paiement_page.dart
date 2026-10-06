@@ -17,6 +17,8 @@ import '../../../cotisations/application/declaration_controller.dart';
 import '../../../cotisations/presentation/widgets/preuve_picker.dart';
 import '../../../tontine/application/tontine_providers.dart';
 import '../../application/espace_membre_providers.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Formulaire de déclaration de paiement par un membre : montant (possible
 /// partiel), date, et preuve obligatoire. N'affecte aucun total officiel —
@@ -63,17 +65,17 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
   Future<void> _soumettre(String tontineId, SituationNomTourActuel situation, dynamic tour) async {
     final montant = int.tryParse(_montant.text);
     if (montant == null || montant <= 0) {
-      setState(() => _erreur = 'Indiquez un montant valide.');
+      setState(() => _erreur = context.l10n.declareInvalidAmount);
       return;
     }
     if (montant > situation.montantDu - situation.montantVerse) {
-      setState(() => _erreur = 'Le montant ne peut pas dépasser le reste à devoir.');
+      setState(() => _erreur = context.l10n.declareAmountExceedsRemaining);
       return;
     }
     if (_preuve == null) {
       setState(() {
         _erreur = null;
-        _erreurEnvoi = 'Une preuve est obligatoire pour déclarer un paiement.';
+        _erreurEnvoi = context.l10n.declareProofRequired;
       });
       return;
     }
@@ -95,7 +97,7 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
       if (mounted) {
         HapticFeedback.mediumImpact();
         ref.read(flashMessageProvider.notifier).set(
-              'Déclaration envoyée. En attente de validation par l\'administratrice.',
+              context.l10n.declareSent,
             );
         context.go(AppRouter.espaceMembrePath);
       }
@@ -123,15 +125,15 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Retour',
+          tooltip: context.l10n.commonBack,
           onPressed: () => context.go(AppRouter.espaceMembrePath),
         ),
-        title: const Text("J'ai payé"),
+        title: Text(context.l10n.declareTitle),
       ),
       body: tour == null || situation == null || tontineId == null
           ? (situations.isEmpty && tour == null
               ? const LoadingView()
-              : const ErrorView(message: 'Ce nom ne peut plus être déclaré pour le tour en cours.'))
+              : ErrorView(message: context.l10n.declareNotAllowed))
           : SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.lg),
@@ -149,11 +151,11 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
                           Text(situation!.nom.libelle, style: AppTypography.screenTitle),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
-                            'Reste à devoir : ${formatAmount(situation.montantDu - situation.montantVerse)}',
+                            context.l10n.declareRemaining(formatAmount(situation.montantDu - situation.montantVerse)),
                             style: AppTypography.secondary,
                           ),
                           const SizedBox(height: AppSpacing.lg),
-                          const Text('Montant versé', style: AppTypography.bodyStrong),
+                          Text(context.l10n.contribAmountPaid, style: AppTypography.bodyStrong),
                           const SizedBox(height: AppSpacing.xs),
                           TextFormField(
                             controller: _montant,
@@ -161,7 +163,7 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             style: AppTypography.amountXl.copyWith(fontSize: 28),
                             decoration: InputDecoration(
-                              suffixText: 'FCFA',
+                              suffixText: AppConstants.currency,
                               suffixStyle: AppTypography.bodyStrong.copyWith(color: AppColors.slate),
                               errorText: _erreur,
                             ),
@@ -170,7 +172,7 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
                             },
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          const Text('Date du paiement', style: AppTypography.bodyStrong),
+                          Text(context.l10n.contribPaymentDate, style: AppTypography.bodyStrong),
                           const SizedBox(height: AppSpacing.xs),
                           InkWell(
                             borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
@@ -228,7 +230,7 @@ class _DeclarerPaiementPageState extends ConsumerState<DeclarerPaiementPage> {
                           ),
                           const SizedBox(height: AppSpacing.xl),
                           AppButton(
-                            label: 'Envoyer la déclaration',
+                            label: context.l10n.declareSubmit,
                             variant: AppButtonVariant.accent,
                             busy: busy,
                             onPressed: busy ? null : () => _soumettre(tontineId, situation!, tour),

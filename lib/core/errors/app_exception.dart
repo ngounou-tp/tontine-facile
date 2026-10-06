@@ -115,3 +115,13 @@ final class InvitationDejaUtiliseeException extends AppException {
   @override
   String get message => L10n.current.errorInvitationAlreadyUsed;
 }
+
+/// Une attribution de noms dépasserait le total prévu pour la tontine.
+final class NamesQuotaExceededException extends AppException {
+  const NamesQuotaExceededException(this.total);
+
+  final int total;
+
+  @override
+  String get message => L10n.current.errorNamesQuotaExceeded(total);
+}

@@ -1081,6 +1081,1542 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Seule l\'administratrice de la tontine peut modifier ces informations.'**
   String get editAdminOnlyExplanation;
+
+  /// No description provided for @homeAddMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un membre'**
+  String get homeAddMember;
+
+  /// No description provided for @homeLoading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement de votre tontine…'**
+  String get homeLoading;
+
+  /// No description provided for @homeLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger votre tontine.'**
+  String get homeLoadError;
+
+  /// No description provided for @homeHello.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonjour'**
+  String get homeHello;
+
+  /// No description provided for @homeHelloName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonjour, {name}'**
+  String homeHelloName(String name);
+
+  /// No description provided for @homeSubtitlePending.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Voici le résumé de votre tontine.} =1{Un paiement attend votre validation.} other{{count} paiements attendent votre validation.}}'**
+  String homeSubtitlePending(int count);
+
+  /// No description provided for @homeSubtitleMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voici le résumé de votre tontine.'**
+  String get homeSubtitleMember;
+
+  /// No description provided for @homeAtAGlance.
+  ///
+  /// In fr, this message translates to:
+  /// **'En un coup d\'œil'**
+  String get homeAtAGlance;
+
+  /// No description provided for @commonSeeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tout'**
+  String get commonSeeAll;
+
+  /// No description provided for @homeNoActiveMembers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun membre actif pour le moment'**
+  String get homeNoActiveMembers;
+
+  /// No description provided for @homeActiveMembers.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 membre actif} other{{count} membres actifs}}'**
+  String homeActiveMembers(int count);
+
+  /// No description provided for @unknownName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom inconnu'**
+  String get unknownName;
+
+  /// No description provided for @tourScheduleToPrepare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échéancier à préparer'**
+  String get tourScheduleToPrepare;
+
+  /// No description provided for @tourScheduleToPrepareMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'échéancier n\'a pas encore été généré. Attribuez les noms puis générez-le depuis Membres.'**
+  String get tourScheduleToPrepareMessage;
+
+  /// No description provided for @tourGoToMembers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aller aux membres'**
+  String get tourGoToMembers;
+
+  /// No description provided for @tourTontineFinished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tontine terminée'**
+  String get tourTontineFinished;
+
+  /// No description provided for @tourTontineFinishedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les tours ont été remis. Bravo !'**
+  String get tourTontineFinishedMessage;
+
+  /// No description provided for @tourCurrentOverline.
+  ///
+  /// In fr, this message translates to:
+  /// **'TOUR {position} · EN COURS'**
+  String tourCurrentOverline(int position);
+
+  /// No description provided for @tourReceives.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçoit {amount} · {date} ({relative})'**
+  String tourReceives(String amount, String date, String relative);
+
+  /// No description provided for @tourCollectedOf.
+  ///
+  /// In fr, this message translates to:
+  /// **'collectés sur {amount}'**
+  String tourCollectedOf(String amount);
+
+  /// No description provided for @tourSeeCollection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir la collecte'**
+  String get tourSeeCollection;
+
+  /// No description provided for @tourCollect.
+  ///
+  /// In fr, this message translates to:
+  /// **'Collecter les cotisations'**
+  String get tourCollect;
+
+  /// No description provided for @percentValue.
+  ///
+  /// In fr, this message translates to:
+  /// **'{value} %'**
+  String percentValue(int value);
+
+  /// No description provided for @statsActiveMembers.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Membre actif} =1{Membre actif} other{Membres actifs}}'**
+  String statsActiveMembers(int count);
+
+  /// No description provided for @statsNamesAssigned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noms attribués'**
+  String get statsNamesAssigned;
+
+  /// No description provided for @statsTurnsPaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tours remis'**
+  String get statsTurnsPaid;
+
+  /// No description provided for @statsOnTimeLate.
+  ///
+  /// In fr, this message translates to:
+  /// **'À temps / en retard'**
+  String get statsOnTimeLate;
+
+  /// No description provided for @bannerPendingDeclarations.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 déclaration de paiement à traiter} other{{count} déclarations de paiement à traiter}}'**
+  String bannerPendingDeclarations(int count);
+
+  /// No description provided for @bannerCheckProofs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifiez les preuves pour valider les paiements.'**
+  String get bannerCheckProofs;
+
+  /// No description provided for @settingsSignOutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter ?'**
+  String get settingsSignOutTitle;
+
+  /// No description provided for @settingsSignOutMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous devrez vous reconnecter pour accéder à votre tontine.'**
+  String get settingsSignOutMessage;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réglages'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsSectionGroup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupe'**
+  String get settingsSectionGroup;
+
+  /// No description provided for @settingsTontineSettings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réglages de la tontine'**
+  String get settingsTontineSettings;
+
+  /// No description provided for @settingsTontineSettingsAdmin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom, montant, pénalité, nombre de noms'**
+  String get settingsTontineSettingsAdmin;
+
+  /// No description provided for @settingsTontineSettingsMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Consulter (lecture seule)'**
+  String get settingsTontineSettingsMember;
+
+  /// No description provided for @settingsSectionAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte'**
+  String get settingsSectionAccount;
+
+  /// No description provided for @settingsMyProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon profil'**
+  String get settingsMyProfile;
+
+  /// No description provided for @settingsMyProfileAdmin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos coordonnées et votre code d\'invitation'**
+  String get settingsMyProfileAdmin;
+
+  /// No description provided for @settingsMyProfileMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos noms, vos cotisations et vos déclarations'**
+  String get settingsMyProfileMember;
+
+  /// No description provided for @settingsSectionPreferences.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préférences'**
+  String get settingsSectionPreferences;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsLanguageSystem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue du téléphone'**
+  String get settingsLanguageSystem;
+
+  /// No description provided for @languageFrench.
+  ///
+  /// In fr, this message translates to:
+  /// **'Français'**
+  String get languageFrench;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In fr, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @namesCountWhole.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{0 nom} =1{1 nom} other{{count} noms}}'**
+  String namesCountWhole(int count);
+
+  /// No description provided for @namesCountHalfOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'½ nom'**
+  String get namesCountHalfOnly;
+
+  /// No description provided for @namesCountWithHalf.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count}½ noms'**
+  String namesCountWithHalf(int count);
+
+  /// No description provided for @namesRemoveHalf.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer une demie'**
+  String get namesRemoveHalf;
+
+  /// No description provided for @namesAddHalf.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une demie'**
+  String get namesAddHalf;
+
+  /// No description provided for @membersTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membres'**
+  String get membersTitle;
+
+  /// No description provided for @membersTabNames.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noms ({count})'**
+  String membersTabNames(int count);
+
+  /// No description provided for @membersTabMembers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membres ({count})'**
+  String membersTabMembers(int count);
+
+  /// No description provided for @commonAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter'**
+  String get commonAdd;
+
+  /// No description provided for @membersLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les membres.'**
+  String get membersLoadError;
+
+  /// No description provided for @membersSectionNames.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noms'**
+  String get membersSectionNames;
+
+  /// No description provided for @membersAssign.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attribuer'**
+  String get membersAssign;
+
+  /// No description provided for @membersNoNamesYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun nom n\'a encore été créé. Attribuez le premier pour commencer.'**
+  String get membersNoNamesYet;
+
+  /// No description provided for @membersAssignName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attribuer un nom'**
+  String get membersAssignName;
+
+  /// No description provided for @membersGenerateSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Générer l\'échéancier'**
+  String get membersGenerateSchedule;
+
+  /// No description provided for @membersNamesLeftBeforeSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Encore 1 nom à attribuer avant de pouvoir générer l\'échéancier.} other{Encore {count} noms à attribuer avant de pouvoir générer l\'échéancier.}}'**
+  String membersNamesLeftBeforeSchedule(int count);
+
+  /// No description provided for @membersActiveSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membres actifs ({count})'**
+  String membersActiveSection(int count);
+
+  /// No description provided for @membersNoActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun membre actif pour le moment.'**
+  String get membersNoActive;
+
+  /// No description provided for @membersInactiveSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membres désactivés ({count})'**
+  String membersInactiveSection(int count);
+
+  /// No description provided for @unknownMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre inconnu'**
+  String get unknownMember;
+
+  /// No description provided for @membersNoHolder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun détenteur'**
+  String get membersNoHolder;
+
+  /// No description provided for @membersToComplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'À compléter'**
+  String get membersToComplete;
+
+  /// No description provided for @membersNoContact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun contact'**
+  String get membersNoContact;
+
+  /// No description provided for @membersPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente'**
+  String get membersPending;
+
+  /// No description provided for @membersNamesAssignedOf.
+  ///
+  /// In fr, this message translates to:
+  /// **'/{total} noms attribués'**
+  String membersNamesAssignedOf(int total);
+
+  /// No description provided for @membersComplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complet'**
+  String get membersComplete;
+
+  /// No description provided for @addMemberCodeCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code copié.'**
+  String get addMemberCodeCopied;
+
+  /// No description provided for @addMemberTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un membre'**
+  String get addMemberTitle;
+
+  /// No description provided for @addMemberSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter et générer le code'**
+  String get addMemberSubmit;
+
+  /// No description provided for @addMemberAddedFlash.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} a été ajouté(e) à la tontine.'**
+  String addMemberAddedFlash(String name);
+
+  /// No description provided for @addMemberAddedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} a été ajouté(e)'**
+  String addMemberAddedTitle(String name);
+
+  /// No description provided for @addMemberNoNamesYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans nom attribué pour le moment.'**
+  String get addMemberNoNamesYet;
+
+  /// No description provided for @addMemberWithNames.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avec {names}.'**
+  String addMemberWithNames(String names);
+
+  /// No description provided for @addMemberShareCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transmettez-lui ce code pour qu\'il ou elle rejoigne la tontine.'**
+  String get addMemberShareCode;
+
+  /// No description provided for @addMemberInviteCodeOverline.
+  ///
+  /// In fr, this message translates to:
+  /// **'CODE D\'INVITATION'**
+  String get addMemberInviteCodeOverline;
+
+  /// No description provided for @addMemberInviteCodeSemantics.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code d\'invitation {code}'**
+  String addMemberInviteCodeSemantics(String code);
+
+  /// No description provided for @addMemberCopyCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier le code'**
+  String get addMemberCopyCode;
+
+  /// No description provided for @commonDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get commonDone;
+
+  /// No description provided for @profileContactUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coordonnées mises à jour.'**
+  String get profileContactUpdated;
+
+  /// No description provided for @profileDeactivateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactiver {name} ?'**
+  String profileDeactivateTitle(String name);
+
+  /// No description provided for @profileDeactivateMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce membre n\'apparaîtra plus dans les membres actifs. Vous pourrez le réactiver à tout moment.'**
+  String get profileDeactivateMessage;
+
+  /// No description provided for @profileDeactivate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactiver'**
+  String get profileDeactivate;
+
+  /// No description provided for @profileDeactivated.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} a été désactivé(e).'**
+  String profileDeactivated(String name);
+
+  /// No description provided for @profileReactivated.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} a été réactivé(e).'**
+  String profileReactivated(String name);
+
+  /// No description provided for @profileNamesAssigned.
+  ///
+  /// In fr, this message translates to:
+  /// **'{names} attribué(s) à {name}.'**
+  String profileNamesAssigned(String names, String name);
+
+  /// No description provided for @profileLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger ce membre.'**
+  String get profileLoadError;
+
+  /// No description provided for @profileNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce membre est introuvable.'**
+  String get profileNotFound;
+
+  /// No description provided for @profileEditContact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier les coordonnées'**
+  String get profileEditContact;
+
+  /// No description provided for @commonSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get commonSave;
+
+  /// No description provided for @contactWhatsApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'WhatsApp'**
+  String get contactWhatsApp;
+
+  /// No description provided for @profileNamesHeld.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noms détenus'**
+  String get profileNamesHeld;
+
+  /// No description provided for @profileNoNamesYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun nom attribué pour le moment.'**
+  String get profileNoNamesYet;
+
+  /// No description provided for @profileDeactivateMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactiver ce membre'**
+  String get profileDeactivateMember;
+
+  /// No description provided for @profileReactivateMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver ce membre'**
+  String get profileReactivateMember;
+
+  /// No description provided for @profileInviteCodeUsed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code d\'invitation (utilisé)'**
+  String get profileInviteCodeUsed;
+
+  /// No description provided for @profileInviteCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code d\'invitation'**
+  String get profileInviteCode;
+
+  /// No description provided for @profileRegistered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscrit'**
+  String get profileRegistered;
+
+  /// No description provided for @profileShareCodeWith.
+  ///
+  /// In fr, this message translates to:
+  /// **'À transmettre à {name} pour qu\'il ou elle rejoigne la tontine.'**
+  String profileShareCodeWith(String name);
+
+  /// No description provided for @profileDuePerDueDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'DÛ PAR ÉCHÉANCE'**
+  String get profileDuePerDueDate;
+
+  /// No description provided for @profileNamesHeldCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 nom détenu} other{{count} noms détenus}}'**
+  String profileNamesHeldCount(int count);
+
+  /// No description provided for @statusDeactivated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactivé'**
+  String get statusDeactivated;
+
+  /// No description provided for @statusAwaitingSignup.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente d\'inscription'**
+  String get statusAwaitingSignup;
+
+  /// No description provided for @statusActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actif'**
+  String get statusActive;
+
+  /// No description provided for @profileAssignNamesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attribuer des noms'**
+  String get profileAssignNamesTitle;
+
+  /// No description provided for @profileAssignNamesQuestion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Combien de noms supplémentaires pour {name} ?'**
+  String profileAssignNamesQuestion(String name);
+
+  /// No description provided for @memberFormContactRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez au moins un email ou un numéro WhatsApp.'**
+  String get memberFormContactRequired;
+
+  /// No description provided for @memberFormFullName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom complet'**
+  String get memberFormFullName;
+
+  /// No description provided for @memberFormNameTooShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le nom doit contenir au moins 2 caractères.'**
+  String get memberFormNameTooShort;
+
+  /// No description provided for @memberFormWhatsApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro WhatsApp'**
+  String get memberFormWhatsApp;
+
+  /// No description provided for @memberFormEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email'**
+  String get memberFormEmail;
+
+  /// No description provided for @memberFormOneContactRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au moins un des deux moyens de contact est requis.'**
+  String get memberFormOneContactRequired;
+
+  /// No description provided for @memberFormHalfNamesHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un nom peut être partagé en demies entre deux membres ; le nom entier lui appartient exclusivement.'**
+  String get memberFormHalfNamesHelp;
+
+  /// No description provided for @errorNamesQuotaExceeded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette attribution dépasserait le nombre de noms prévu pour la tontine ({total}).'**
+  String errorNamesQuotaExceeded(int total);
+
+  /// No description provided for @defaultNameLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom {position}'**
+  String defaultNameLabel(int position);
+
+  /// No description provided for @assignSharesMustTotal100.
+  ///
+  /// In fr, this message translates to:
+  /// **'La somme des parts doit être égale à 100 %.'**
+  String get assignSharesMustTotal100;
+
+  /// No description provided for @assignSharesSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Parts enregistrées.'**
+  String get assignSharesSaved;
+
+  /// No description provided for @assignLoadNamesError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les noms.'**
+  String get assignLoadNamesError;
+
+  /// No description provided for @assignNameNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce nom est introuvable.'**
+  String get assignNameNotFound;
+
+  /// No description provided for @assignNewName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau nom'**
+  String get assignNewName;
+
+  /// No description provided for @assignEditShares.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier les parts'**
+  String get assignEditShares;
+
+  /// No description provided for @assignAddActiveMembersFirst.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez d\'abord des membres actifs pour pouvoir leur attribuer ce nom.'**
+  String get assignAddActiveMembersFirst;
+
+  /// No description provided for @assignFrozen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Figé — l\'échéancier a déjà démarré. Modifier ces parts fausserait les montants dus déjà calculés.'**
+  String get assignFrozen;
+
+  /// No description provided for @partsHolders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détenteurs de part'**
+  String get partsHolders;
+
+  /// No description provided for @partsSplitEqually.
+  ///
+  /// In fr, this message translates to:
+  /// **'Répartir également'**
+  String get partsSplitEqually;
+
+  /// No description provided for @partsTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total : {percent} %'**
+  String partsTotal(int percent);
+
+  /// No description provided for @scheduleTabUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'À venir ({count})'**
+  String scheduleTabUpcoming(int count);
+
+  /// No description provided for @scheduleTabHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique ({count})'**
+  String scheduleTabHistory(int count);
+
+  /// No description provided for @scheduleLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger l\'échéancier.'**
+  String get scheduleLoadError;
+
+  /// No description provided for @scheduleNoCalendarYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore de calendrier'**
+  String get scheduleNoCalendarYet;
+
+  /// No description provided for @scheduleDragHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maintenez et faites glisser pour changer l\'ordre.'**
+  String get scheduleDragHint;
+
+  /// No description provided for @scheduleNoTurnPaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun tour remis pour le moment. Les tours apparaîtront ici une fois la cagnotte remise.'**
+  String get scheduleNoTurnPaid;
+
+  /// No description provided for @reorderReasonRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez la raison de ce changement.'**
+  String get reorderReasonRequired;
+
+  /// No description provided for @reorderTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déplacer ce tour'**
+  String get reorderTitle;
+
+  /// No description provided for @reorderExplanation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les dates des tours suivants seront recalculées. Expliquez pourquoi l\'ordre change.'**
+  String get reorderExplanation;
+
+  /// No description provided for @reorderHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex. absence exceptionnelle, demande du membre…'**
+  String get reorderHint;
+
+  /// No description provided for @commonConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get commonConfirm;
+
+  /// No description provided for @turnStatusUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'À venir'**
+  String get turnStatusUpcoming;
+
+  /// No description provided for @turnStatusInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get turnStatusInProgress;
+
+  /// No description provided for @turnStatusPaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remis'**
+  String get turnStatusPaid;
+
+  /// No description provided for @turnStatusPostponed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reporté'**
+  String get turnStatusPostponed;
+
+  /// No description provided for @turnHistoryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique du tour'**
+  String get turnHistoryTitle;
+
+  /// No description provided for @turnPositionChange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Position {from} → {to}'**
+  String turnPositionChange(int from, int to);
+
+  /// No description provided for @turnPaidOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remis le {date}'**
+  String turnPaidOn(String date);
+
+  /// No description provided for @turnPlannedOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévu le {date}'**
+  String turnPlannedOn(String date);
+
+  /// No description provided for @turnChangesSeeHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Repositionné — voir l\'historique} other{{count} changements — voir l\'historique}}'**
+  String turnChangesSeeHistory(int count);
+
+  /// No description provided for @turnsPaidOf.
+  ///
+  /// In fr, this message translates to:
+  /// **' / {total} tours remis'**
+  String turnsPaidOf(int total);
+
+  /// No description provided for @collectLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger la collecte.'**
+  String get collectLoadError;
+
+  /// No description provided for @collectTurnNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce tour est introuvable.'**
+  String get collectTurnNotFound;
+
+  /// No description provided for @collectRecorded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cotisation de {name} enregistrée.'**
+  String collectRecorded(String name);
+
+  /// No description provided for @collectTitleAdmin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Collecte — Tour {position}'**
+  String collectTitleAdmin(int position);
+
+  /// No description provided for @collectTitleMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tour {position} — Contributions'**
+  String collectTitleMember(int position);
+
+  /// No description provided for @collectTabToCollect.
+  ///
+  /// In fr, this message translates to:
+  /// **'À collecter ({count})'**
+  String collectTabToCollect(int count);
+
+  /// No description provided for @collectTabSettled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réglé ({count})'**
+  String collectTabSettled(int count);
+
+  /// No description provided for @collectNoHolders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun détenteur de part pour ce tour.'**
+  String get collectNoHolders;
+
+  /// No description provided for @collectEveryonePaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout le monde a réglé ce tour.'**
+  String get collectEveryonePaid;
+
+  /// No description provided for @collectNoPaymentsYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun règlement enregistré pour le moment.'**
+  String get collectNoPaymentsYet;
+
+  /// No description provided for @collectDueOverline.
+  ///
+  /// In fr, this message translates to:
+  /// **'ÉCHÉANCE · {date}'**
+  String collectDueOverline(String date);
+
+  /// No description provided for @collectComplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Collecte complète'**
+  String get collectComplete;
+
+  /// No description provided for @collectPeopleLeft.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 personne à encaisser} other{{count} personnes à encaisser}}'**
+  String collectPeopleLeft(int count);
+
+  /// No description provided for @statusUnpaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impayé'**
+  String get statusUnpaid;
+
+  /// No description provided for @collectRemainingOf.
+  ///
+  /// In fr, this message translates to:
+  /// **'reste sur {amount}'**
+  String collectRemainingOf(String amount);
+
+  /// No description provided for @contribInvalidAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez un montant versé valide.'**
+  String get contribInvalidAmount;
+
+  /// No description provided for @contribAmountExceedsDue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le montant versé ne peut pas dépasser le montant dû.'**
+  String get contribAmountExceedsDue;
+
+  /// No description provided for @contribMarkedOnTimeReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marqué comme à temps par l’administratrice.'**
+  String get contribMarkedOnTimeReason;
+
+  /// No description provided for @contribAmountDue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant dû : {amount}'**
+  String contribAmountDue(String amount);
+
+  /// No description provided for @contribAmountPaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant versé'**
+  String get contribAmountPaid;
+
+  /// No description provided for @contribPaymentDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date du paiement'**
+  String get contribPaymentDate;
+
+  /// No description provided for @contribIsLate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce paiement est-il en retard ?'**
+  String get contribIsLate;
+
+  /// No description provided for @contribOnTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'À temps'**
+  String get contribOnTime;
+
+  /// No description provided for @contribPenaltyWaived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pénalité levée'**
+  String get contribPenaltyWaived;
+
+  /// No description provided for @contribPenaltyComputed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pénalité calculée'**
+  String get contribPenaltyComputed;
+
+  /// No description provided for @contribCancelWaiver.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la levée'**
+  String get contribCancelWaiver;
+
+  /// No description provided for @contribWaivePenalty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lever la pénalité'**
+  String get contribWaivePenalty;
+
+  /// No description provided for @contribSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer la cotisation'**
+  String get contribSubmit;
+
+  /// No description provided for @declValidated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclaration validée.'**
+  String get declValidated;
+
+  /// No description provided for @declRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclaration refusée.'**
+  String get declRejected;
+
+  /// No description provided for @declTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclaration'**
+  String get declTitle;
+
+  /// No description provided for @declLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger cette déclaration.'**
+  String get declLoadError;
+
+  /// No description provided for @declNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette déclaration est introuvable.'**
+  String get declNotFound;
+
+  /// No description provided for @turnLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tour {position}'**
+  String turnLabel(int position);
+
+  /// No description provided for @declAmountDeclared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant déclaré'**
+  String get declAmountDeclared;
+
+  /// No description provided for @declPaidOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Payé le {date}'**
+  String declPaidOn(String date);
+
+  /// No description provided for @declRejectionReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus : {reason}'**
+  String declRejectionReason(String reason);
+
+  /// No description provided for @declProofOfPayment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Preuve de paiement'**
+  String get declProofOfPayment;
+
+  /// No description provided for @declApprove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider la déclaration'**
+  String get declApprove;
+
+  /// No description provided for @declReject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get declReject;
+
+  /// No description provided for @declNewDeclaration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faire une nouvelle déclaration'**
+  String get declNewDeclaration;
+
+  /// No description provided for @declStatusPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente'**
+  String get declStatusPending;
+
+  /// No description provided for @declStatusApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validée'**
+  String get declStatusApproved;
+
+  /// No description provided for @declStatusDisputed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contestée'**
+  String get declStatusDisputed;
+
+  /// No description provided for @declProofLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger la preuve.'**
+  String get declProofLoadError;
+
+  /// No description provided for @declNoProof.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune preuve disponible.'**
+  String get declNoProof;
+
+  /// No description provided for @declEnlargeProof.
+  ///
+  /// In fr, this message translates to:
+  /// **'Agrandir la preuve'**
+  String get declEnlargeProof;
+
+  /// No description provided for @declRejectReasonRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez la raison du refus.'**
+  String get declRejectReasonRequired;
+
+  /// No description provided for @declRejectTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser cette déclaration'**
+  String get declRejectTitle;
+
+  /// No description provided for @declRejectHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex. preuve illisible, montant incorrect…'**
+  String get declRejectHint;
+
+  /// No description provided for @declListLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les déclarations.'**
+  String get declListLoadError;
+
+  /// No description provided for @declNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune déclaration'**
+  String get declNone;
+
+  /// No description provided for @declNoneMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quand un membre signale avoir payé, sa déclaration et sa preuve apparaissent ici.'**
+  String get declNoneMessage;
+
+  /// No description provided for @unknownTurn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tour inconnu'**
+  String get unknownTurn;
+
+  /// No description provided for @declGroupTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tour {position} — {beneficiaries}'**
+  String declGroupTitle(int position, String beneficiaries);
+
+  /// No description provided for @declPendingOf.
+  ///
+  /// In fr, this message translates to:
+  /// **'{pending} en attente sur {total}'**
+  String declPendingOf(int pending, int total);
+
+  /// No description provided for @declCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 déclaration} other{{count} déclarations}}'**
+  String declCount(int count);
+
+  /// No description provided for @waiverReasonRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez la raison de cette exception.'**
+  String get waiverReasonRequired;
+
+  /// No description provided for @waiverExplanation.
+  ///
+  /// In fr, this message translates to:
+  /// **'La pénalité de retard calculée ne sera pas appliquée à cette cotisation. Expliquez pourquoi.'**
+  String get waiverExplanation;
+
+  /// No description provided for @waiverHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex. panne réseau signalée à l’avance'**
+  String get waiverHint;
+
+  /// No description provided for @proofImageError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de récupérer l\'image. Réessayez.'**
+  String get proofImageError;
+
+  /// No description provided for @proofTakePhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre une photo'**
+  String get proofTakePhoto;
+
+  /// No description provided for @proofChooseFromGallery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir dans la galerie'**
+  String get proofChooseFromGallery;
+
+  /// No description provided for @proofRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Preuve (obligatoire)'**
+  String get proofRequired;
+
+  /// No description provided for @proofOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Preuve (optionnelle)'**
+  String get proofOptional;
+
+  /// No description provided for @proofRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer la preuve'**
+  String get proofRemove;
+
+  /// No description provided for @proofCompressing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compression en cours…'**
+  String get proofCompressing;
+
+  /// No description provided for @proofAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une preuve'**
+  String get proofAdd;
+
+  /// No description provided for @memberSpaceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon espace'**
+  String get memberSpaceTitle;
+
+  /// No description provided for @memberSpaceLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger votre espace.'**
+  String get memberSpaceLoadError;
+
+  /// No description provided for @memberSpaceNoMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune fiche membre associée à ce compte.'**
+  String get memberSpaceNoMember;
+
+  /// No description provided for @memberSpaceScheduleNotGenerated.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'échéancier n\'a pas encore été généré par l\'administratrice.'**
+  String get memberSpaceScheduleNotGenerated;
+
+  /// No description provided for @memberSpaceAllTurnsPaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les tours ont été remis.'**
+  String get memberSpaceAllTurnsPaid;
+
+  /// No description provided for @memberSpaceToPayThisTurn.
+  ///
+  /// In fr, this message translates to:
+  /// **'À régler pour ce tour'**
+  String get memberSpaceToPayThisTurn;
+
+  /// No description provided for @memberSpaceMyDeclarations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes déclarations'**
+  String get memberSpaceMyDeclarations;
+
+  /// No description provided for @memberSpaceDeclaredOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclaré le {date}'**
+  String memberSpaceDeclaredOn(String date);
+
+  /// No description provided for @memberSpaceContributionHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des cotisations'**
+  String get memberSpaceContributionHistory;
+
+  /// No description provided for @declareInvalidAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez un montant valide.'**
+  String get declareInvalidAmount;
+
+  /// No description provided for @declareAmountExceedsRemaining.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le montant ne peut pas dépasser le reste à devoir.'**
+  String get declareAmountExceedsRemaining;
+
+  /// No description provided for @declareProofRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une preuve est obligatoire pour déclarer un paiement.'**
+  String get declareProofRequired;
+
+  /// No description provided for @declareSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclaration envoyée. En attente de validation par l\'administratrice.'**
+  String get declareSent;
+
+  /// No description provided for @declareTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai payé'**
+  String get declareTitle;
+
+  /// No description provided for @declareNotAllowed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce nom ne peut plus être déclaré pour le tour en cours.'**
+  String get declareNotAllowed;
+
+  /// No description provided for @declareRemaining.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reste à devoir : {amount}'**
+  String declareRemaining(String amount);
+
+  /// No description provided for @declareSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer la déclaration'**
+  String get declareSubmit;
+
+  /// No description provided for @myNamesNoCurrentTurn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun tour en cours pour vos noms.'**
+  String get myNamesNoCurrentTurn;
+
+  /// No description provided for @myNamesDeclarationPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclaration en attente'**
+  String get myNamesDeclarationPending;
+
+  /// No description provided for @myNamesDeclarationDisputed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclaration contestée'**
+  String get myNamesDeclarationDisputed;
+
+  /// No description provided for @myNamesShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Part : {fraction}'**
+  String myNamesShare(String fraction);
+
+  /// No description provided for @situationNoUpcomingTurn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun tour à venir pour vos noms.'**
+  String get situationNoUpcomingTurn;
+
+  /// No description provided for @situationYourNextTurn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre prochain tour'**
+  String get situationYourNextTurn;
+
+  /// No description provided for @situationTurnLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} · tour {position} · {relative}'**
+  String situationTurnLine(String name, int position, String relative);
+
+  /// No description provided for @onboarding1Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre tontine,\nsans cahier ni calculs'**
+  String get onboarding1Title;
+
+  /// No description provided for @onboarding1Text.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membres, noms, parts et ordre des tours : tout le cercle est réglé une fois, puis {appName} tient le calendrier pour vous.'**
+  String onboarding1Text(String appName);
+
+  /// No description provided for @onboarding2Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque franc,\nsuivi en direct'**
+  String get onboarding2Title;
+
+  /// No description provided for @onboarding2Text.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyez qui a payé, qui est en retard et combien il reste à collecter pour le tour en cours. Les pénalités se calculent toutes seules.'**
+  String get onboarding2Text;
+
+  /// No description provided for @onboarding3Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les membres déclarent,\nvous validez'**
+  String get onboarding3Title;
+
+  /// No description provided for @onboarding3Text.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque membre signale son paiement avec une preuve, depuis son téléphone. L\'administratrice vérifie et valide en un geste.'**
+  String get onboarding3Text;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer'**
+  String get onboardingSkip;
+
+  /// No description provided for @onboardingStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer'**
+  String get onboardingStart;
+
+  /// No description provided for @onboardingHaveCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai reçu un code d\'invitation'**
+  String get onboardingHaveCode;
+
+  /// No description provided for @onboardingCircleCaption.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tour 5 · Aïcha reçoit la cagnotte'**
+  String get onboardingCircleCaption;
+
+  /// No description provided for @onboardingCollectOverline.
+  ///
+  /// In fr, this message translates to:
+  /// **'COLLECTE · TOUR 3'**
+  String get onboardingCollectOverline;
+
+  /// No description provided for @onboardingDeclaredPayment.
+  ///
+  /// In fr, this message translates to:
+  /// **'a déclaré un paiement'**
+  String get onboardingDeclaredPayment;
+
+  /// No description provided for @onboardingMobileMoneyReceipt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçu Mobile Money joint'**
+  String get onboardingMobileMoneyReceipt;
 }
 
 class _AppLocalizationsDelegate

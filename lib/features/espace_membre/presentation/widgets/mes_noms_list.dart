@@ -9,6 +9,7 @@ import '../../../../shared/widgets/app_progress_bar.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../membres/presentation/widgets/parts_editor.dart' show formatFraction;
 import '../../application/espace_membre_providers.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Liste des noms détenus par le membre connecté, avec leur situation pour
 /// le tour en cours (« Payé », « Partiel », « Impayé ») et l'action
@@ -26,10 +27,10 @@ class MesNomsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (situations.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         compact: true,
         icon: Icons.event_available_outlined,
-        message: 'Aucun tour en cours pour vos noms.',
+        message: context.l10n.myNamesNoCurrentTurn,
       );
     }
     return Column(
@@ -53,11 +54,11 @@ class _NomSituationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, ton) = switch (true) {
-      _ when situation.solde => ('Payé', AppTone.success),
-      _ when situation.declarationEnAttente => ('Déclaration en attente', AppTone.warning),
-      _ when situation.declarationContestee => ('Déclaration contestée', AppTone.danger),
-      _ when situation.montantVerse > 0 => ('Partiel', AppTone.warning),
-      _ => ('Impayé', AppTone.neutral),
+      _ when situation.solde => (context.l10n.statusPaid, AppTone.success),
+      _ when situation.declarationEnAttente => (context.l10n.myNamesDeclarationPending, AppTone.warning),
+      _ when situation.declarationContestee => (context.l10n.myNamesDeclarationDisputed, AppTone.danger),
+      _ when situation.montantVerse > 0 => (context.l10n.statusPartial, AppTone.warning),
+      _ => (context.l10n.statusUnpaid, AppTone.neutral),
     };
     final progression = situation.montantDu <= 0 ? 0.0 : situation.montantVerse / situation.montantDu;
 
@@ -73,7 +74,7 @@ class _NomSituationCard extends StatelessWidget {
                   children: [
                     Text(situation.nom.libelle, style: AppTypography.bodyStrong),
                     Text(
-                      'Part : ${formatFraction(situation.fraction)}',
+                      context.l10n.myNamesShare(formatFraction(situation.fraction)),
                       style: AppTypography.secondary,
                     ),
                   ],
@@ -106,14 +107,14 @@ class _NomSituationCard extends StatelessWidget {
           if (situation.declarationContestee && situation.motifContestation != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Motif du refus : ${situation.motifContestation}',
+              context.l10n.declRejectionReason(situation.motifContestation!),
               style: AppTypography.secondary.copyWith(color: AppColors.danger),
             ),
           ],
           if (situation.peutDeclarer) ...[
             const SizedBox(height: AppSpacing.md),
             AppButton(
-              label: situation.declarationContestee ? 'Faire une nouvelle déclaration' : "J'ai payé",
+              label: situation.declarationContestee ? context.l10n.declNewDeclaration : context.l10n.declareTitle,
               icon: Icons.upload_outlined,
               variant: AppButtonVariant.accent,
               onPressed: onDeclarer,

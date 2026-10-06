@@ -18,6 +18,7 @@ import '../../../tontine/application/tontine_providers.dart';
 import '../../application/membres_controller.dart';
 import '../../application/membres_providers.dart';
 import '../widgets/parts_editor.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Crée un nouveau nom (part/tour) et lui attribue des détenteurs, ou
 /// réattribue les parts d'un nom existant si [nomId] est fourni.
@@ -46,7 +47,7 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
 
   Future<void> _enregistrer(String tontineId, Nom? nomExistant, int prochainePosition) async {
     if (!const ValidationParts().estValide(_parts)) {
-      _message('La somme des parts doit être égale à 100 %.');
+      _message(context.l10n.assignSharesMustTotal100);
       return;
     }
     try {
@@ -61,7 +62,7 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
         await notifier.assignerParts(tontineId: tontineId, nom: nomExistant, parts: _parts);
       }
       if (mounted) {
-        ref.read(flashMessageProvider.notifier).set('Parts enregistrées.');
+        ref.read(flashMessageProvider.notifier).set(L10n.current.assignSharesSaved);
         context.go(AppRouter.membresPath);
       }
     } catch (error) {
@@ -84,12 +85,12 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: 'Retour',
+            tooltip: context.l10n.commonBack,
             onPressed: () => context.go(AppRouter.membresPath),
           ),
         ),
         body: ErrorView(
-          message: 'Impossible de charger les noms.',
+          message: context.l10n.assignLoadNamesError,
           onRetry: () => ref.invalidate(nomsProvider),
         ),
       );
@@ -118,11 +119,11 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
           appBar: AppBar(
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
-              tooltip: 'Retour',
+              tooltip: context.l10n.commonBack,
               onPressed: () => context.go(AppRouter.membresPath),
             ),
           ),
-          body: const ErrorView(message: 'Ce nom est introuvable.'),
+          body: ErrorView(message: context.l10n.assignNameNotFound),
         );
       }
     }
@@ -132,7 +133,7 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
       _partsInitialisees = true;
     }
 
-    final libelle = nomExistant?.libelle ?? 'Nom ${noms.length + 1}';
+    final libelle = nomExistant?.libelle ?? context.l10n.defaultNameLabel(noms.length + 1);
     final sommeValide = const ValidationParts().estValide(_parts) && _parts.isNotEmpty;
     // Les parts d'un nom déjà généré dans l'échéancier ne peuvent plus
     // changer : le montant dû de chaque détentrice est calculé en direct à
@@ -144,10 +145,10 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Retour',
+          tooltip: context.l10n.commonBack,
           onPressed: () => context.go(AppRouter.membresPath),
         ),
-        title: Text(nomExistant == null ? 'Nouveau nom' : 'Modifier les parts'),
+        title: Text(nomExistant == null ? context.l10n.assignNewName : context.l10n.assignEditShares),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -162,8 +163,8 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
                 if (verrouille)
                   _PartsVerrouillees(nom: nomExistant, membres: ref.watch(membresProvider).value ?? const [])
                 else if (membresActifs.isEmpty)
-                  const Text(
-                    "Ajoutez d'abord des membres actifs pour pouvoir leur attribuer ce nom.",
+                  Text(
+                    context.l10n.assignAddActiveMembersFirst,
                     style: AppTypography.secondary,
                   )
                 else
@@ -175,7 +176,7 @@ class _AttribuerNomPageState extends ConsumerState<AttribuerNomPage> {
                 if (!verrouille) ...[
                   const SizedBox(height: AppSpacing.xl),
                   AppButton(
-                    label: 'Enregistrer',
+                    label: context.l10n.commonSave,
                     variant: AppButtonVariant.accent,
                     busy: busy,
                     onPressed: (busy || !sommeValide)
@@ -202,7 +203,7 @@ class _PartsVerrouillees extends StatelessWidget {
     for (final membre in membres) {
       if (membre.id == membreId) return membre.nomComplet;
     }
-    return 'Membre inconnu';
+    return L10n.current.unknownMember;
   }
 
   @override
@@ -220,8 +221,7 @@ class _PartsVerrouillees extends StatelessWidget {
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: Text(
-                    "Figé — l'échéancier a déjà démarré. Modifier ces parts fausserait les "
-                    'montants dus déjà calculés.',
+                    context.l10n.assignFrozen,
                     style: AppTypography.secondary,
                   ),
                 ),
