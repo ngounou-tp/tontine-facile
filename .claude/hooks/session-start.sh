@@ -21,6 +21,6 @@ flutter pub get
 
 if ! dpkg -s postgresql-16-pgtap >/dev/null 2>&1; then
   apt-get update -qq
-  DEBIAN_FRONTEND=noninteractive apt-get install -y -qq postgresql-16 postgresql-16-pgtap >/dev/null
+  DEBIAN_FRONTEND=noninteractive apt-get install -y -qq postgresql-16 postgresql-16-pgtap libtap-parser-sourcehandler-pgtap-perl >/dev/null
 fi
 echo 'export PATH="/usr/lib/postgresql/16/bin:$PATH"' >> "${CLAUDE_ENV_FILE:-/dev/null}"
