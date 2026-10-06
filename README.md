@@ -85,6 +85,19 @@ lib/
    publique (`anon` / « publishable »). Cette clé n'ouvre rien d'elle-même : toutes les tables sont protégées
    par la RLS.
 
+### E-mails d'invitation
+Quand le bureau ajoute un membre avec une adresse e-mail, l'Edge Function `send-invitation-email` lui envoie
+son code et la marche à suivre (en français ou en anglais, selon la langue de la personne qui invite). Le
+résultat est suivi dans `invitation_deliveries`, lisible par le bureau seul.
+1. Déployer la fonction : `supabase functions deploy send-invitation-email`
+2. Secrets : `supabase secrets set INVITATION_WEBHOOK_SECRET=<aléatoire> SMTP_HOST=smtp-relay.brevo.com
+   SMTP_PORT=587 SMTP_USER=<...> SMTP_PASS=<...> MAIL_EXPEDITEUR="DjanguiBook <no-reply@...>"`
+   (et `LIEN_APPLICATION` une fois l'app publiée).
+3. **Database → Webhooks** : sur `group_invitations`, événement `INSERT`, appeler la fonction
+   `send-invitation-email` avec l'en-tête `x-webhook-secret: <le même secret>`.
+
+Sans SMTP configuré, l'envoi est consigné en échec avec un message invitant à partager le code autrement.
+
 ## Lancement de l'application
 - Projet Supabase en ligne : `flutter run --dart-define-from-file=env/live.json`
 - Supabase local (Docker) : `supabase start`, reporter la clé affichée dans `env/local.json`, puis
@@ -104,7 +117,8 @@ Réglages). Un même compte peut appartenir à **plusieurs groupes**, avec des r
 flutter analyze
 flutter test                          # domaine, contrôleurs, écrans, routeur
 supabase/tests/run_local.sh           # base de données : RLS et fonctions SQL (pgTAP), sans Docker
-supabase/tests/run_api_local.sh       # repositories Dart contre une vraie API PostgREST
+supabase/tests/run_api_local.sh       # repositories Dart et Edge Functions contre une vraie API PostgREST
+(cd supabase/functions && deno test tests/*.ts)   # e-mails d'invitation (Deno)
 ```
 - **Domaine** : calculs de cotisations et pénalités, parts, échéancier, réorganisation, déclarations.
 - **Base de données** : chaque règle d'accès (isolation entre groupes, rôles, usurpation impossible,

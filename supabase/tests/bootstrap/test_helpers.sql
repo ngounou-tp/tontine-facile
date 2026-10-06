@@ -36,5 +36,5 @@ begin
 end;
 $$;
 
-grant usage on schema tests to anon, authenticated;
-grant execute on all functions in schema tests to anon, authenticated;
+grant usage on schema tests to anon, authenticated, service_role;
+grant execute on all functions in schema tests to anon, authenticated, service_role;

@@ -78,3 +78,10 @@ begin
     create publication supabase_realtime;
   end if;
 end $$;
+
+-- Comme sur Supabase : le rôle service a tous les droits sur ce que les
+-- migrations créent (il contourne aussi la RLS).
+grant usage on schema public to service_role;
+alter default privileges in schema public grant all on tables to service_role;
+alter default privileges in schema public grant all on functions to service_role;
+alter default privileges in schema public grant all on sequences to service_role;

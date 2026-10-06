@@ -24,7 +24,8 @@ Pour tout travail sur l'interface (écran, widget, thème, animation dans `lib/`
 - Tests : `flutter test`
 - Analyse : `flutter analyze`
 - Base de données (pgTAP, sans Docker) : `supabase/tests/run_local.sh`
-- Repositories Supabase contre PostgREST : `supabase/tests/run_api_local.sh`
+- Repositories Supabase et Edge Functions contre PostgREST : `supabase/tests/run_api_local.sh`
+- Edge Functions (Deno) : `cd supabase/functions && deno test tests/*.ts`
 
 ## Backend
 

@@ -63,5 +63,14 @@ for _ in $(seq 1 50); do
 done
 
 cd "$ROOT"
-POSTGREST_URL="http://127.0.0.1:$API_PORT" POSTGREST_JWT_SECRET="$JWT_SECRET" \
-  flutter test test/integration --concurrency=1 "$@" || { cat "$WORK/postgrest.log"; exit 1; }
+export POSTGREST_URL="http://127.0.0.1:$API_PORT" POSTGREST_JWT_SECRET="$JWT_SECRET"
+flutter test test/integration --concurrency=1 "$@" || { cat "$WORK/postgrest.log"; exit 1; }
+
+# Edge Functions (Deno) : dépôt de l'e-mail d'invitation contre la même API.
+DENO="${DENO_BIN:-$(command -v deno || echo /opt/deno/deno)}"
+if [ -x "$DENO" ]; then
+  (cd supabase/functions && NO_COLOR=1 "$DENO" test --allow-env --allow-net tests/integration/) \
+    || { cat "$WORK/postgrest.log"; exit 1; }
+else
+  echo "Deno absent : tests d'intégration des Edge Functions ignorés."
+fi

@@ -31,3 +31,13 @@ if [ ! -x /opt/postgrest/postgrest ]; then
   curl -sSL https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz \
     | tar xJ -C /opt/postgrest
 fi
+
+# Deno (Edge Functions Supabase : supabase/functions)
+if [ ! -x /opt/deno/deno ]; then
+  mkdir -p /opt/deno
+  curl -sSL -o /tmp/deno.zip https://github.com/denoland/deno/releases/download/v2.5.4/deno-x86_64-unknown-linux-gnu.zip
+  python3 -c "import zipfile; zipfile.ZipFile('/tmp/deno.zip').extractall('/opt/deno')"
+  chmod +x /opt/deno/deno
+  rm -f /tmp/deno.zip
+fi
+echo 'export PATH="/opt/deno:$PATH"' >> "${CLAUDE_ENV_FILE:-/dev/null}"
