@@ -1,0 +1,7 @@
+node_modules/
+lib/
+
+# Configuration locale et secrets : jamais dans Git.
+.env.local
+.secret.local
+*.local

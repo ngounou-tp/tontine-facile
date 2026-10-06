@@ -86,15 +86,26 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+      // Suivi de l'e-mail d'invitation envoyé à un nouveau membre. Écrit
+      // UNIQUEMENT par la Cloud Function `envoyerEmailInvitation` (Admin SDK,
+      // qui contourne ces règles) : aucun client ne peut le créer ni le
+      // falsifier. Seule l'administratrice le lit (il contient l'adresse du
+      // destinataire et l'éventuelle cause d'échec).
+      match /envoisInvitation/{membreId} {
+        allow read: if isAdmin(tontineId);
+        allow write: if false;
+      }
+
       // Couvre les autres sous-collections (noms, tours, cotisations,
-      // changements). `declarations` et `preuves` sont exclues : Firestore
-      // évalue TOUTES les règles dont le chemin correspond et autorise dès
-      // que L'UNE d'elles l'autorise — sans cette exclusion, ce bloc admin
-      // « write » réactiverait la suppression/modification que leurs blocs
-      // dédiés ci-dessus interdisent explicitement (delete/update: false).
+      // changements). `declarations`, `preuves` et `envoisInvitation` sont
+      // exclues : Firestore évalue TOUTES les règles dont le chemin
+      // correspond et autorise dès que L'UNE d'elles l'autorise — sans cette
+      // exclusion, ce bloc rouvrirait la lecture ou l'écriture que leurs
+      // blocs dédiés ci-dessus restreignent explicitement.
       match /{subcollection}/{documentId} {
-        allow read: if isMember(tontineId);
-        allow write: if isAdmin(tontineId) && !(subcollection in ['declarations', 'preuves']);
+        allow read: if isMember(tontineId) && subcollection != 'envoisInvitation';
+        allow write: if isAdmin(tontineId) &&
+            !(subcollection in ['declarations', 'preuves', 'envoisInvitation']);
       }
     }
 

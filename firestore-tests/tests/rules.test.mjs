@@ -224,6 +224,39 @@ describe('Isolation entre tontines', () => {
   });
 });
 
+describe('Envois d’invitation — écrits par le serveur, lus par l’administratrice', () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().doc('tontines/t1/envoisInvitation/m1').set({
+        code: 'ABC234',
+        email: 'membre.un@example.com',
+        statut: 'envoye',
+      });
+    });
+  });
+
+  it('l’administratrice peut suivre l’envoi de l’e-mail', async () => {
+    await assertSucceeds(commeAdmin().doc('tontines/t1/envoisInvitation/m1').get());
+  });
+
+  it('un membre ne peut pas lire les envois (adresses des autres membres)', async () => {
+    await assertFails(commeM2().doc('tontines/t1/envoisInvitation/m1').get());
+  });
+
+  it('l’administratrice ne peut pas falsifier un statut d’envoi', async () => {
+    await assertFails(
+      commeAdmin().doc('tontines/t1/envoisInvitation/m1').update({ statut: 'envoye' }),
+    );
+    await assertFails(
+      commeAdmin().doc('tontines/t1/envoisInvitation/m2').set({ statut: 'envoye' }),
+    );
+  });
+
+  it('l’administratrice d’une autre tontine ne voit rien', async () => {
+    await assertFails(commeAdmin2().doc('tontines/t1/envoisInvitation/m1').get());
+  });
+});
+
 describe('Membres — lecture par tout membre, écriture réservée', () => {
   it('m2 peut lire la fiche de m1 (même tontine)', async () => {
     await assertSucceeds(commeM2().doc('tontines/t1/membres/m1').get());

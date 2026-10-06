@@ -1,0 +1,17 @@
+{
+  "functions": [
+    {
+      "source": ".",
+      "codebase": "default",
+      "ignore": ["node_modules", ".git", "test", "*.local", "src"]
+    }
+  ],
+  "emulators": {
+    "firestore": { "port": 8090 },
+    "functions": { "port": 5011 },
+    "hub": { "port": 4410 },
+    "logging": { "port": 4510 },
+    "ui": { "enabled": false },
+    "singleProjectMode": true
+  }
+}
