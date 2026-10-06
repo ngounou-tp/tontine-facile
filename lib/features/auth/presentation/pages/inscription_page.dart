@@ -11,6 +11,7 @@ import '../../application/auth_controller.dart';
 import '../../application/auth_providers.dart';
 import '../widgets/auth_form.dart';
 import '../widgets/auth_header.dart';
+import '../../../../l10n/l10n.dart';
 
 class InscriptionPage extends ConsumerStatefulWidget {
   const InscriptionPage({this.codeInvitation, super.key});
@@ -93,7 +94,7 @@ class _InscriptionPageState extends ConsumerState<InscriptionPage> {
   Widget build(BuildContext context) {
     final busy = ref.watch(authControllerProvider).isLoading;
     return Scaffold(
-      appBar: AppBar(leading: IconButton(icon: const Icon(Icons.arrow_back), tooltip: 'Retour', onPressed: () => context.go(AppRouter.connexionPath))),
+      appBar: AppBar(leading: IconButton(icon: const Icon(Icons.arrow_back), tooltip: context.l10n.commonBack, onPressed: () => context.go(AppRouter.connexionPath))),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -103,10 +104,10 @@ class _InscriptionPageState extends ConsumerState<InscriptionPage> {
               child: Column(children: [
                 const AuthHeader(),
                 const SizedBox(height: AppSpacing.lg),
-                Text('Créer un compte', style: Theme.of(context).textTheme.headlineMedium),
+                Text(context.l10n.signupTitle, style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: AppSpacing.lg),
-                AuthForm(formKey: _formKey, emailController: _email, passwordController: _password, confirmPasswordController: _confirmation, submitLabel: 'Créer mon compte', onSubmit: _inscrire, busy: busy),
-                AppButton(label: 'J’ai déjà un compte', variant: AppButtonVariant.tertiary, onPressed: busy ? null : () => context.go(AppRouter.connexionPath)),
+                AuthForm(formKey: _formKey, emailController: _email, passwordController: _password, confirmPasswordController: _confirmation, submitLabel: context.l10n.signupSubmit, onSubmit: _inscrire, busy: busy),
+                AppButton(label: context.l10n.signupHaveAccount, variant: AppButtonVariant.tertiary, onPressed: busy ? null : () => context.go(AppRouter.connexionPath)),
               ]),
             ),
           ),

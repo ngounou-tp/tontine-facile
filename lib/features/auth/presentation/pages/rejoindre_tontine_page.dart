@@ -11,6 +11,7 @@ import '../../../../shared/widgets/app_button.dart';
 import '../../application/auth_controller.dart';
 import '../../application/auth_providers.dart';
 import '../widgets/auth_form.dart';
+import '../../../../l10n/l10n.dart';
 
 const _longueurCode = 6;
 
@@ -39,7 +40,7 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
 
   Future<void> _rejoindre() async {
     if (_code.length != 6) {
-      _message('Saisissez les 6 caractères du code d’invitation.');
+      _message(context.l10n.joinEnterSixChars);
       return;
     }
 
@@ -54,7 +55,7 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
     try {
       await ref.read(authControllerProvider.notifier).rejoindreAvecCode(_code);
       if (mounted) {
-        ref.read(flashMessageProvider.notifier).set('Vous avez rejoint la tontine.');
+        ref.read(flashMessageProvider.notifier).set(L10n.current.joinSuccess);
       }
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
@@ -71,7 +72,7 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Retour',
+          tooltip: context.l10n.commonBack,
           onPressed: () => context.go(authentifie ? AppRouter.choixPath : AppRouter.connexionPath),
         ),
       ),
@@ -85,14 +86,14 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: AppSpacing.md),
-                  const Text(
-                    'Entrez votre code d’invitation',
+                  Text(
+                    context.l10n.joinTitle,
                     textAlign: TextAlign.center,
                     style: AppTypography.screenTitle,
                   ),
                   const SizedBox(height: AppSpacing.xs),
-                  const Text(
-                    'Six caractères, remis par la trésorière du groupe.',
+                  Text(
+                    context.l10n.joinSubtitle,
                     textAlign: TextAlign.center,
                     style: AppTypography.secondary,
                   ),
@@ -108,7 +109,7 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Vous pouvez coller le code', style: AppTypography.secondary),
+                      Text(context.l10n.joinPasteHint, style: AppTypography.secondary),
                       Text('${_code.length} / $_longueurCode', style: AppTypography.micro),
                     ],
                   ),
@@ -127,7 +128,7 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
                   SizedBox(
                     width: double.infinity,
                     child: AppButton(
-                      label: 'Rejoindre',
+                      label: context.l10n.joinSubmit,
                       variant: AppButtonVariant.accent,
                       busy: busy,
                       onPressed: busy || _code.length != _longueurCode ? null : _rejoindre,
@@ -279,9 +280,9 @@ class _ApercuTontine extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final apercu = ref.watch(apercuInvitationProvider(code));
     return apercu.when(
-      loading: () => const _ApercuCard(
+      loading: () => _ApercuCard(
         icon: Icons.hourglass_top_outlined,
-        label: Text('Recherche de la tontine…', style: AppTypography.body),
+        label: Text(context.l10n.joinSearching, style: AppTypography.body),
       ),
       error: (error, _) => _ApercuCard(
         icon: Icons.error_outline,
@@ -305,7 +306,7 @@ class _ApercuTontine extends ConsumerWidget {
                   children: [
                     TextSpan(text: value.nom),
                     TextSpan(
-                      text: ' · ${value.nombreMembres} membres',
+                      text: context.l10n.joinMembersCount(value.nombreMembres),
                       style: const TextStyle(fontWeight: FontWeight.w400, color: AppColors.slate),
                     ),
                   ],

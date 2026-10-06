@@ -9,6 +9,7 @@ import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/tontine_logo.dart';
 import '../../application/auth_controller.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Écran d'accueil du compte fraîchement créé (sans profil) : l'utilisateur
 /// choisit entre créer une nouvelle tontine ou rejoindre un groupe existant
@@ -37,34 +38,32 @@ class ChoixParcoursPage extends ConsumerWidget {
                     child: TontineLogo(size: 64),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  const Text('Bienvenue sur ${AppConstants.appName}', style: AppTypography.screenTitle),
+                  Text(context.l10n.welcomeTitle(AppConstants.appName), style: AppTypography.screenTitle),
                   const SizedBox(height: AppSpacing.xs),
-                  const Text(
-                    'Comment souhaitez-vous commencer ?',
+                  Text(
+                    context.l10n.welcomeSubtitle,
                     style: AppTypography.secondary,
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   _OptionCard(
                     icon: Icons.add_circle_outline,
                     iconBackground: AppColors.accent,
-                    title: 'Créer une tontine',
-                    description:
-                        'Démarrez un nouveau groupe, invitez vos membres et suivez les cotisations dès aujourd\'hui.',
+                    title: context.l10n.welcomeCreateTitle,
+                    description: context.l10n.welcomeCreateDescription,
                     onTap: () => context.go(AppRouter.creerTontinePath),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _OptionCard(
                     icon: Icons.groups_outlined,
                     iconBackground: AppColors.indigo,
-                    title: 'Rejoindre une tontine',
-                    description:
-                        'Vous avez reçu un code de votre trésorier ? Rejoignez son groupe en quelques secondes.',
+                    title: context.l10n.welcomeJoinTitle,
+                    description: context.l10n.welcomeJoinDescription,
                     onTap: () => context.go(AppRouter.rejoindrePath),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   Center(
                     child: AppButton(
-                      label: 'Se déconnecter',
+                      label: context.l10n.commonSignOut,
                       variant: AppButtonVariant.tertiary,
                       onPressed: () => ref.read(authControllerProvider.notifier).deconnecter(),
                     ),

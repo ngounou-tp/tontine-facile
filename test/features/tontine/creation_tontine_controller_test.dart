@@ -80,7 +80,7 @@ void main() {
         nomCompletAdmin: 'Aïcha Ndiaye',
         tontineSansId: _brouillonTontine(),
       ),
-      throwsA(isA<UnknownAuthException>()),
+      throwsA(isA<SignInRequiredException>()),
     );
     expect(container.read(creationTontineControllerProvider).hasError, isTrue);
     expect(tontines.saved, isEmpty);

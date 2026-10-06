@@ -113,9 +113,7 @@ class FirestoreTontineDataSource implements TontineDataSource {
   Future<T> _avecDelai<T>(Future<T> Function() action) {
     return action().timeout(
       _delaiReseau,
-      onTimeout: () => throw const NetworkException(
-        'La connexion à Firestore a expiré. Vérifiez votre connexion et réessayez.',
-      ),
+      onTimeout: () => throw const NetworkException('firestore timeout'),
     );
   }
 

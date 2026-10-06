@@ -20,14 +20,19 @@ import '../../application/creation_tontine_controller.dart';
 import '../widgets/mode_parts_selector.dart';
 import '../widgets/penalite_field.dart';
 import '../widgets/periodicite_field.dart';
+import '../../../../l10n/domain_labels.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/l10n.dart';
 
-const _titresEtapes = [
-  'Le groupe',
-  'Fréquence des échéances',
-  'Pénalité et délai de grâce',
-  'Répartition des parts',
-  'Confirmation',
-];
+List<String> _titresEtapes(AppLocalizations l10n) => [
+      l10n.createStepGroup,
+      l10n.createStepFrequency,
+      l10n.createStepPenalty,
+      l10n.createStepShares,
+      l10n.createStepConfirm,
+    ];
+
+const _nombreEtapes = 5;
 
 /// Assistant de création de tontine, en 5 étapes : nom du groupe, montant et
 /// première échéance ; périodicité ; pénalité et délai de grâce ; mode de
@@ -72,21 +77,21 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
 
   String? _erreurEtapeGroupe() {
     if (_nomGroupe.text.trim().length < 2) {
-      return 'Le nom du groupe doit contenir au moins 2 caractères.';
+      return context.l10n.createErrorGroupName;
     }
     if (_nomAdmin.text.trim().isEmpty) {
-      return 'Indiquez votre nom complet.';
+      return context.l10n.createErrorFullName;
     }
     final montant = int.tryParse(_montant.text);
     if (montant == null || montant <= 0) {
-      return 'Indiquez un montant par nom valide.';
+      return context.l10n.createErrorAmount;
     }
     final nombreDeNoms = int.tryParse(_nombreDeNoms.text);
     if (nombreDeNoms == null || nombreDeNoms <= 0) {
-      return 'Indiquez le nombre de noms que comptera la tontine.';
+      return context.l10n.createErrorNamesCount;
     }
     if (_datePremiereEcheance == null) {
-      return 'Choisissez la date de la première échéance.';
+      return context.l10n.createErrorFirstDueDate;
     }
     return null;
   }
@@ -94,10 +99,10 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
   String? _erreurEtapePenalite() {
     if (_reglePenalite != ReglePenalite.aucune &&
         (_valeurPenalite == null || _valeurPenalite! <= 0)) {
-      return 'Indiquez une valeur de pénalité supérieure à zéro.';
+      return context.l10n.createErrorPenaltyValue;
     }
     if (_delaiGraceJours < 0 || _delaiGraceJours > 30) {
-      return 'Le délai de grâce doit être compris entre 0 et 30 jours.';
+      return context.l10n.createErrorGraceDays;
     }
     return null;
   }
@@ -123,7 +128,7 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
       _message(erreur);
       return;
     }
-    if (_etape == _titresEtapes.length - 1) {
+    if (_etape == _nombreEtapes - 1) {
       await _creer();
       return;
     }
@@ -162,8 +167,7 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
         await _attendreTontine();
       }
       if (mounted) {
-        ref.read(flashMessageProvider.notifier).set(
-            'Tontine créée avec succès. Ajoutez vos premiers membres.');
+        ref.read(flashMessageProvider.notifier).set(L10n.current.createSuccess);
         context.go(AppRouter.membresPath);
       }
     } catch (error) {
@@ -197,19 +201,20 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
   @override
   Widget build(BuildContext context) {
     final busy = ref.watch(creationTontineControllerProvider).isLoading;
-    final dernierePage = _etape == _titresEtapes.length - 1;
+    final dernierePage = _etape == _nombreEtapes - 1;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: _etape > 0 ? 'Étape précédente' : 'Retour',
+          tooltip: _etape > 0 ? l10n.createPreviousStep : l10n.commonBack,
           onPressed: busy
               ? null
               : (_etape > 0 ? _precedent : () => context.go(AppRouter.choixPath)),
         ),
         automaticallyImplyLeading: false,
-        title: const Text('Créer une tontine'),
+        title: Text(l10n.createTitle),
       ),
       body: SafeArea(
         child: Column(
@@ -220,18 +225,18 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Étape ${_etape + 1} sur ${_titresEtapes.length}',
+                    l10n.createStepOf(_etape + 1, _nombreEtapes),
                     style: AppTypography.micro.copyWith(color: AppColors.slate),
                   ),
                   const SizedBox(height: AppSpacing.xs),
-                  Text(_titresEtapes[_etape], style: AppTypography.screenTitle),
+                  Text(_titresEtapes(l10n)[_etape], style: AppTypography.screenTitle),
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: List.generate(
-                      _titresEtapes.length,
+                      _nombreEtapes,
                       (index) => Expanded(
                         child: Container(
-                          margin: EdgeInsets.only(right: index < _titresEtapes.length - 1 ? AppSpacing.xs : 0),
+                          margin: EdgeInsets.only(right: index < _nombreEtapes - 1 ? AppSpacing.xs : 0),
                           height: 8,
                           decoration: BoxDecoration(
                             color: index <= _etape ? AppColors.indigo : AppColors.surface,
@@ -265,7 +270,7 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 460),
                   child: AppButton(
-                    label: dernierePage ? 'Créer la tontine' : 'Suivant',
+                    label: dernierePage ? l10n.createSubmit : l10n.commonNext,
                     variant: AppButtonVariant.accent,
                     busy: busy,
                     onPressed: busy ? null : _suivant,
@@ -307,37 +312,38 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
   }
 
   Widget _etapeGroupe() {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Nom du groupe', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(l10n.fieldGroupName, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
         TextFormField(
           controller: _nomGroupe,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'Tontine des Dames'),
+          decoration: InputDecoration(hintText: l10n.fieldGroupNameHint),
         ),
         const SizedBox(height: AppSpacing.md),
-        const Text('Votre nom complet', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(l10n.fieldYourFullName, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
         TextFormField(
           controller: _nomAdmin,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'Adèle Tchoumi'),
+          decoration: InputDecoration(hintText: l10n.fieldFullNameHint),
         ),
         const SizedBox(height: AppSpacing.md),
-        const Text('Montant par nom', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(l10n.fieldAmountPerName, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
         TextFormField(
           controller: _montant,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            hintText: '25 000',
-            suffixText: 'FCFA',
+          decoration: InputDecoration(
+            hintText: l10n.fieldAmountHint,
+            suffixText: AppConstants.currency,
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        const Text('Nombre de noms', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(l10n.fieldNamesCount, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
         TextFormField(
           controller: _nombreDeNoms,
@@ -345,13 +351,12 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
           decoration: const InputDecoration(hintText: '20'),
         ),
         const SizedBox(height: AppSpacing.xs),
-        const Text(
-          'Combien de noms (parts) comptera la tontine au total ? Vous les attribuerez '
-          'aux membres au fil des inscriptions.',
+        Text(
+          l10n.fieldNamesCountHelp,
           style: AppTypography.secondary,
         ),
         const SizedBox(height: AppSpacing.md),
-        const Text('Date de la première échéance', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(l10n.fieldFirstDueDate, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
         InkWell(
           borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
@@ -371,7 +376,7 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
                 Expanded(
                   child: Text(
                     _datePremiereEcheance == null
-                        ? 'Choisir une date'
+                        ? l10n.fieldChooseDate
                         : formatDate(_datePremiereEcheance!),
                     style: _datePremiereEcheance == null
                         ? AppTypography.body.copyWith(color: AppColors.slate)
@@ -388,16 +393,8 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
   }
 
   Widget _etapeConfirmation() {
-    final periodicite = _periodicite;
-    final periodiciteLabel = switch (periodicite) {
-      RegleTousLesNJours(:final jours) => 'Tous les $jours jours',
-      RegleChaqueSemaine(:final jour) => 'Chaque ${jour.libelle.toLowerCase()}',
-      RegleToutesLesDeuxSemaines(:final jour) =>
-        'Toutes les deux semaines, le ${jour.libelle.toLowerCase()}',
-      RegleChaqueMoisJourFixe(:final jour) => 'Chaque mois, le $jour',
-      RegleChaqueMoisSemaine(:final occurrence, :final jour) =>
-        '${occurrence.libelle} ${jour.libelle.toLowerCase()} du mois',
-    };
+    final l10n = context.l10n;
+    final libellePeriodicite = periodiciteLabel(_periodicite, l10n);
 
     return Card(
       child: Padding(
@@ -405,23 +402,23 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ligneRecap('Groupe', _nomGroupe.text.trim()),
-            _ligneRecap('Administratrice', _nomAdmin.text.trim()),
+            _ligneRecap(l10n.recapGroup, _nomGroupe.text.trim()),
+            _ligneRecap(l10n.recapAdmin, _nomAdmin.text.trim()),
             _ligneRecap(
-              'Montant par nom',
-              int.tryParse(_montant.text) == null ? '${_montant.text} FCFA' : formatAmount(int.parse(_montant.text)),
+              l10n.fieldAmountPerName,
+              int.tryParse(_montant.text) == null ? '${_montant.text} ${AppConstants.currency}' : formatAmount(int.parse(_montant.text)),
             ),
-            _ligneRecap('Nombre de noms', _nombreDeNoms.text),
+            _ligneRecap(l10n.fieldNamesCount, _nombreDeNoms.text),
             _ligneRecap(
-              'Première échéance',
+              l10n.recapFirstDueDate,
               _datePremiereEcheance == null ? '—' : formatDate(_datePremiereEcheance!),
             ),
-            _ligneRecap('Fréquence', periodiciteLabel),
-            _ligneRecap('Pénalité', libellePenalite(_reglePenalite)),
+            _ligneRecap(l10n.fieldFrequency, libellePeriodicite),
+            _ligneRecap(l10n.recapPenalty, _reglePenalite.label(l10n)),
             if (_reglePenalite != ReglePenalite.aucune)
-              _ligneRecap('Valeur de la pénalité', '${_valeurPenalite ?? '—'}'),
-            _ligneRecap('Délai de grâce', '$_delaiGraceJours jour(s)'),
-            _ligneRecap('Répartition des parts', _modeParts.libelle),
+              _ligneRecap(l10n.recapPenaltyValue, '${_valeurPenalite ?? '—'}'),
+            _ligneRecap(l10n.recapGraceDays, l10n.recapGraceDaysValue(_delaiGraceJours)),
+            _ligneRecap(l10n.createStepShares, _modeParts.label(l10n)),
           ],
         ),
       ),

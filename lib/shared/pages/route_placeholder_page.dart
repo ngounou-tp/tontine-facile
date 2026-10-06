@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/router.dart';
 import '../state/flash_message.dart';
 import '../widgets/coming_soon_view.dart';
+import '../../l10n/l10n.dart';
 
 /// Destination temporaire pour les parcours dont l'écran métier n'est pas
 /// encore intégré. Chaque route reste navigable et sécurisée dès maintenant.
@@ -25,7 +26,7 @@ class RoutePlaceholderPage extends ConsumerWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Retour',
+          tooltip: context.l10n.commonBack,
           onPressed: () => context.go(AppRouter.accueilPath),
         ),
         title: Text(title),

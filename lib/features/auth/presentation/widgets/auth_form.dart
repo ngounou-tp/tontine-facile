@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/errors/app_exception.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../l10n/l10n.dart';
 
 class AuthForm extends StatefulWidget {
   const AuthForm({required this.formKey, required this.emailController, required this.passwordController, required this.submitLabel, required this.onSubmit, this.confirmPasswordController, this.extraBeforeSubmit, this.busy = false, super.key});
@@ -35,18 +36,18 @@ class _AuthFormState extends State<AuthForm> {
     return Form(
       key: widget.formKey,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('E-mail', style: AppTypography.bodyStrong),
+        Text(context.l10n.authEmailLabel, style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.xs),
-        TextFormField(controller: widget.emailController, keyboardType: TextInputType.emailAddress, autofillHints: const [AutofillHints.email], textInputAction: TextInputAction.next, validator: _emailValidator),
+        TextFormField(controller: widget.emailController, keyboardType: TextInputType.emailAddress, autofillHints: const [AutofillHints.email], textInputAction: TextInputAction.next, validator: (value) => _emailValidator(context, value)),
         const SizedBox(height: AppSpacing.md),
-        const Text('Mot de passe', style: AppTypography.bodyStrong),
+        Text(context.l10n.authPasswordLabel, style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.xs),
-        TextFormField(controller: widget.passwordController, obscureText: _hidePassword, autofillHints: const [AutofillHints.password], textInputAction: widget.confirmPasswordController == null ? TextInputAction.done : TextInputAction.next, onFieldSubmitted: widget.confirmPasswordController == null ? (_) => _soumettreDepuisClavier() : null, validator: _passwordValidator, decoration: InputDecoration(suffixIcon: IconButton(onPressed: () => setState(() => _hidePassword = !_hidePassword), icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined), tooltip: 'Afficher ou masquer le mot de passe'))),
+        TextFormField(controller: widget.passwordController, obscureText: _hidePassword, autofillHints: const [AutofillHints.password], textInputAction: widget.confirmPasswordController == null ? TextInputAction.done : TextInputAction.next, onFieldSubmitted: widget.confirmPasswordController == null ? (_) => _soumettreDepuisClavier() : null, validator: (value) => _passwordValidator(context, value), decoration: InputDecoration(suffixIcon: IconButton(onPressed: () => setState(() => _hidePassword = !_hidePassword), icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined), tooltip: context.l10n.authTogglePasswordVisibility))),
         if (widget.confirmPasswordController case final confirmation?) ...[
           const SizedBox(height: AppSpacing.md),
-          const Text('Confirmer le mot de passe', style: AppTypography.bodyStrong),
+          Text(context.l10n.authConfirmPasswordLabel, style: AppTypography.bodyStrong),
           const SizedBox(height: AppSpacing.xs),
-          TextFormField(controller: confirmation, obscureText: _hideConfirmation, autofillHints: const [AutofillHints.newPassword], textInputAction: TextInputAction.done, onFieldSubmitted: (_) => _soumettreDepuisClavier(), validator: (value) => value != widget.passwordController.text ? 'Les mots de passe ne correspondent pas.' : null, decoration: InputDecoration(suffixIcon: IconButton(onPressed: () => setState(() => _hideConfirmation = !_hideConfirmation), icon: Icon(_hideConfirmation ? Icons.visibility_outlined : Icons.visibility_off_outlined), tooltip: 'Afficher ou masquer le mot de passe'))),
+          TextFormField(controller: confirmation, obscureText: _hideConfirmation, autofillHints: const [AutofillHints.newPassword], textInputAction: TextInputAction.done, onFieldSubmitted: (_) => _soumettreDepuisClavier(), validator: (value) => value != widget.passwordController.text ? context.l10n.authPasswordsDoNotMatch : null, decoration: InputDecoration(suffixIcon: IconButton(onPressed: () => setState(() => _hideConfirmation = !_hideConfirmation), icon: Icon(_hideConfirmation ? Icons.visibility_outlined : Icons.visibility_off_outlined), tooltip: context.l10n.authTogglePasswordVisibility))),
         ],
         if (widget.extraBeforeSubmit case final extra?) ...[
           const SizedBox(height: AppSpacing.xs),
@@ -59,14 +60,15 @@ class _AuthFormState extends State<AuthForm> {
   }
 }
 
-String? _emailValidator(String? value) {
+String? _emailValidator(BuildContext context, String? value) {
   final email = value?.trim() ?? '';
-  return email.isEmpty || !email.contains('@') ? 'Saisissez une adresse e-mail valide.' : null;
+  return email.isEmpty || !email.contains('@') ? context.l10n.authInvalidEmail : null;
 }
 
-String? _passwordValidator(String? value) => (value?.length ?? 0) < 6 ? 'Le mot de passe doit contenir au moins 6 caractères.' : null;
+String? _passwordValidator(BuildContext context, String? value) =>
+    (value?.length ?? 0) < 6 ? context.l10n.authPasswordTooShort : null;
 
 String messageErreurAuth(Object error) => switch (error) {
   AppException(:final message) => message,
-  _ => 'Une erreur est survenue. Réessayez.',
+  _ => L10n.current.errorGeneric,
 };

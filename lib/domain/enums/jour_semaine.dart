@@ -23,16 +23,4 @@ enum JourSemaine {
       ),
     );
   }
-
-  String get libelle {
-    return switch (this) {
-      JourSemaine.lundi => 'Lundi',
-      JourSemaine.mardi => 'Mardi',
-      JourSemaine.mercredi => 'Mercredi',
-      JourSemaine.jeudi => 'Jeudi',
-      JourSemaine.vendredi => 'Vendredi',
-      JourSemaine.samedi => 'Samedi',
-      JourSemaine.dimanche => 'Dimanche',
-    };
-  }
 }

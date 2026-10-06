@@ -8,6 +8,7 @@ import '../../../../shared/widgets/app_button.dart';
 import '../../application/auth_controller.dart';
 import '../widgets/auth_form.dart';
 import '../widgets/auth_header.dart';
+import '../../../../l10n/l10n.dart';
 
 class ConnexionPage extends ConsumerStatefulWidget {
   const ConnexionPage({super.key});
@@ -54,12 +55,12 @@ class _ConnexionPageState extends ConsumerState<ConnexionPage> {
 
   Future<void> _reinitialiserMotDePasse() async {
     if (!_email.text.contains('@')) {
-      _message('Saisissez votre e-mail pour recevoir le lien de réinitialisation.');
+      _message(context.l10n.loginEnterEmailForReset);
       return;
     }
     try {
       await ref.read(authControllerProvider.notifier).reinitialiserMotDePasse(_email.text.trim());
-      if (mounted) _message('Un lien de réinitialisation a été envoyé à votre adresse e-mail.');
+      if (mounted) _message(context.l10n.loginResetLinkSent);
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
     }
@@ -87,26 +88,26 @@ class _ConnexionPageState extends ConsumerState<ConnexionPage> {
                     formKey: _formKey,
                     emailController: _email,
                     passwordController: _password,
-                    submitLabel: 'Se connecter',
+                    submitLabel: context.l10n.loginSubmit,
                     onSubmit: _connecter,
                     busy: busy,
                     extraBeforeSubmit: Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: busy ? null : _reinitialiserMotDePasse,
-                        child: const Text('Mot de passe oublié ?'),
+                        child: Text(context.l10n.loginForgotPassword),
                       ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  const Row(
+                  Row(
                     children: [
-                      Expanded(child: Divider(color: AppColors.line)),
+                      const Expanded(child: Divider(color: AppColors.line)),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                        child: Text('ou', style: AppTypography.secondary),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                        child: Text(context.l10n.commonOr, style: AppTypography.secondary),
                       ),
-                      Expanded(child: Divider(color: AppColors.line)),
+                      const Expanded(child: Divider(color: AppColors.line)),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -126,14 +127,14 @@ class _ConnexionPageState extends ConsumerState<ConnexionPage> {
                         children: [
                           Image.asset('assets/images/google_logo.png', width: 20, height: 20),
                           const SizedBox(width: AppSpacing.xs),
-                          const Text('Continuer avec Google'),
+                          Text(context.l10n.loginContinueWithGoogle),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   AppButton(
-                    label: 'Créer un compte',
+                    label: context.l10n.loginCreateAccount,
                     variant: AppButtonVariant.tertiary,
                     onPressed: busy ? null : () => context.go(AppRouter.inscriptionPath),
                   ),

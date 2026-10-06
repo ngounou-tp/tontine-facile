@@ -120,7 +120,7 @@ void main() {
           nomCompletAdmin: 'Aïcha Ndiaye',
           tontineSansId: _brouillonTontine(),
         ),
-        throwsA(isA<UnknownAuthException>()),
+        throwsA(isA<SignInRequiredException>()),
       );
     },
   );

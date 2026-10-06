@@ -22,6 +22,9 @@ import '../../application/tontine_providers.dart';
 import '../widgets/mode_parts_selector.dart';
 import '../widgets/penalite_field.dart';
 import '../widgets/periodicite_field.dart';
+import '../../../../l10n/domain_labels.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Formulaire de modification de la tontine courante : tous les champs
 /// restent modifiables tant qu'aucun tour n'a démarré ([toursProvider]).
@@ -60,26 +63,25 @@ class _ModifierTontinePageState extends ConsumerState<ModifierTontinePage> {
 
   String? _erreur(int nomsExistants) {
     if (_nom.text.trim().length < 2) {
-      return 'Le nom du groupe doit contenir au moins 2 caractères.';
+      return context.l10n.createErrorGroupName;
     }
     final montant = int.tryParse(_montant.text);
     if (montant == null || montant <= 0) {
-      return 'Indiquez un montant par nom valide.';
+      return context.l10n.createErrorAmount;
     }
     final nombreDeNoms = int.tryParse(_nombreDeNoms.text);
     if (nombreDeNoms == null || nombreDeNoms <= 0) {
-      return 'Indiquez le nombre de noms que comptera la tontine.';
+      return context.l10n.createErrorNamesCount;
     }
     if (nombreDeNoms < nomsExistants) {
-      return '$nomsExistants nom(s) existent déjà : le nombre de noms ne peut pas '
-          'être réduit en dessous de ce total.';
+      return context.l10n.editErrorNamesBelowExisting(nomsExistants);
     }
     if (_reglePenalite != ReglePenalite.aucune &&
         (_valeurPenalite == null || _valeurPenalite! <= 0)) {
-      return 'Indiquez une valeur de pénalité supérieure à zéro.';
+      return context.l10n.createErrorPenaltyValue;
     }
     if (_delaiGraceJours < 0 || _delaiGraceJours > 30) {
-      return 'Le délai de grâce doit être compris entre 0 et 30 jours.';
+      return context.l10n.createErrorGraceDays;
     }
     return null;
   }
@@ -107,23 +109,13 @@ class _ModifierTontinePageState extends ConsumerState<ModifierTontinePage> {
     try {
       await ref.read(modificationTontineControllerProvider.notifier).modifierTontine(misAJour);
       if (mounted) {
-        ref.read(flashMessageProvider.notifier).set('Tontine mise à jour.');
+        ref.read(flashMessageProvider.notifier).set(L10n.current.editSuccess);
         context.go(AppRouter.reglagesPath);
       }
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
     }
   }
-
-  String _libellePeriodicite(ReglePeriodicite regle) => switch (regle) {
-        RegleTousLesNJours(:final jours) => 'Tous les $jours jours',
-        RegleChaqueSemaine(:final jour) => 'Chaque ${jour.libelle.toLowerCase()}',
-        RegleToutesLesDeuxSemaines(:final jour) =>
-          'Toutes les deux semaines, le ${jour.libelle.toLowerCase()}',
-        RegleChaqueMoisJourFixe(:final jour) => 'Chaque mois, le $jour',
-        RegleChaqueMoisSemaine(:final occurrence, :final jour) =>
-          '${occurrence.libelle} ${jour.libelle.toLowerCase()} du mois',
-      };
 
   @override
   Widget build(BuildContext context) {
@@ -139,20 +131,20 @@ class _ModifierTontinePageState extends ConsumerState<ModifierTontinePage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Retour',
+          tooltip: context.l10n.commonBack,
           onPressed: () => context.go(AppRouter.reglagesPath),
         ),
-        title: Text(isAdmin ? 'Modifier la tontine' : 'Réglages de la tontine'),
+        title: Text(isAdmin ? context.l10n.editTitleAdmin : context.l10n.editTitleMember),
       ),
       body: tontineAsync.when(
         loading: () => const LoadingView(),
         error: (_, _) => ErrorView(
-          message: 'Impossible de charger la tontine.',
+          message: context.l10n.errorLoadTontine,
           onRetry: () => ref.invalidate(tontineProvider),
         ),
         data: (tontine) {
           if (tontine == null) {
-            return const ErrorView(message: 'Aucune tontine associée à ce compte.');
+            return ErrorView(message: context.l10n.errorNoTontine);
           }
           if (!_initialise) {
             _nom.text = tontine.nom;
@@ -173,31 +165,31 @@ class _ModifierTontinePageState extends ConsumerState<ModifierTontinePage> {
                 child: lectureSeule
                     ? _ResumeFige(
                         tontine: tontine,
-                        libellePeriodicite: _libellePeriodicite(tontine.periodicite),
+                        libellePeriodicite: periodiciteLabel(tontine.periodicite, context.l10n),
                         figeeParDemarrage: tontineDemarree,
                       )
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text('Nom du groupe', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text(context.l10n.fieldGroupName, style: const TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(height: AppSpacing.xs),
                           TextFormField(
                             controller: _nom,
                             textCapitalization: TextCapitalization.words,
-                            decoration: const InputDecoration(hintText: 'Tontine des Dames'),
+                            decoration: InputDecoration(hintText: context.l10n.fieldGroupNameHint),
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          const Text('Montant par nom', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text(context.l10n.fieldAmountPerName, style: const TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(height: AppSpacing.xs),
                           TextFormField(
                             controller: _montant,
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
-                              suffixText: 'FCFA',
+                              suffixText: AppConstants.currency,
                             ),
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          const Text('Nombre de noms', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text(context.l10n.fieldNamesCount, style: const TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(height: AppSpacing.xs),
                           TextFormField(
                             controller: _nombreDeNoms,
@@ -222,7 +214,7 @@ class _ModifierTontinePageState extends ConsumerState<ModifierTontinePage> {
                             onChanged: (valeur) => _periodicite = valeur,
                           ),
                           const SizedBox(height: AppSpacing.lg),
-                          const Text('Répartition des parts', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text(context.l10n.createStepShares, style: const TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(height: AppSpacing.xs),
                           ModePartsSelector(
                             value: _modeParts,
@@ -230,7 +222,7 @@ class _ModifierTontinePageState extends ConsumerState<ModifierTontinePage> {
                           ),
                           const SizedBox(height: AppSpacing.xl),
                           AppButton(
-                            label: 'Enregistrer les modifications',
+                            label: context.l10n.editSave,
                             variant: AppButtonVariant.accent,
                             busy: busy,
                             onPressed: busy ? null : () => _enregistrer(tontine, noms.length),
@@ -265,6 +257,7 @@ class _ResumeFige extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Card(
       color: AppColors.canvas,
       child: Padding(
@@ -279,39 +272,36 @@ class _ResumeFige extends StatelessWidget {
                 Expanded(
                   child: Text(
                     figeeParDemarrage
-                        ? 'Figée — l\'échéancier a démarré'
-                        : 'Lecture seule — réservé à l\'administratrice',
+                        ? l10n.editFrozenStarted
+                        : l10n.editReadOnlyAdminOnly,
                     style: AppTypography.micro.copyWith(color: AppColors.slate),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            _ligne('Nom du groupe', tontine.nom),
+            _ligne(l10n.fieldGroupName, tontine.nom),
             const SizedBox(height: 4),
-            _ligne('Montant par nom', formatAmount(tontine.montantParNom)),
+            _ligne(l10n.fieldAmountPerName, formatAmount(tontine.montantParNom)),
             const SizedBox(height: 4),
-            _ligne('Nombre de noms', '${tontine.nombreDeNoms}'),
+            _ligne(l10n.fieldNamesCount, '${tontine.nombreDeNoms}'),
             const SizedBox(height: 4),
-            _ligne('Pénalité', libellePenalite(tontine.reglePenalite)),
+            _ligne(l10n.recapPenalty, tontine.reglePenalite.label(l10n)),
             if (tontine.reglePenalite != ReglePenalite.aucune) ...[
               const SizedBox(height: 4),
-              _ligne('Valeur de la pénalité', '${tontine.valeurPenalite}'),
+              _ligne(l10n.recapPenaltyValue, '${tontine.valeurPenalite}'),
               const SizedBox(height: 4),
-              _ligne('Délai de grâce', '${tontine.delaiGraceJours} jour(s)'),
+              _ligne(l10n.recapGraceDays, l10n.recapGraceDaysValue(tontine.delaiGraceJours)),
             ],
             const SizedBox(height: 4),
-            _ligne('Fréquence', libellePeriodicite),
+            _ligne(l10n.fieldFrequency, libellePeriodicite),
             const SizedBox(height: 4),
-            _ligne('Répartition des parts', tontine.modeParts.libelle),
+            _ligne(l10n.createStepShares, tontine.modeParts.label(l10n)),
             const SizedBox(height: AppSpacing.sm),
             Text(
               figeeParDemarrage
-                  ? 'Toute modification invaliderait les montants dus et les tours '
-                      'déjà calculés. Ces informations ne peuvent plus changer une fois '
-                      'la collecte commencée.'
-                  : "Seule l'administratrice de la tontine peut modifier ces "
-                      'informations.',
+                  ? l10n.editFrozenExplanation
+                  : l10n.editAdminOnlyExplanation,
               style: AppTypography.secondary,
             ),
           ],

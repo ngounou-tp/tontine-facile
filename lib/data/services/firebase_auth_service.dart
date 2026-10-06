@@ -22,10 +22,7 @@ class FirebaseAuthService implements AuthService {
   Future<T> _avecDelai<T>(Future<T> Function() action) {
     return action().timeout(
       _delaiReseau,
-      onTimeout: () => throw const NetworkException(
-        "La connexion au service d'authentification a expiré. Vérifiez votre "
-        'connexion et réessayez.',
-      ),
+      onTimeout: () => throw const NetworkException('auth timeout'),
     );
   }
 
@@ -92,16 +89,12 @@ class FirebaseAuthService implements AuthService {
       if (error.code == gsi.GoogleSignInExceptionCode.canceled) {
         return null;
       }
-      throw UnknownAuthException(
-        'Connexion Google impossible : ${error.description ?? error.code}',
-      );
+      throw ExternalSignInException(error.description ?? error.code.name);
     }
 
     final idToken = compte.authentication.idToken;
     if (idToken == null) {
-      throw const UnknownAuthException(
-        "Google n'a pas renvoyé de jeton d'authentification.",
-      );
+      throw const ExternalSignInException('google: missing idToken');
     }
 
     try {
@@ -158,9 +151,7 @@ class FirebaseAuthService implements AuthService {
   AppUser _requireAppUser(fb.User? user) {
     final appUser = _toAppUser(user);
     if (appUser == null) {
-      throw const UnknownAuthException(
-        "Firebase n'a pas renvoyé d'utilisateur après l'opération.",
-      );
+      throw const UnknownAuthException('no user returned');
     }
     return appUser;
   }
@@ -196,8 +187,6 @@ AuthException mapFirebaseAuthException(fb.FirebaseAuthException error) {
     case 'too-many-requests':
       return const TooManyRequestsException();
     default:
-      return UnknownAuthException(
-        error.message ?? "Erreur d'authentification (${error.code}).",
-      );
+      return UnknownAuthException(error.code);
   }
 }

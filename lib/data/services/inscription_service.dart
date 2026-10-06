@@ -115,7 +115,7 @@ class InscriptionService {
   }) async {
     final utilisateur = authService.currentUser;
     if (utilisateur == null) {
-      throw const UnknownAuthException('Connectez-vous avant de créer une tontine.');
+      throw const SignInRequiredException();
     }
 
     return _creerTontineEtProfilAdmin(
@@ -365,7 +365,7 @@ class InscriptionService {
   Future<Session> rejoindreAvecCode(String codeInvitation) async {
     final utilisateur = authService.currentUser;
     if (utilisateur == null) {
-      throw const UnknownAuthException('Connectez-vous avant de rejoindre une tontine.');
+      throw const SignInRequiredException();
     }
 
     final code = codeInvitation.trim().toUpperCase();

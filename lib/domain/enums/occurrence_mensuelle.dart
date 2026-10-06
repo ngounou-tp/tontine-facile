@@ -18,14 +18,4 @@ enum OccurrenceMensuelle {
       ),
     );
   }
-
-  String get libelle {
-    return switch (this) {
-      OccurrenceMensuelle.premier => 'Premier',
-      OccurrenceMensuelle.deuxieme => 'Deuxième',
-      OccurrenceMensuelle.troisieme => 'Troisième',
-      OccurrenceMensuelle.quatrieme => 'Quatrième',
-      OccurrenceMensuelle.dernier => 'Dernier',
-    };
-  }
 }

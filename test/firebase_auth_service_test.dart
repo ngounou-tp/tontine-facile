@@ -54,7 +54,7 @@ void main() {
       expect(result, isA<TooManyRequestsException>());
     });
 
-    test('code inconnu -> UnknownAuthException avec le message Firebase',
+    test('code inconnu -> UnknownAuthException, message traduit, code conservé',
         () {
       final result = mapFirebaseAuthException(
         FirebaseAuthException(
@@ -63,15 +63,16 @@ void main() {
         ),
       );
       expect(result, isA<UnknownAuthException>());
-      expect(result.message, 'Ce mode de connexion est désactivé.');
+      expect(result.message, "Erreur d'authentification. Réessayez.");
+      expect(result.details, 'operation-not-allowed');
     });
 
-    test('code inconnu sans message -> message de repli avec le code', () {
+    test('code inconnu sans message -> code conservé dans details', () {
       final result = mapFirebaseAuthException(
         FirebaseAuthException(code: 'some-new-code'),
       );
       expect(result, isA<UnknownAuthException>());
-      expect(result.message, contains('some-new-code'));
+      expect(result.details, 'some-new-code');
     });
   });
 }

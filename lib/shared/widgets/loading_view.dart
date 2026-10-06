@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/l10n.dart';
 
 /// État de chargement d'un écran : un squelette qui esquisse la mise en page
 /// à venir (une grande carte, puis des lignes) plutôt qu'un spinner centré.
@@ -43,7 +44,7 @@ class _LoadingViewState extends State<LoadingView> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: widget.message ?? 'Chargement en cours',
+      label: widget.message ?? context.l10n.commonLoading,
       liveRegion: true,
       child: ExcludeSemantics(
         child: FadeTransition(

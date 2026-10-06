@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/l10n.dart';
 
 /// Demande confirmation avant une action lourde de conséquences. Le bouton
 /// de confirmation reprend le verbe de l'action (« Désactiver », pas
@@ -21,7 +22,7 @@ Future<bool> confirmer(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('Annuler'),
+          child: Text(dialogContext.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),

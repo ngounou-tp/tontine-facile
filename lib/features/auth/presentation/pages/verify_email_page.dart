@@ -8,6 +8,7 @@ import '../../../../shared/widgets/app_button.dart';
 import '../../application/auth_controller.dart';
 import '../../application/auth_providers.dart';
 import '../widgets/auth_form.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Écran affiché tant que l'email de l'utilisateur n'est pas vérifié
 /// (uniquement imposé en environnement live — voir `AppRouter.redirect`).
@@ -50,9 +51,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
       if (verifie) {
         ref.invalidate(sessionProvider);
       } else if (!silencieux && mounted) {
-        _message(
-          'Toujours pas vérifié. Pensez à vérifier vos courriers indésirables.',
-        );
+        _message(context.l10n.verifyStillNotVerified);
       }
     } catch (error) {
       if (!silencieux && mounted) _message(messageErreurAuth(error));
@@ -63,7 +62,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
     if (_secondesAvantRenvoi > 0) return;
     try {
       await ref.read(authControllerProvider.notifier).renvoyerEmailVerification();
-      if (mounted) _message('Email de vérification renvoyé.');
+      if (mounted) _message(context.l10n.verifyEmailResent);
       _demarrerCompteARebours();
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
@@ -92,7 +91,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
   Widget build(BuildContext context) {
     final busy = ref.watch(authControllerProvider).isLoading;
     final email =
-        ref.watch(sessionProvider).value?.utilisateur.email ?? 'votre adresse';
+        ref.watch(sessionProvider).value?.utilisateur.email ?? context.l10n.verifyYourAddressFallback;
 
     return Scaffold(
       body: SafeArea(
@@ -117,15 +116,14 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                const Text(
-                  'Vérifiez votre adresse email',
+                Text(
+                  context.l10n.verifyTitle,
                   textAlign: TextAlign.center,
                   style: AppTypography.screenTitle,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Un lien de vérification a été envoyé à $email. '
-                  'Ouvrez-le, puis revenez sur cet écran.',
+                  context.l10n.verifyBody(email),
                   textAlign: TextAlign.center,
                   style: AppTypography.body,
                 ),
@@ -133,7 +131,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                 SizedBox(
                   width: double.infinity,
                   child: AppButton(
-                    label: "J'ai vérifié mon adresse",
+                    label: context.l10n.verifyDone,
                     variant: AppButtonVariant.accent,
                     busy: busy,
                     onPressed: busy ? null : () => _verifier(),
@@ -144,8 +142,8 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                   width: double.infinity,
                   child: AppButton(
                     label: _secondesAvantRenvoi > 0
-                        ? "Renvoyer l'email ($_secondesAvantRenvoi s)"
-                        : "Renvoyer l'email",
+                        ? context.l10n.verifyResendIn(_secondesAvantRenvoi)
+                        : context.l10n.verifyResend,
                     variant: AppButtonVariant.secondary,
                     onPressed:
                         (busy || _secondesAvantRenvoi > 0) ? null : _renvoyer,
@@ -153,7 +151,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 AppButton(
-                  label: 'Se déconnecter',
+                  label: context.l10n.commonSignOut,
                   variant: AppButtonVariant.tertiary,
                   onPressed: busy
                       ? null

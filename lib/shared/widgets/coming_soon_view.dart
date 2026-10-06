@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/l10n.dart';
 
 /// Contenu (sans Scaffold) d'un écran pas encore construit : icône, titre et
 /// message rassurant plutôt qu'une page blanche. Se place dans le `body` de
@@ -9,13 +10,13 @@ import '../../app/theme.dart';
 class ComingSoonView extends StatelessWidget {
   const ComingSoonView({
     required this.title,
-    this.message = 'Cette fonctionnalité arrive bientôt.',
+    this.message,
     this.icon = Icons.construction_outlined,
     super.key,
   });
 
   final String title;
-  final String message;
+  final String? message;
   final IconData icon;
 
   @override
@@ -39,7 +40,7 @@ class ComingSoonView extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             Text(title, textAlign: TextAlign.center, style: AppTypography.screenTitle),
             const SizedBox(height: AppSpacing.sm),
-            Text(message, textAlign: TextAlign.center, style: AppTypography.secondary),
+            Text(message ?? context.l10n.commonComingSoon, textAlign: TextAlign.center, style: AppTypography.secondary),
           ],
         ),
       ),

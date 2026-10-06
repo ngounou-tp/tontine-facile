@@ -16,17 +16,4 @@ enum ModeParts {
       ),
     );
   }
-
-  String get libelle {
-    return switch (this) {
-      ModeParts.montantFixe =>
-        'Montant fixe par part',
-
-      ModeParts.proportionnel =>
-        'Répartition proportionnelle',
-
-      ModeParts.partEgale =>
-        'Parts égales',
-    };
-  }
 }

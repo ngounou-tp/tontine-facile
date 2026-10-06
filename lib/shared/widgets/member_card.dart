@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 import 'status_badge.dart';
+import '../../l10n/l10n.dart';
 
 enum MemberStatus { paid, late, partial, toCollect }
 
@@ -71,11 +72,11 @@ class MemberCard extends StatelessWidget {
                   children: [
                     if (onPayment != null)
                       Expanded(
-                        child: OutlinedButton(onPressed: onPayment, child: const Text('Noter un paiement')),
+                        child: OutlinedButton(onPressed: onPayment, child: Text(context.l10n.memberCardRecordPayment)),
                       ),
                     if (onPayment != null && onMore != null) const SizedBox(width: AppSpacing.xs),
                     if (onMore != null)
-                      IconButton(onPressed: onMore, tooltip: 'Plus d’options', icon: const Icon(Icons.more_horiz)),
+                      IconButton(onPressed: onMore, tooltip: context.l10n.memberCardMoreOptions, icon: const Icon(Icons.more_horiz)),
                   ],
                 ),
               ),

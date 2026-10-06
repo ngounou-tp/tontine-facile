@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../domain/enums/regle_penalite.dart';
+import '../../../../l10n/domain_labels.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Valeur portée par [PenaliteField] : la règle, sa valeur (montant ou
 /// pourcentage selon la règle — `null` tant que non renseignée ou que la
@@ -11,12 +13,6 @@ typedef PenaliteValue = ({
   int? valeurPenalite,
   int delaiGraceJours,
 });
-
-String libellePenalite(ReglePenalite regle) => switch (regle) {
-      ReglePenalite.aucune => 'Aucune pénalité',
-      ReglePenalite.forfaitaire => 'Pénalité forfaitaire (montant fixe)',
-      ReglePenalite.proportionnelle => 'Pénalité proportionnelle (% du montant dû)',
-    };
 
 /// Sélecteur de la règle de pénalité de retard (`ReglePenalite`), de sa
 /// valeur (montant ou pourcentage, masquée si [ReglePenalite.aucune]) et du
@@ -72,7 +68,7 @@ class _PenaliteFieldState extends State<PenaliteField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Règle de pénalité', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(context.l10n.fieldPenaltyRule, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
         DropdownButtonFormField<ReglePenalite>(
           initialValue: _regle,
@@ -81,7 +77,7 @@ class _PenaliteFieldState extends State<PenaliteField> {
             for (final r in ReglePenalite.values)
               DropdownMenuItem(
                 value: r,
-                child: Text(libellePenalite(r), overflow: TextOverflow.ellipsis),
+                child: Text(r.label(context.l10n), overflow: TextOverflow.ellipsis),
               ),
           ],
           onChanged: (r) {
@@ -94,8 +90,8 @@ class _PenaliteFieldState extends State<PenaliteField> {
           const SizedBox(height: AppSpacing.md),
           Text(
             _regle == ReglePenalite.forfaitaire
-                ? 'Montant de la pénalité (FCFA)'
-                : 'Pourcentage de pénalité (%)',
+                ? context.l10n.fieldPenaltyAmount
+                : context.l10n.fieldPenaltyPercent,
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -106,7 +102,7 @@ class _PenaliteFieldState extends State<PenaliteField> {
           ),
         ],
         const SizedBox(height: AppSpacing.md),
-        const Text('Délai de grâce (jours, 0 à 30)', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(context.l10n.fieldGraceDays, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
         TextFormField(
           controller: _delaiController,
