@@ -1,7 +1,7 @@
-# TontineFacile
+# DjanguiBook
 
 ## Objectif
-TontineFacile est une application mobile Flutter destinée à faciliter la gestion d'une tontine (association
+DjanguiBook (anciennement TontineFacile) est une application mobile Flutter destinée à faciliter la gestion d'une tontine (association
 rotative d'épargne et de crédit très répandue en Afrique de l'Ouest et Centrale). Elle permet à une
 administratrice de créer et paramétrer son groupe, d'inviter ses membres, de suivre l'échéancier des tours et
 la collecte des cotisations, tandis que chaque membre peut suivre sa situation, déclarer ses paiements et

@@ -1,11 +1,11 @@
 {
-    "name": "tontinefacile",
-    "short_name": "tontinefacile",
+    "name": "DjanguiBook",
+    "short_name": "DjanguiBook",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Tontines et caisses de réunion, simplement. Tontines and savings groups, made simple.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

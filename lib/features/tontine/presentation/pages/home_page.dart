@@ -23,6 +23,7 @@ import '../../application/tontine_providers.dart';
 import '../widgets/current_tour_card.dart';
 import '../widgets/dashboard_stats_grid.dart';
 import '../widgets/pending_declarations_banner.dart';
+import '../../../../core/constants/app_constants.dart';
 
 /// Tableau de bord de l'administratrice : vue d'ensemble de sa tontine
 /// (montant distribué par tour, tour en cours, progression de la collecte,
@@ -42,7 +43,7 @@ class HomePage extends ConsumerWidget {
     return AppScaffold(
       selectedNavIndex: 0,
       appBar: AppBar(
-        title: Text(tontineAsync.value?.nom ?? 'TontineFacile'),
+        title: Text(tontineAsync.value?.nom ?? AppConstants.appName),
         actions: [
           IconButton(
             onPressed: () => context.go(AppRouter.reglagesPath),

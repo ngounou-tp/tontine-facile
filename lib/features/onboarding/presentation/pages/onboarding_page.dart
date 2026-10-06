@@ -12,6 +12,7 @@ import '../../../../shared/widgets/app_progress_bar.dart';
 import '../../../../shared/widgets/member_avatar.dart';
 import '../../../../shared/widgets/tontine_logo.dart';
 import '../../application/onboarding_provider.dart';
+import '../../../../core/constants/app_constants.dart';
 
 /// Découverte de l'app au tout premier lancement : trois écrans qui
 /// montrent, avec les vrais composants de l'app, ce qu'elle fait pour la
@@ -39,7 +40,7 @@ const _etapes = [
   _Etape(
     titre: 'Votre tontine,\nsans cahier ni calculs',
     texte: "Membres, noms, parts et ordre des tours : tout le cercle est réglé une fois, "
-        'puis TontineFacile tient le calendrier pour vous.',
+        'puis DjanguiBook tient le calendrier pour vous.',
     illustration: _IllustrationCercle(),
   ),
   _Etape(
@@ -102,7 +103,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 children: [
                   const TontineLogo(size: 32),
                   const SizedBox(width: AppSpacing.xs),
-                  const Expanded(child: Text('TontineFacile', style: AppTypography.bodyStrong)),
+                  const Expanded(child: Text(AppConstants.appName, style: AppTypography.bodyStrong)),
                   AnimatedOpacity(
                     opacity: _derniere ? 0 : 1,
                     duration: AppMotion.fast,

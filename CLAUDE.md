@@ -1,4 +1,4 @@
-# TontineFacile
+# DjanguiBook
 
 App Flutter (Riverpod, go_router, Firebase) de gestion de tontines. Interface en français.
 

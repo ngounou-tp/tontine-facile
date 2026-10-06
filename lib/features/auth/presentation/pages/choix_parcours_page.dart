@@ -8,6 +8,7 @@ import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/tontine_logo.dart';
 import '../../application/auth_controller.dart';
+import '../../../../core/constants/app_constants.dart';
 
 /// Écran d'accueil du compte fraîchement créé (sans profil) : l'utilisateur
 /// choisit entre créer une nouvelle tontine ou rejoindre un groupe existant
@@ -36,7 +37,7 @@ class ChoixParcoursPage extends ConsumerWidget {
                     child: TontineLogo(size: 64),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  const Text('Bienvenue sur TontineFacile', style: AppTypography.screenTitle),
+                  const Text('Bienvenue sur ${AppConstants.appName}', style: AppTypography.screenTitle),
                   const SizedBox(height: AppSpacing.xs),
                   const Text(
                     'Comment souhaitez-vous commencer ?',

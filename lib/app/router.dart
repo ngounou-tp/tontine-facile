@@ -29,6 +29,7 @@ import '../features/tontine/presentation/pages/modifier_tontine_page.dart';
 import '../features/tontine/presentation/pages/reglages_page.dart';
 import '../shared/pages/route_placeholder_page.dart';
 import 'firebase_setup.dart';
+import '../core/constants/app_constants.dart';
 
 /// Fournit le routeur réactif à l'état Firebase et au profil Firestore.
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -63,7 +64,7 @@ abstract final class AppRouter {
   static final routes = <RouteBase>[
     GoRoute(
       path: rootPath,
-      builder: (_, _) => const RoutePlaceholderPage(title: 'TontineFacile'),
+      builder: (_, _) => const RoutePlaceholderPage(title: AppConstants.appName),
     ),
     GoRoute(
       path: onboardingPath,
