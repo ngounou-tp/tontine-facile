@@ -46,7 +46,9 @@ app.*.map.json
 
 /docs/
 /.agents/
-/.claude/
+/.claude/*
+!/.claude/settings.json
+!/.claude/hooks/
 /designs/
 
 # Firestore rules test harness (Node.js, separate from the Flutter toolchain)
