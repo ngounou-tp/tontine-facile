@@ -154,6 +154,15 @@ final class ActionNonAutoriseeException extends AppException {
   String get message => L10n.current.errorForbidden;
 }
 
+/// Suppression de compte refusée : le compte est le seul propriétaire d'un
+/// groupe où d'autres personnes ont un compte.
+final class TransfertProprieteRequisException extends AppException {
+  const TransfertProprieteRequisException();
+
+  @override
+  String get message => L10n.current.errorTransferOwnershipRequired;
+}
+
 /// Données refusées par le serveur (règle métier non respectée). [details]
 /// garde le code renvoyé (`shares_must_total_one`, `reason_required`...).
 final class DonneesInvalidesException extends AppException {

@@ -983,5 +983,11 @@
   "loginContinueWithApple": "Continuer avec Apple",
   "newPasswordTitle": "Choisissez un nouveau mot de passe",
   "newPasswordSubmit": "Enregistrer le mot de passe",
-  "newPasswordSaved": "Mot de passe modifié."
+  "newPasswordSaved": "Mot de passe modifié.",
+  "settingsDeleteAccount": "Supprimer mon compte",
+  "settingsDeleteAccountSubtitle": "Définitif. Vos fiches restent dans les groupes, anonymisées.",
+  "settingsDeleteAccountTitle": "Supprimer votre compte ?",
+  "settingsDeleteAccountMessage": "Votre compte et vos coordonnées seront effacés. Les cotisations et l'historique restent dans vos groupes, sans votre nom de compte, pour ne pas fausser les comptes des autres membres. Un groupe dont vous êtes le seul membre sera supprimé. Cette action est irréversible.",
+  "settingsDeleteAccountConfirm": "Supprimer définitivement",
+  "errorTransferOwnershipRequired": "Vous êtes le seul propriétaire d'un groupe : nommez d'abord un autre propriétaire avant de supprimer votre compte."
 }

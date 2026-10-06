@@ -42,6 +42,7 @@ final _secret = Platform.environment['POSTGREST_JWT_SECRET'];
 const _adele = '11111111-1111-1111-1111-111111111111';
 const _bruno = '22222222-2222-2222-2222-222222222222';
 const _chantal = '33333333-3333-3333-3333-333333333333';
+const _dora = '44444444-4444-4444-4444-444444444444';
 
 String _b64(List<int> octets) => base64Url.encode(octets).replaceAll('=', '');
 
@@ -361,6 +362,32 @@ void main() {
     final ids = adhesions.map((a) => a.groupeId).toList();
     expect(ids, containsAll([g1, g2]));
     expect(adhesions.firstWhere((a) => a.groupeId == g2).nomGroupe, 'Groupe B');
+  }, skip: ignore);
+
+  test('suppression de compte : refusée au seul propriétaire, puis fiche anonymisée', () async {
+    final adele = _comme(_adele, stockage);
+    final dora = _comme(_dora, stockage);
+    final groupeId = await adele.groupes.creerTontine(tontine: _brouillon('Groupe D'), nomCompletAdmin: 'Adèle');
+    final invitation = await adele.tontines.inviterMembre(groupeId, nomComplet: 'Dora Fouda', email: 'dora@example.com');
+    await dora.groupes.rejoindre(invitation.code);
+
+    // Dora crée son propre groupe où elle invite Adèle : seule propriétaire, elle ne peut pas partir.
+    final groupeDora = await dora.groupes.creerTontine(tontine: _brouillon('Groupe de Dora'), nomCompletAdmin: 'Dora');
+    final invitationAdele = await dora.tontines.inviterMembre(groupeDora, nomComplet: 'Adèle', email: 'adele@example.com');
+    await adele.groupes.rejoindre(invitationAdele.code);
+    await expectLater(dora.groupes.supprimerMonCompte(), throwsA(isA<TransfertProprieteRequisException>()));
+
+    // Dora transmet la propriété à Adèle : elle peut alors partir.
+    await _db(_dora).rpc('set_member_roles', params: {
+      'p_member_id': invitationAdele.membreId,
+      'p_roles': ['owner'],
+    });
+    await dora.groupes.supprimerMonCompte();
+
+    final fiche = (await adele.tontines.getMembres(groupeId)).singleWhere((m) => m.id == invitation.membreId);
+    expect(fiche.uid, isNull);
+    expect(fiche.email, isNull);
+    expect(fiche.nomComplet, 'Dora Fouda');
   }, skip: ignore);
 
   test('un tour généré puis remis ne peut plus être déplacé', () async {

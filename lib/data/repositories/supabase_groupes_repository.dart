@@ -79,6 +79,11 @@ class SupabaseGroupesRepository implements GroupesRepository {
       });
 
   @override
+  Future<void> supprimerMonCompte() => guardSupabase(() async {
+        await _db.rpc('delete_my_account');
+      });
+
+  @override
   Future<({String groupeId, String membreId})> rejoindre(String code) => guardSupabase(() async {
         final lignes = await _db.rpc('claim_invitation', params: {'p_code': code.trim()});
         final ligne = (lignes as List).cast<Map<String, dynamic>>().single;

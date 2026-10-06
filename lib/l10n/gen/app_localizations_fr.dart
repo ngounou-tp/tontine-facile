@@ -1640,4 +1640,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get newPasswordSaved => 'Mot de passe modifié.';
+
+  @override
+  String get settingsDeleteAccount => 'Supprimer mon compte';
+
+  @override
+  String get settingsDeleteAccountSubtitle =>
+      'Définitif. Vos fiches restent dans les groupes, anonymisées.';
+
+  @override
+  String get settingsDeleteAccountTitle => 'Supprimer votre compte ?';
+
+  @override
+  String get settingsDeleteAccountMessage =>
+      'Votre compte et vos coordonnées seront effacés. Les cotisations et l\'historique restent dans vos groupes, sans votre nom de compte, pour ne pas fausser les comptes des autres membres. Un groupe dont vous êtes le seul membre sera supprimé. Cette action est irréversible.';
+
+  @override
+  String get settingsDeleteAccountConfirm => 'Supprimer définitivement';
+
+  @override
+  String get errorTransferOwnershipRequired =>
+      'Vous êtes le seul propriétaire d\'un groupe : nommez d\'abord un autre propriétaire avant de supprimer votre compte.';
 }

@@ -1630,4 +1630,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newPasswordSaved => 'Password changed.';
+
+  @override
+  String get settingsDeleteAccount => 'Delete my account';
+
+  @override
+  String get settingsDeleteAccountSubtitle =>
+      'Permanent. Your records stay in the groups, anonymised.';
+
+  @override
+  String get settingsDeleteAccountTitle => 'Delete your account?';
+
+  @override
+  String get settingsDeleteAccountMessage =>
+      'Your account and contact details will be erased. Contributions and history stay in your groups, without your account, so the other members\' records stay correct. A group where you\'re the only member will be deleted. This can\'t be undone.';
+
+  @override
+  String get settingsDeleteAccountConfirm => 'Delete permanently';
+
+  @override
+  String get errorTransferOwnershipRequired =>
+      'You\'re the only owner of a group: make someone else an owner before deleting your account.';
 }

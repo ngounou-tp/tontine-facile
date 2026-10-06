@@ -10,6 +10,7 @@ import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../auth/application/auth_providers.dart';
+import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAuth;
 import '../../../../l10n/l10n.dart';
 
 /// Onglet Réglages : menu des paramètres de l'application (tontine, profil
@@ -26,6 +27,27 @@ class ReglagesPage extends ConsumerWidget {
     );
     if (confirme) {
       await ref.read(authControllerProvider.notifier).deconnecter();
+    }
+  }
+
+  /// Suppression définitive : confirmation explicite, puis retour à
+  /// l'écran de connexion (la session est fermée par le service).
+  Future<void> _confirmerSuppression(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final confirme = await confirmer(
+      context,
+      titre: l10n.settingsDeleteAccountTitle,
+      message: l10n.settingsDeleteAccountMessage,
+      libelleConfirmation: l10n.settingsDeleteAccountConfirm,
+      destructif: true,
+    );
+    if (!confirme) return;
+    try {
+      await ref.read(authControllerProvider.notifier).supprimerCompte();
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageErreurAuth(error))));
+      }
     }
   }
 
@@ -126,6 +148,15 @@ class ReglagesPage extends ConsumerWidget {
               iconColor: AppColors.danger,
               titleColor: AppColors.danger,
               onTap: () => _confirmerDeconnexion(context, ref),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _CarteMenu(
+              icon: Icons.delete_forever_outlined,
+              title: l10n.settingsDeleteAccount,
+              subtitle: l10n.settingsDeleteAccountSubtitle,
+              iconColor: AppColors.danger,
+              titleColor: AppColors.danger,
+              onTap: () => _confirmerSuppression(context, ref),
             ),
           ],
         ),

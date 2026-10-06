@@ -2755,6 +2755,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Mot de passe modifié.'**
   String get newPasswordSaved;
+
+  /// No description provided for @settingsDeleteAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer mon compte'**
+  String get settingsDeleteAccount;
+
+  /// No description provided for @settingsDeleteAccountSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Définitif. Vos fiches restent dans les groupes, anonymisées.'**
+  String get settingsDeleteAccountSubtitle;
+
+  /// No description provided for @settingsDeleteAccountTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer votre compte ?'**
+  String get settingsDeleteAccountTitle;
+
+  /// No description provided for @settingsDeleteAccountMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre compte et vos coordonnées seront effacés. Les cotisations et l\'historique restent dans vos groupes, sans votre nom de compte, pour ne pas fausser les comptes des autres membres. Un groupe dont vous êtes le seul membre sera supprimé. Cette action est irréversible.'**
+  String get settingsDeleteAccountMessage;
+
+  /// No description provided for @settingsDeleteAccountConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer définitivement'**
+  String get settingsDeleteAccountConfirm;
+
+  /// No description provided for @errorTransferOwnershipRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous êtes le seul propriétaire d\'un groupe : nommez d\'abord un autre propriétaire avant de supprimer votre compte.'**
+  String get errorTransferOwnershipRequired;
 }
 
 class _AppLocalizationsDelegate

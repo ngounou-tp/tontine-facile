@@ -23,6 +23,7 @@ Object mapSupabaseError(Object error) {
       'sign_in_required' => const SignInRequiredException(),
       'forbidden' => const ActionNonAutoriseeException(),
       'names_quota_exceeded' => const NamesQuotaExceededException(),
+      'transfer_ownership_required' => const TransfertProprieteRequisException(),
       final code
           when const {
             'shares_required',

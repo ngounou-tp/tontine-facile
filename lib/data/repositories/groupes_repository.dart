@@ -19,4 +19,10 @@ abstract interface class GroupesRepository {
 
   /// Rattache le compte courant à la fiche membre désignée par [code].
   Future<({String groupeId, String membreId})> rejoindre(String code);
+
+  /// Supprime définitivement le compte courant. Ses fiches restent dans
+  /// les groupes, anonymisées ; un groupe sans plus aucun autre compte est
+  /// supprimé. Refusé tant que le compte est le seul propriétaire d'un
+  /// groupe où d'autres ont un compte.
+  Future<void> supprimerMonCompte();
 }

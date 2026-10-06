@@ -442,5 +442,11 @@
   "loginContinueWithApple": "Continue with Apple",
   "newPasswordTitle": "Choose a new password",
   "newPasswordSubmit": "Save the password",
-  "newPasswordSaved": "Password changed."
+  "newPasswordSaved": "Password changed.",
+  "settingsDeleteAccount": "Delete my account",
+  "settingsDeleteAccountSubtitle": "Permanent. Your records stay in the groups, anonymised.",
+  "settingsDeleteAccountTitle": "Delete your account?",
+  "settingsDeleteAccountMessage": "Your account and contact details will be erased. Contributions and history stay in your groups, without your account, so the other members' records stay correct. A group where you're the only member will be deleted. This can't be undone.",
+  "settingsDeleteAccountConfirm": "Delete permanently",
+  "errorTransferOwnershipRequired": "You're the only owner of a group: make someone else an owner before deleting your account."
 }

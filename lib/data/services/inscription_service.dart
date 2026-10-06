@@ -213,5 +213,12 @@ class InscriptionService {
 
   Future<void> deconnecter() => authService.signOut();
 
+  /// Supprime définitivement le compte connecté, puis ferme la session.
+  Future<void> supprimerCompte() async {
+    await groupes.supprimerMonCompte();
+    await preferences.setCodeInvitationEnAttente(null);
+    await authService.signOut();
+  }
+
   Future<void> reinitialiserMotDePasse(String email) => authService.sendPasswordResetEmail(email);
 }

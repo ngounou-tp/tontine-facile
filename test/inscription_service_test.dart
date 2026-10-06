@@ -181,6 +181,25 @@ void main() {
     });
   });
 
+  group('suppression de compte', () {
+    test('supprime le compte puis ferme la session', () async {
+      creerService(utilisateur: _adele);
+
+      await service.supprimerCompte();
+
+      expect(groupes.compteSupprime, isTrue);
+      expect(auth.currentUser, isNull);
+    });
+
+    test('refusée tant que le compte est seul propriétaire : la session reste ouverte', () async {
+      creerService(utilisateur: _adele);
+      groupes.refuserSuppression = true;
+
+      await expectLater(service.supprimerCompte, throwsA(isA<TransfertProprieteRequisException>()));
+      expect(auth.currentUser, isNotNull);
+    });
+  });
+
   group('session et groupes multiples', () {
     test('affiche le dernier groupe choisi, et en change à la demande', () async {
       creerService(utilisateur: _adele);

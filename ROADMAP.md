@@ -9,8 +9,8 @@
 | Lot | État | Détail |
 |---|---|---|
 | 0 — Fondations | ✅ Fait | Nom DjanguiBook, FR/EN complet (420+ textes, choix dans Réglages), correctifs stores (signature Android, permissions iOS, iOS 15, portrait), hook de session, CI |
-| 1 — Migration Supabase | ✅ Fait | Schéma + RLS + fonctions SQL (72 tests pgTAP), repositories Supabase (tests d'intégration contre PostgREST), auth email/Google/Apple, confirmation d'email et réinitialisation par lien profond, groupes multiples et rôles, faille d'usurpation fermée |
-| 2 — Plateforme | ⏳ À faire | Notifications push (FCM), rappels pg_cron, suppression de compte, profil, mise à jour forcée, Crashlytics |
+| 1 — Migration Supabase | ✅ Fait | Schéma + RLS + fonctions SQL (82 tests pgTAP), repositories Supabase (tests d'intégration contre PostgREST), auth email/Google/Apple, confirmation d'email et réinitialisation par lien profond, groupes multiples et rôles, faille d'usurpation fermée |
+| 2 — Plateforme | 🟡 Commencé | ✅ Suppression de compte (anonymisation, groupes solitaires supprimés, propriétaire unique protégé). Reste : notifications push (FCM), rappels pg_cron, révocation du jeton Apple à la suppression (Edge Function, clés Apple requises), page web de suppression pour Play, profil, mise à jour forcée, Crashlytics |
 | 3 — Monétisation | ⏳ À faire | RevenueCat, `feature_gates`, AdMob + UMP/ATT, console propriétaire |
 | 4–5 — Module Caisse | ⏳ À faire | Règles §10 à valider par un bureau pilote |
 | 6 — Publication | ⏳ À faire | Comptes stores, identifiants définitifs (`com.djanguibook.app` à confirmer), fiches, tests fermés |

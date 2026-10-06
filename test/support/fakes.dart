@@ -357,6 +357,16 @@ class FakeGroupesRepository implements GroupesRepository {
     return (nomGroupe: invitation.nomGroupe, nombreMembres: 3, dejaUtilisee: codesUtilises.contains(code));
   }
 
+  var compteSupprime = false;
+  bool refuserSuppression = false;
+
+  @override
+  Future<void> supprimerMonCompte() async {
+    if (refuserSuppression) throw const TransfertProprieteRequisException();
+    compteSupprime = true;
+    adhesionsParUid.remove(uidCourant);
+  }
+
   @override
   Future<({String groupeId, String membreId})> rejoindre(String code) async {
     final uid = uidCourant;
