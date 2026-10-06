@@ -104,7 +104,6 @@ class _ModifierTontinePageState extends ConsumerState<ModifierTontinePage> {
       delaiGraceJours: _delaiGraceJours,
       valeurPenalite: _reglePenalite == ReglePenalite.aucune ? null : _valeurPenalite,
       modeParts: _modeParts,
-      codeInvitation: tontine.codeInvitation,
     );
     try {
       await ref.read(modificationTontineControllerProvider.notifier).modifierTontine(misAJour);

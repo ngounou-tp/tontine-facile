@@ -76,6 +76,15 @@ final class TooManyRequestsException extends AuthException {
   String get message => L10n.current.errorTooManyRequests;
 }
 
+/// Connexion tentée avant d'avoir ouvert le lien de confirmation reçu par
+/// email.
+final class EmailNonConfirmeException extends AuthException {
+  const EmailNonConfirmeException();
+
+  @override
+  String get message => L10n.current.errorEmailNotConfirmed;
+}
+
 /// Action qui exige d'être connecté, tentée sans session.
 final class SignInRequiredException extends AuthException {
   const SignInRequiredException();
@@ -118,10 +127,56 @@ final class InvitationDejaUtiliseeException extends AppException {
 
 /// Une attribution de noms dépasserait le total prévu pour la tontine.
 final class NamesQuotaExceededException extends AppException {
-  const NamesQuotaExceededException(this.total);
+  const NamesQuotaExceededException([this.total]);
 
-  final int total;
+  /// Nombre de noms prévu, quand il est connu.
+  final int? total;
 
   @override
-  String get message => L10n.current.errorNamesQuotaExceeded(total);
+  String get message => total == null
+      ? L10n.current.errorNamesQuotaReached
+      : L10n.current.errorNamesQuotaExceeded(total!);
+}
+
+/// Le compte fait déjà partie du groupe visé par l'invitation.
+final class DejaMembreException extends AppException {
+  const DejaMembreException();
+
+  @override
+  String get message => L10n.current.errorAlreadyMember;
+}
+
+/// Action réservée à un autre rôle (bureau, propriétaire).
+final class ActionNonAutoriseeException extends AppException {
+  const ActionNonAutoriseeException([super.details]);
+
+  @override
+  String get message => L10n.current.errorForbidden;
+}
+
+/// Données refusées par le serveur (règle métier non respectée). [details]
+/// garde le code renvoyé (`shares_must_total_one`, `reason_required`...).
+final class DonneesInvalidesException extends AppException {
+  const DonneesInvalidesException([super.details]);
+
+  @override
+  String get message => switch (details) {
+        'shares_must_total_one' => L10n.current.assignSharesMustTotal100,
+        'contact_required' => L10n.current.memberFormContactRequired,
+        'reason_required' => L10n.current.reorderReasonRequired,
+        'amount_exceeds_due' => L10n.current.contribAmountExceedsDue,
+        'declaration_not_pending' => L10n.current.errorDeclarationNotPending,
+        'turn_already_paid' => L10n.current.errorTurnAlreadyPaid,
+        'last_owner' => L10n.current.errorLastOwner,
+        _ => L10n.current.errorGeneric,
+      };
+}
+
+/// L'application n'est pas reliée à son serveur (URL/clé Supabase absentes
+/// de la configuration de build).
+final class ServeurNonConfigureException extends AppException {
+  const ServeurNonConfigureException();
+
+  @override
+  String get message => L10n.current.errorServerNotConfigured;
 }

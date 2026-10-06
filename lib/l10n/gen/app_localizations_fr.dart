@@ -1558,4 +1558,89 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingMobileMoneyReceipt => 'Reçu Mobile Money joint';
+
+  @override
+  String get errorAlreadyMember => 'Vous faites déjà partie de ce groupe.';
+
+  @override
+  String get errorForbidden => 'Cette action est réservée au bureau du groupe.';
+
+  @override
+  String get errorDeclarationNotPending =>
+      'Cette déclaration a déjà été traitée.';
+
+  @override
+  String get errorTurnAlreadyPaid =>
+      'Un tour déjà remis ne peut pas être déplacé.';
+
+  @override
+  String get errorLastOwner =>
+      'Le groupe doit garder au moins un propriétaire.';
+
+  @override
+  String get errorNamesQuotaReached =>
+      'Tous les noms prévus pour la tontine sont déjà attribués.';
+
+  @override
+  String get errorServerNotConfigured =>
+      'L\'application n\'est pas reliée à son serveur. Contactez le support.';
+
+  @override
+  String get errorEmailNotConfirmed =>
+      'Confirmez d\'abord votre adresse : ouvrez le lien reçu par email.';
+
+  @override
+  String verifyBodyLink(String email) {
+    return 'Un lien de confirmation a été envoyé à $email. Ouvrez-le depuis ce téléphone pour entrer directement dans l\'application, ou connectez-vous ensuite.';
+  }
+
+  @override
+  String get verifyDoneSignIn => 'J\'ai confirmé, me connecter';
+
+  @override
+  String get roleOwner => 'Propriétaire';
+
+  @override
+  String get rolePresident => 'Président(e)';
+
+  @override
+  String get roleTreasurer => 'Trésorier(ère)';
+
+  @override
+  String get roleAuditor => 'Commissaire aux comptes';
+
+  @override
+  String get roleMember => 'Membre';
+
+  @override
+  String get groupsTitle => 'Mes groupes';
+
+  @override
+  String get groupsSubtitle => 'Touchez un groupe pour l\'afficher.';
+
+  @override
+  String get groupsCurrent => 'Affiché';
+
+  @override
+  String get groupsJoinWithCode => 'Rejoindre avec un code';
+
+  @override
+  String get groupsSwitch => 'Changer de groupe';
+
+  @override
+  String get settingsMyGroups => 'Mes groupes';
+
+  @override
+  String settingsMyGroupsSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count groupes · changer, créer ou rejoindre',
+      one: '1 groupe · créer ou rejoindre un autre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loginContinueWithApple => 'Continuer avec Apple';
 }

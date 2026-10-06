@@ -953,5 +953,42 @@
   "onboardingCircleCaption": "Tour 5 · Aïcha reçoit la cagnotte",
   "onboardingCollectOverline": "COLLECTE · TOUR 3",
   "onboardingDeclaredPayment": "a déclaré un paiement",
-  "onboardingMobileMoneyReceipt": "Reçu Mobile Money joint"
+  "onboardingMobileMoneyReceipt": "Reçu Mobile Money joint",
+  "errorAlreadyMember": "Vous faites déjà partie de ce groupe.",
+  "errorForbidden": "Cette action est réservée au bureau du groupe.",
+  "errorDeclarationNotPending": "Cette déclaration a déjà été traitée.",
+  "errorTurnAlreadyPaid": "Un tour déjà remis ne peut pas être déplacé.",
+  "errorLastOwner": "Le groupe doit garder au moins un propriétaire.",
+  "errorNamesQuotaReached": "Tous les noms prévus pour la tontine sont déjà attribués.",
+  "errorServerNotConfigured": "L'application n'est pas reliée à son serveur. Contactez le support.",
+  "errorEmailNotConfirmed": "Confirmez d'abord votre adresse : ouvrez le lien reçu par email.",
+  "verifyBodyLink": "Un lien de confirmation a été envoyé à {email}. Ouvrez-le depuis ce téléphone pour entrer directement dans l'application, ou connectez-vous ensuite.",
+  "@verifyBodyLink": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyDoneSignIn": "J'ai confirmé, me connecter",
+  "roleOwner": "Propriétaire",
+  "rolePresident": "Président(e)",
+  "roleTreasurer": "Trésorier(ère)",
+  "roleAuditor": "Commissaire aux comptes",
+  "roleMember": "Membre",
+  "groupsTitle": "Mes groupes",
+  "groupsSubtitle": "Touchez un groupe pour l'afficher.",
+  "groupsCurrent": "Affiché",
+  "groupsJoinWithCode": "Rejoindre avec un code",
+  "groupsSwitch": "Changer de groupe",
+  "settingsMyGroups": "Mes groupes",
+  "settingsMyGroupsSubtitle": "{count, plural, =1{1 groupe · créer ou rejoindre un autre} other{{count} groupes · changer, créer ou rejoindre}}",
+  "@settingsMyGroupsSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loginContinueWithApple": "Continuer avec Apple"
 }

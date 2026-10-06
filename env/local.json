@@ -1,3 +1,5 @@
 {
-  "FIREBASE_ENV": "local"
+  "SUPABASE_URL": "http://10.0.2.2:54321",
+  "SUPABASE_ANON_KEY": "remplacer-par-la-cle-anon-affichee-par-supabase-start",
+  "GOOGLE_SERVER_CLIENT_ID": ""
 }

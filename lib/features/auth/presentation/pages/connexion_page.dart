@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -41,13 +42,18 @@ class _ConnexionPageState extends ConsumerState<ConnexionPage> {
     }
   }
 
+  /// `null` renvoyé : l'utilisateur a annulé, ce n'est pas une erreur.
   Future<void> _continuerAvecGoogle() async {
     try {
-      final session =
-          await ref.read(authControllerProvider.notifier).connecterAvecGoogle();
-      // `session == null` : l'utilisateur a annulé la sélection de compte,
-      // ce n'est pas une erreur à signaler.
-      if (session == null) return;
+      await ref.read(authControllerProvider.notifier).connecterAvecGoogle();
+    } catch (error) {
+      if (mounted) _message(messageErreurAuth(error));
+    }
+  }
+
+  Future<void> _continuerAvecApple() async {
+    try {
+      await ref.read(authControllerProvider.notifier).connecterAvecApple();
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
     }
@@ -132,6 +138,27 @@ class _ConnexionPageState extends ConsumerState<ConnexionPage> {
                       ),
                     ),
                   ),
+                  // Exigé par l'App Store dès qu'une connexion tierce est
+                  // proposée (règle 4.8) ; inutile ailleurs.
+                  if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: busy ? null : _continuerAvecApple,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(56),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
+                          ),
+                        ),
+                        icon: const Icon(Icons.apple),
+                        label: Text(context.l10n.loginContinueWithApple),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.md),
                   AppButton(
                     label: context.l10n.loginCreateAccount,

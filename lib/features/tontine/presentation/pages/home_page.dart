@@ -47,6 +47,11 @@ class HomePage extends ConsumerWidget {
         title: Text(tontineAsync.value?.nom ?? AppConstants.appName),
         actions: [
           IconButton(
+            onPressed: () => context.go(AppRouter.groupesPath),
+            tooltip: context.l10n.groupsSwitch,
+            icon: const Icon(Icons.swap_horiz),
+          ),
+          IconButton(
             onPressed: () => context.go(AppRouter.reglagesPath),
             tooltip: context.l10n.navSettings,
             icon: const Icon(Icons.settings_outlined),

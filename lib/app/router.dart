@@ -23,12 +23,12 @@ import '../features/membres/presentation/pages/fiche_membre_page.dart';
 import '../features/membres/presentation/pages/membres_page.dart';
 import '../features/onboarding/application/onboarding_provider.dart';
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
+import '../features/groupes/presentation/pages/mes_groupes_page.dart';
 import '../features/tontine/presentation/pages/creer_tontine_page.dart';
 import '../features/tontine/presentation/pages/home_page.dart';
 import '../features/tontine/presentation/pages/modifier_tontine_page.dart';
 import '../features/tontine/presentation/pages/reglages_page.dart';
 import '../shared/pages/route_placeholder_page.dart';
-import 'firebase_setup.dart';
 import '../core/constants/app_constants.dart';
 
 /// Fournit le routeur réactif à l'état Firebase et au profil Firestore.
@@ -60,6 +60,7 @@ abstract final class AppRouter {
   static const reglagesPath = '/reglages';
   static const cotisationsPath = '/cotisations';
   static const declarationsPath = '/declarations';
+  static const groupesPath = '/groupes';
 
   static final routes = <RouteBase>[
     GoRoute(
@@ -89,7 +90,7 @@ abstract final class AppRouter {
     GoRoute(
       path: verifyEmailPath,
       name: 'verifier-email',
-      builder: (_, _) => const VerifyEmailPage(),
+      builder: (_, state) => VerifyEmailPage(email: state.extra as String?),
     ),
     GoRoute(
       path: choixPath,
@@ -100,6 +101,11 @@ abstract final class AppRouter {
       path: creerTontinePath,
       name: 'creer-tontine',
       builder: (_, _) => const CreerTontinePage(),
+    ),
+    GoRoute(
+      path: groupesPath,
+      name: 'groupes',
+      builder: (_, _) => const MesGroupesPage(),
     ),
     GoRoute(
       path: accueilPath,
@@ -191,51 +197,50 @@ abstract final class AppRouter {
 
       // /rejoindre reste accessible sans compte : on peut y prévisualiser une
       // tontine avant de créer un compte pour la rejoindre.
-      return (_isPublic(location) || location == rejoindrePath)
+      return (_isPublic(location) || location == rejoindrePath || location == verifyEmailPath)
           ? null
           : connexionPath;
     }
 
-    // La vérification d'email n'est imposée qu'en environnement live : les
-    // émulateurs locaux n'envoient pas de vrais emails, ce qui rendrait le
-    // blocage impossible à lever en développement.
-    if (FirebaseSetup.environment == FirebaseEnvironment.live &&
-        !session.utilisateur.emailVerified) {
-      return location == verifyEmailPath ? null : verifyEmailPath;
+    // Aucun groupe encore : créer une tontine ou en rejoindre une.
+    final profil = session.profil;
+    if (profil == null) {
+      return _isNoProfileDestination(location) ? null : choixPath;
     }
 
-    if (session.profil == null) {
-      return _isNoProfileDestination(location) ? null : choixPath;
+    // Avec au moins un groupe, on peut toujours en créer ou en rejoindre
+    // un autre, et passer de l'un à l'autre.
+    if (location == groupesPath || location == creerTontinePath || location == rejoindrePath) {
+      return null;
     }
 
     final tontineState = ref.read(currentTontineProvider);
     if (tontineState.isLoading) return null;
     if (tontineState.hasError || tontineState.value == null) {
-      return rejoindrePath;
+      return groupesPath;
     }
 
-    final Tontine tontine = tontineState.requireValue!;
-    final isAdmin = tontine.adminUid == session.utilisateur.uid;
-    if (isAdmin) {
-      if (_isPublic(location) || _isNoProfileDestination(location) ||
-          location == rootPath ||
-          location == espaceMembrePath || location.startsWith('$espaceMembrePath/') ||
-          location == verifyEmailPath) {
+    final accueil = profil.estGestionnaire ? accueilPath : espaceMembrePath;
+    if (_isPublic(location) || location == choixPath || location == rootPath ||
+        location == verifyEmailPath) {
+      return accueil;
+    }
+
+    if (profil.estGestionnaire) {
+      // Le bureau n'a pas d'« espace membre » distinct : son accueil le
+      // remplace.
+      if (location == espaceMembrePath || location.startsWith('$espaceMembrePath/')) {
         return accueilPath;
       }
       return null;
     }
 
-    // Membre : les mêmes sections que l'administratrice (Accueil, Membres,
+    // Membre : les mêmes sections que le bureau (Accueil, Membres,
     // Échéancier, Réglages, Déclarations) sont ouvertes, mais en lecture
-    // seule — chaque écran masque ses propres actions via `isAdminProvider`.
-    // Seules les routes de création/édition/traitement restent bloquées ici
-    // en plus (défense en profondeur, cohérent avec les règles Firestore).
-    if (_isPublic(location) || _isNoProfileDestination(location) ||
-        location == rootPath || location == verifyEmailPath ||
-        _isAdminOnlyWriteDestination(location)) {
-      return espaceMembrePath;
-    }
+    // seule — chaque écran masque ses propres actions via `isAdminProvider`,
+    // et le serveur refuse de toute façon les écritures (RLS). Les écrans de
+    // création/édition restent bloqués ici en plus (défense en profondeur).
+    if (_isAdminOnlyWriteDestination(location)) return espaceMembrePath;
     return null;
   }
 

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,7 +6,7 @@ import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../application/auth_controller.dart';
-import '../../application/auth_providers.dart';
+import '../../../../data/services/inscription_service.dart';
 import '../widgets/auth_form.dart';
 import '../widgets/auth_header.dart';
 import '../../../../l10n/l10n.dart';
@@ -18,7 +16,7 @@ class InscriptionPage extends ConsumerStatefulWidget {
 
   /// Code saisi sur l'écran d'adhésion avant d'avoir de compte : une fois le
   /// compte créé, il sert à réclamer directement le membre invité plutôt que
-  /// de créer un compte "orphelin" (voir [InscriptionService.inscrireMembre]).
+  /// de créer un compte "orphelin" (voir [InscriptionService.inscrire]).
   final String? codeInvitation;
 
   @override
@@ -41,52 +39,28 @@ class _InscriptionPageState extends ConsumerState<InscriptionPage> {
 
   Future<void> _inscrire() async {
     if (!_formKey.currentState!.validate()) return;
+    final email = _email.text.trim();
     try {
-      final code = widget.codeInvitation;
-      if (code != null) {
-        await ref.read(authControllerProvider.notifier).inscrireMembre(
-              email: _email.text.trim(),
-              password: _password.text,
-              codeInvitation: code,
-            );
-        // `inscrireMembre` vient d'écrire le profil dans Firestore, mais la
-        // session (qui le suit en direct) peut ne pas l'avoir encore
-        // répercuté : naviguer tout de suite ferait rebondir le routeur sur
-        // /bienvenue, qui traite un profil pas encore propagé comme absent
-        // (voir `AppRouter.redirect`). On attend qu'il apparaisse.
-        if (ref.read(sessionProvider).value?.profil == null) {
-          await _attendreProfil();
-        }
-        if (mounted) context.go(AppRouter.espaceMembrePath);
-      } else {
-        await ref.read(authControllerProvider.notifier).creerCompteSansTontine(
-              email: _email.text.trim(),
-              password: _password.text,
-            );
-        if (mounted) context.go(AppRouter.choixPath);
+      final issue = await ref.read(authControllerProvider.notifier).inscrire(
+            email: email,
+            password: _password.text,
+            codeInvitation: widget.codeInvitation,
+          );
+      if (!mounted) return;
+      switch (issue) {
+        // Email à confirmer : aucune session tant que le lien n'est pas
+        // ouvert. Le code d'invitation éventuel sera réclamé à la première
+        // connexion (voir `InscriptionService.inscrire`).
+        case IssueInscription.confirmationRequise:
+          context.go(AppRouter.verifyEmailPath, extra: email);
+        // Connecté : le routeur oriente selon les groupes du compte.
+        case IssueInscription.connecte:
+          context.go(widget.codeInvitation == null ? AppRouter.choixPath : AppRouter.rootPath);
       }
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageErreurAuth(error))));
-    }
-  }
-
-  /// Attend la prochaine émission de [sessionProvider] dont le profil est
-  /// renseigné (avec une limite raisonnable pour ne jamais bloquer
-  /// indéfiniment si la propagation échoue).
-  Future<void> _attendreProfil() async {
-    final completeur = Completer<void>();
-    final abonnement = ref.listenManual(sessionProvider, (_, next) {
-      if (next.value?.profil != null && !completeur.isCompleted) {
-        completeur.complete();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageErreurAuth(error))));
       }
-    });
-    try {
-      await completeur.future.timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {},
-      );
-    } finally {
-      abonnement.close();
     }
   }
 

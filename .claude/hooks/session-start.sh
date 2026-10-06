@@ -24,3 +24,10 @@ if ! dpkg -s postgresql-16-pgtap >/dev/null 2>&1; then
   DEBIAN_FRONTEND=noninteractive apt-get install -y -qq postgresql-16 postgresql-16-pgtap libtap-parser-sourcehandler-pgtap-perl >/dev/null
 fi
 echo 'export PATH="/usr/lib/postgresql/16/bin:$PATH"' >> "${CLAUDE_ENV_FILE:-/dev/null}"
+
+# PostgREST (tests d'intégration des repositories : supabase/tests/run_api_local.sh)
+if [ ! -x /opt/postgrest/postgrest ]; then
+  mkdir -p /opt/postgrest
+  curl -sSL https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz \
+    | tar xJ -C /opt/postgrest
+fi

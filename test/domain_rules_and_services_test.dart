@@ -247,6 +247,5 @@ Tontine _tontine() {
     delaiGraceJours: 0,
     valeurPenalite: null,
     modeParts: ModeParts.montantFixe,
-    codeInvitation: 'TEST01',
   );
 }

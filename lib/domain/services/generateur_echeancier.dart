@@ -11,9 +11,12 @@ class GenerateurEcheancier {
 
 	final CalculateurPeriodicite calculateur;
 
+	/// [nouvelId] fournit l'identifiant de chaque tour (celui du stockage) ;
+	/// par défaut, un identifiant lisible dérivé de la tontine.
 	List<Tour> generer({
 		required Tontine tontine,
 		required List<Nom> noms,
+		String Function(int position)? nouvelId,
 	}) {
 		if (noms.isEmpty) {
 			return const [];
@@ -29,7 +32,7 @@ class GenerateurEcheancier {
 
 		return List<Tour>.generate(nomsOrdonnes.length, (index) {
 			return Tour(
-				id: '${tontine.id}-tour-${index + 1}',
+				id: nouvelId?.call(index + 1) ?? '${tontine.id}-tour-${index + 1}',
 				nomId: nomsOrdonnes[index].id,
 				position: index + 1,
 				datePrevue: dates[index],

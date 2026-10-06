@@ -2617,6 +2617,144 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Reçu Mobile Money joint'**
   String get onboardingMobileMoneyReceipt;
+
+  /// No description provided for @errorAlreadyMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous faites déjà partie de ce groupe.'**
+  String get errorAlreadyMember;
+
+  /// No description provided for @errorForbidden.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette action est réservée au bureau du groupe.'**
+  String get errorForbidden;
+
+  /// No description provided for @errorDeclarationNotPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette déclaration a déjà été traitée.'**
+  String get errorDeclarationNotPending;
+
+  /// No description provided for @errorTurnAlreadyPaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un tour déjà remis ne peut pas être déplacé.'**
+  String get errorTurnAlreadyPaid;
+
+  /// No description provided for @errorLastOwner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le groupe doit garder au moins un propriétaire.'**
+  String get errorLastOwner;
+
+  /// No description provided for @errorNamesQuotaReached.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les noms prévus pour la tontine sont déjà attribués.'**
+  String get errorNamesQuotaReached;
+
+  /// No description provided for @errorServerNotConfigured.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'application n\'est pas reliée à son serveur. Contactez le support.'**
+  String get errorServerNotConfigured;
+
+  /// No description provided for @errorEmailNotConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmez d\'abord votre adresse : ouvrez le lien reçu par email.'**
+  String get errorEmailNotConfirmed;
+
+  /// No description provided for @verifyBodyLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un lien de confirmation a été envoyé à {email}. Ouvrez-le depuis ce téléphone pour entrer directement dans l\'application, ou connectez-vous ensuite.'**
+  String verifyBodyLink(String email);
+
+  /// No description provided for @verifyDoneSignIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai confirmé, me connecter'**
+  String get verifyDoneSignIn;
+
+  /// No description provided for @roleOwner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Propriétaire'**
+  String get roleOwner;
+
+  /// No description provided for @rolePresident.
+  ///
+  /// In fr, this message translates to:
+  /// **'Président(e)'**
+  String get rolePresident;
+
+  /// No description provided for @roleTreasurer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trésorier(ère)'**
+  String get roleTreasurer;
+
+  /// No description provided for @roleAuditor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commissaire aux comptes'**
+  String get roleAuditor;
+
+  /// No description provided for @roleMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre'**
+  String get roleMember;
+
+  /// No description provided for @groupsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes groupes'**
+  String get groupsTitle;
+
+  /// No description provided for @groupsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Touchez un groupe pour l\'afficher.'**
+  String get groupsSubtitle;
+
+  /// No description provided for @groupsCurrent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Affiché'**
+  String get groupsCurrent;
+
+  /// No description provided for @groupsJoinWithCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rejoindre avec un code'**
+  String get groupsJoinWithCode;
+
+  /// No description provided for @groupsSwitch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer de groupe'**
+  String get groupsSwitch;
+
+  /// No description provided for @settingsMyGroups.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes groupes'**
+  String get settingsMyGroups;
+
+  /// No description provided for @settingsMyGroupsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 groupe · créer ou rejoindre un autre} other{{count} groupes · changer, créer ou rejoindre}}'**
+  String settingsMyGroupsSubtitle(int count);
+
+  /// No description provided for @loginContinueWithApple.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer avec Apple'**
+  String get loginContinueWithApple;
 }
 
 class _AppLocalizationsDelegate

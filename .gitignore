@@ -55,3 +55,4 @@ app.*.map.json
 /firestore-tests/node_modules/
 # Generated fresh from firestore.rules before every run (see scripts/copy-rules.mjs)
 /firestore-tests/firestore.test.rules
+env/live.json

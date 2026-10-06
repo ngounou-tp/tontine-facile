@@ -2,14 +2,14 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "TontineFacile (local emulators)",
+      "name": "DjanguiBook (Supabase local)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
       "args": ["--dart-define-from-file=env/local.json"]
     },
     {
-      "name": "TontineFacile (live Firebase)",
+      "name": "DjanguiBook (Supabase en ligne)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",

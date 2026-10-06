@@ -14,7 +14,7 @@ import 'package:tontinefacile/features/membres/presentation/pages/fiche_membre_p
 import 'package:tontinefacile/features/membres/presentation/pages/membres_page.dart';
 import 'package:tontinefacile/features/tontine/application/tontine_providers.dart';
 
-import 'membres_controller_test.dart' show FakeTontineRepository;
+import '../../support/fakes.dart' show FakeTontineRepository;
 
 /// Reproduit la taille d'un écran de téléphone standard (Pixel 5) : les
 /// débordements de mise en page ("RenderFlex overflowed") n'apparaissent
@@ -39,7 +39,6 @@ Tontine _tontine() => Tontine(
       delaiGraceJours: 0,
       valeurPenalite: null,
       modeParts: ModeParts.montantFixe,
-      codeInvitation: 'ABCDEF',
     );
 
 void main() {

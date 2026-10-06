@@ -24,7 +24,7 @@ import 'package:tontinefacile/features/espace_membre/application/espace_membre_p
 import 'package:tontinefacile/features/membres/application/membres_providers.dart';
 import 'package:tontinefacile/features/tontine/application/tontine_providers.dart';
 
-import '../membres/membres_controller_test.dart' show FakeTontineRepository;
+import '../../support/fakes.dart' show FakeTontineRepository;
 
 Tontine _tontine() => Tontine(
       id: 't-1',
@@ -38,7 +38,6 @@ Tontine _tontine() => Tontine(
       delaiGraceJours: 0,
       valeurPenalite: null,
       modeParts: ModeParts.montantFixe,
-      codeInvitation: 'ABCDEF',
     );
 
 void main() {

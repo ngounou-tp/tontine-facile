@@ -1,76 +1,47 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/services/inscription_service.dart';
-import '../../../domain/entities/session.dart';
-import '../../../domain/entities/tontine.dart';
+import '../../../domain/entities/app_user.dart';
 import 'auth_providers.dart';
 
-/// État partagé des actions d'authentification lancées par les formulaires.
-///
-/// Les pages peuvent écouter [authControllerProvider] pour désactiver leur
-/// bouton pendant une requête et afficher une erreur métier avec
-/// `state.whenOrNull(error: ...)`.
-final authControllerProvider =
-    AsyncNotifierProvider<AuthController, void>(AuthController.new);
+final authControllerProvider = AsyncNotifierProvider<AuthController, void>(AuthController.new);
 
+/// Actions d'authentification et de groupe déclenchées par les écrans ;
+/// expose l'état « en cours » pour désactiver les boutons pendant une
+/// requête. Les erreurs sont relancées pour être affichées par l'écran.
 class AuthController extends AsyncNotifier<void> {
   InscriptionService get _service => ref.read(inscriptionServiceProvider);
 
   @override
   Future<void> build() async {}
 
-  Future<Session> connecter({
+  Future<AppUser> connecter({required String email, required String password}) =>
+      _run(() => _service.connecter(email: email, password: password));
+
+  /// Inscription par email, avec un code d'invitation éventuel.
+  Future<IssueInscription> inscrire({
     required String email,
     required String password,
-  }) => _run(() => _service.connecter(email: email, password: password));
+    String? codeInvitation,
+  }) =>
+      _run(() => _service.inscrire(email: email, password: password, codeInvitation: codeInvitation));
 
-  Future<Session> inscrireAdmin({
-    required String email,
-    required String password,
-    required String nomCompletAdmin,
-    required Tontine tontineSansId,
-  }) => _run(
-    () => _service.inscrireAdmin(
-      email: email,
-      password: password,
-      nomCompletAdmin: nomCompletAdmin,
-      tontineSansId: tontineSansId,
-    ),
-  );
-
-  Future<Session> inscrireMembre({
-    required String email,
-    required String password,
-    required String codeInvitation,
-  }) => _run(
-    () => _service.inscrireMembre(
-      email: email,
-      password: password,
-      codeInvitation: codeInvitation,
-    ),
-  );
-
-  Future<Session> creerCompteSansTontine({
-    required String email,
-    required String password,
-  }) => _run(
-    () => _service.creerCompteSansTontine(email: email, password: password),
-  );
-
-  Future<Session> rejoindreAvecCode(String codeInvitation) =>
+  Future<String> rejoindreAvecCode(String codeInvitation) =>
       _run(() => _service.rejoindreAvecCode(codeInvitation));
 
-  /// Renvoie `null` si l'utilisateur annule la sélection de compte Google
-  /// (ce n'est pas une erreur : ne rien afficher dans ce cas).
-  Future<Session?> connecterAvecGoogle() => _run(_service.connecterAvecGoogle);
+  Future<AppUser?> connecterAvecGoogle() => _run(_service.connecterAvecGoogle);
 
-  Future<void> deconnecter() => _runVoid(_service.deconnecter);
+  Future<AppUser?> connecterAvecApple() => _run(_service.connecterAvecApple);
+
+  Future<void> choisirGroupe(String groupeId) => _run(() => _service.choisirGroupe(groupeId));
+
+  Future<void> deconnecter() => _run(_service.deconnecter);
 
   Future<void> reinitialiserMotDePasse(String email) =>
-      _runVoid(() => _service.reinitialiserMotDePasse(email));
+      _run(() => _service.reinitialiserMotDePasse(email));
 
-  Future<void> renvoyerEmailVerification() =>
-      _runVoid(_service.renvoyerEmailVerification);
+  Future<void> renvoyerConfirmation(String email) =>
+      _run(() => _service.renvoyerConfirmation(email));
 
   Future<bool> verifierEmailVerifie() => _run(_service.verifierEmailVerifie);
 
@@ -80,17 +51,6 @@ class AuthController extends AsyncNotifier<void> {
       final result = await action();
       state = const AsyncData(null);
       return result;
-    } catch (error, stackTrace) {
-      state = AsyncError(error, stackTrace);
-      rethrow;
-    }
-  }
-
-  Future<void> _runVoid(Future<void> Function() action) async {
-    state = const AsyncLoading();
-    try {
-      await action();
-      state = const AsyncData(null);
     } catch (error, stackTrace) {
       state = AsyncError(error, stackTrace);
       rethrow;

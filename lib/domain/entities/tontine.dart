@@ -23,7 +23,6 @@ class Tontine {
 
   final ModeParts modeParts;
 
-  final String codeInvitation;
 
   const Tontine({
     required this.id,
@@ -37,6 +36,5 @@ class Tontine {
     required this.delaiGraceJours,
     required this.valeurPenalite,
     required this.modeParts,
-    required this.codeInvitation,
   });
 }

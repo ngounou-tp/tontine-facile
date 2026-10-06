@@ -226,7 +226,7 @@ create policy tontine_proofs_insert on public.tontine_proofs
   for insert to authenticated
   with check (private.is_member(group_id) and created_by = auth.uid());
 
--- Historique des réorganisations : écrit par `reorder_turn` uniquement.
+-- Historique des réorganisations : écrit par `reorder_turns` uniquement.
 
 -- Noms et parts : écrits par `save_tontine_name` uniquement (atomique,
 -- somme des fractions contrôlée).
@@ -293,9 +293,11 @@ begin
 end;
 $$;
 
--- Crée ou remplace un nom et ses parts, d'un bloc. `p_shares` :
--- `[{"member_id": "...", "fraction": 0.5}, ...]`, somme = 1, membres du
--- groupe. Refuse au-delà du nombre de noms prévu.
+-- Crée ou remplace un nom et ses parts, d'un bloc. `p_name_id` peut être
+-- généré par l'application : inconnu, il désigne un nouveau nom (soumis au
+-- nombre de noms prévu) ; il ne peut jamais désigner le nom d'un autre
+-- groupe. `p_shares` : `[{"member_id": "...", "fraction": 0.5}, ...]`,
+-- somme = 1, membres du groupe.
 create or replace function public.save_tontine_name(
   p_group_id uuid,
   p_name_id uuid,
@@ -306,6 +308,7 @@ create or replace function public.save_tontine_name(
 language plpgsql security definer set search_path = '' as $$
 declare
   v_name_id uuid := coalesce(p_name_id, gen_random_uuid());
+  v_existing_group uuid;
   v_total numeric;
   v_names_count integer;
 begin
@@ -320,22 +323,22 @@ begin
     raise exception 'shares_must_total_one' using errcode = '22023';
   end if;
 
-  if p_name_id is not null and not exists (
-    select 1 from public.tontine_names where id = p_name_id and group_id = p_group_id
-  ) then
-    raise exception 'name_not_found' using errcode = 'P0002';
+  select group_id into v_existing_group from public.tontine_names where id = v_name_id for update;
+  if v_existing_group is not null and v_existing_group <> p_group_id then
+    raise exception 'forbidden' using errcode = '42501';
   end if;
 
-  if p_name_id is null then
+  if v_existing_group is null then
     select names_count into v_names_count from public.tontine_settings where group_id = p_group_id;
     if (select count(*) from public.tontine_names where group_id = p_group_id) >= v_names_count then
       raise exception 'names_quota_exceeded' using errcode = '23514';
     end if;
+    insert into public.tontine_names (id, group_id, position, label)
+    values (v_name_id, p_group_id, p_position, btrim(p_label));
+  else
+    update public.tontine_names set position = p_position, label = btrim(p_label)
+    where id = v_name_id;
   end if;
-
-  insert into public.tontine_names (id, group_id, position, label)
-  values (v_name_id, p_group_id, p_position, btrim(p_label))
-  on conflict (id) do update set position = excluded.position, label = excluded.label;
 
   delete from public.tontine_name_shares where name_id = v_name_id;
   insert into public.tontine_name_shares (name_id, member_id, group_id, fraction)
@@ -392,16 +395,16 @@ begin
 end;
 $$;
 
--- Déplace un tour et recale les positions/dates fournies par
--- l'application, avec un motif obligatoire, d'un bloc. `p_turns` :
--- `[{"id": "...", "position": 2, "planned_date": "2026-02-01"}, ...]`.
-create or replace function public.reorder_turn(
+-- Réorganise l'échéancier d'un bloc : nouvelles positions et dates
+-- calculées par l'application, motif obligatoire, un changement historisé
+-- par tour déplacé. Un tour déjà remis ne bouge jamais.
+-- `p_turns` : `[{"id": "...", "position": 2, "planned_date": "2026-02-01"}, ...]`
+-- `p_changes` : `[{"turn_id": "...", "old_position": 3, "new_position": 2}, ...]`
+create or replace function public.reorder_turns(
   p_group_id uuid,
-  p_turn_id uuid,
-  p_old_position integer,
-  p_new_position integer,
   p_reason text,
-  p_turns jsonb
+  p_turns jsonb,
+  p_changes jsonb
 ) returns void
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -410,9 +413,16 @@ begin
   if nullif(btrim(p_reason), '') is null then
     raise exception 'reason_required' using errcode = '22023';
   end if;
+  if jsonb_typeof(p_changes) <> 'array' or jsonb_array_length(p_changes) = 0 then
+    raise exception 'changes_required' using errcode = '22023';
+  end if;
   if exists (
-    select 1 from public.tontine_turns
-    where group_id = p_group_id and id = p_turn_id and status = 'remis'
+    select 1
+    from public.tontine_turns t
+    join jsonb_array_elements(p_turns) s on t.id = (s ->> 'id')::uuid
+    where t.group_id = p_group_id
+      and t.status = 'remis'
+      and (t.position <> (s ->> 'position')::integer or t.planned_date <> (s ->> 'planned_date')::date)
   ) then
     raise exception 'turn_already_paid' using errcode = '55000';
   end if;
@@ -421,21 +431,23 @@ begin
   set position = (s ->> 'position')::integer,
       planned_date = (s ->> 'planned_date')::date
   from jsonb_array_elements(p_turns) s
-  where t.id = (s ->> 'id')::uuid and t.group_id = p_group_id and t.status <> 'remis';
+  where t.id = (s ->> 'id')::uuid and t.group_id = p_group_id;
 
   insert into public.tontine_turn_changes (group_id, turn_id, old_position, new_position, reason, author_id)
-  values (p_group_id, p_turn_id, p_old_position, p_new_position, btrim(p_reason), v_uid);
+  select p_group_id, (c ->> 'turn_id')::uuid, (c ->> 'old_position')::integer,
+         (c ->> 'new_position')::integer, btrim(p_reason), v_uid
+  from jsonb_array_elements(p_changes) c;
 end;
 $$;
 
 revoke all on function public.create_tontine(text, text, jsonb) from public, anon;
 revoke all on function public.save_tontine_name(uuid, uuid, integer, text, jsonb) from public, anon;
 revoke all on function public.validate_declaration(uuid, bigint, bigint) from public, anon;
-revoke all on function public.reorder_turn(uuid, uuid, integer, integer, text, jsonb) from public, anon;
+revoke all on function public.reorder_turns(uuid, text, jsonb, jsonb) from public, anon;
 grant execute on function public.create_tontine(text, text, jsonb) to authenticated;
 grant execute on function public.save_tontine_name(uuid, uuid, integer, text, jsonb) to authenticated;
 grant execute on function public.validate_declaration(uuid, bigint, bigint) to authenticated;
-grant execute on function public.reorder_turn(uuid, uuid, integer, integer, text, jsonb) to authenticated;
+grant execute on function public.reorder_turns(uuid, text, jsonb, jsonb) to authenticated;
 
 -- Temps réel : les écrans suivent ces tables en direct.
 alter publication supabase_realtime add table

@@ -27,3 +27,20 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-16 postgresql-16-pgtap libtap-parser-sourcehandler-pgtap-perl
       - run: sudo supabase/tests/run_local.sh
+
+  api:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: PostgreSQL 16 + PostgREST
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-16
+          sudo mkdir -p /opt/postgrest
+          curl -sSL https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz | sudo tar xJ -C /opt/postgrest
+      - run: flutter pub get
+      - run: sudo -E env "PATH=$PATH" supabase/tests/run_api_local.sh

@@ -12,7 +12,7 @@ import 'package:tontinefacile/features/auth/application/auth_providers.dart';
 import 'package:tontinefacile/features/tontine/application/tontine_providers.dart';
 import 'package:tontinefacile/features/tontine/presentation/pages/modifier_tontine_page.dart';
 
-import '../membres/membres_controller_test.dart' show FakeTontineRepository;
+import '../../support/fakes.dart' show FakeTontineRepository;
 
 void _tailleTelephone(WidgetTester tester) {
   // Assez haut pour que le formulaire entier tienne sans avoir à faire
@@ -38,7 +38,6 @@ Tontine _tontine() => Tontine(
       delaiGraceJours: 0,
       valeurPenalite: null,
       modeParts: ModeParts.montantFixe,
-      codeInvitation: 'ABCDEF',
     );
 
 Future<GoRouter> _pumpPage(WidgetTester tester, FakeTontineRepository tontines) async {

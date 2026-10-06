@@ -73,7 +73,13 @@ class _RejoindreTontinePageState extends ConsumerState<RejoindreTontinePage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: context.l10n.commonBack,
-          onPressed: () => context.go(authentifie ? AppRouter.choixPath : AppRouter.connexionPath),
+          onPressed: () => context.go(
+            !authentifie
+                ? AppRouter.connexionPath
+                : (ref.read(sessionProvider).value?.profil == null
+                    ? AppRouter.choixPath
+                    : AppRouter.groupesPath),
+          ),
         ),
       ),
       body: SafeArea(
@@ -289,12 +295,14 @@ class _ApercuTontine extends ConsumerWidget {
         iconColor: AppColors.danger,
         label: Text(messageErreurAuth(error), style: AppTypography.body),
       ),
-      data: (value) => value == null
+      data: (value) => value == null || value.dejaUtilisee
           ? _ApercuCard(
               icon: Icons.error_outline,
               iconColor: AppColors.danger,
               label: Text(
-                const InvitationIntrouvableException().message,
+                value == null
+                    ? const InvitationIntrouvableException().message
+                    : const InvitationDejaUtiliseeException().message,
                 style: AppTypography.body,
               ),
             )
@@ -304,7 +312,7 @@ class _ApercuTontine extends ConsumerWidget {
                 TextSpan(
                   style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
                   children: [
-                    TextSpan(text: value.nom),
+                    TextSpan(text: value.nomGroupe),
                     TextSpan(
                       text: context.l10n.joinMembersCount(value.nombreMembres),
                       style: const TextStyle(fontWeight: FontWeight.w400, color: AppColors.slate),

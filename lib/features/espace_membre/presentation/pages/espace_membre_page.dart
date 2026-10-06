@@ -61,6 +61,11 @@ class EspaceMembrePage extends ConsumerWidget {
         title: Text(tontineAsync.value?.nom ?? context.l10n.memberSpaceTitle),
         actions: [
           IconButton(
+            onPressed: () => context.go(AppRouter.groupesPath),
+            tooltip: context.l10n.groupsSwitch,
+            icon: const Icon(Icons.swap_horiz),
+          ),
+          IconButton(
             onPressed: () => _confirmerDeconnexion(context, ref),
             tooltip: context.l10n.commonSignOut,
             icon: const Icon(Icons.logout),

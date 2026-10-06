@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../domain/entities/session.dart';
 import '../../../domain/entities/tontine.dart';
 import '../../auth/application/auth_providers.dart';
 
@@ -26,11 +25,12 @@ class CreationTontineController extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  Future<Session> creerTontine({
+  /// Renvoie l'identifiant du groupe créé.
+  Future<String> creerTontine({
     required String nomCompletAdmin,
     required Tontine tontineSansId,
   }) => _run(
-        () => ref.read(inscriptionServiceProvider).creerTontinePourAdmin(
+        () => ref.read(inscriptionServiceProvider).creerTontine(
               nomCompletAdmin: nomCompletAdmin,
               tontineSansId: tontineSansId,
             ),

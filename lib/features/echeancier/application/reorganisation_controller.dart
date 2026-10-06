@@ -40,12 +40,12 @@ class ReorganisationController extends AsyncNotifier<void> {
         auteurUid: auteurUid,
       );
       final tontines = ref.read(tontineRepositoryProvider);
-      for (final tour in resultat.tours) {
-        await tontines.saveTour(tontineId, tour);
-      }
-      for (final changement in resultat.changements) {
-        await tontines.saveChangement(tontineId, changement);
-      }
+      await tontines.reorganiserTours(
+        tontineId,
+        tours: resultat.tours,
+        changements: resultat.changements,
+        motif: motif.trim(),
+      );
       state = const AsyncData(null);
     } catch (error, stackTrace) {
       state = AsyncError(error, stackTrace);

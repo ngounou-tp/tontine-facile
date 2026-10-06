@@ -85,6 +85,13 @@ class ReglagesPage extends ConsumerWidget {
           children: [
             _EnTeteSection(l10n.settingsSectionGroup),
             _CarteMenu(
+              icon: Icons.swap_horiz,
+              title: l10n.settingsMyGroups,
+              subtitle: l10n.settingsMyGroupsSubtitle(session?.adhesions.length ?? 1),
+              onTap: () => context.go(AppRouter.groupesPath),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _CarteMenu(
               icon: Icons.groups_outlined,
               title: l10n.settingsTontineSettings,
               subtitle: isAdmin

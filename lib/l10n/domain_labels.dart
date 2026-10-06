@@ -7,6 +7,7 @@ import '../domain/enums/jour_semaine.dart';
 import '../domain/enums/mode_parts.dart';
 import '../domain/enums/occurrence_mensuelle.dart';
 import '../domain/enums/regle_penalite.dart';
+import '../domain/enums/role_membre.dart';
 import '../domain/value_objects/regle_periodicite.dart';
 import 'l10n.dart';
 
@@ -71,3 +72,13 @@ String periodiciteLabel(ReglePeriodicite regle, AppLocalizations l10n) => switch
       RegleChaqueMoisSemaine(:final occurrence, :final jour) =>
         l10n.periodMonthlyWeekday(occurrence.label(l10n), jour.labelInSentence(l10n)),
     };
+
+extension RoleMembreLabel on RoleMembre {
+  String label(AppLocalizations l10n) => switch (this) {
+        RoleMembre.proprietaire => l10n.roleOwner,
+        RoleMembre.president => l10n.rolePresident,
+        RoleMembre.tresorier => l10n.roleTreasurer,
+        RoleMembre.commissaire => l10n.roleAuditor,
+        RoleMembre.membre => l10n.roleMember,
+      };
+}

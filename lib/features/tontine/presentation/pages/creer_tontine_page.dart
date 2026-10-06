@@ -151,20 +151,18 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
         delaiGraceJours: _delaiGraceJours,
         valeurPenalite: _reglePenalite == ReglePenalite.aucune ? null : _valeurPenalite,
         modeParts: _modeParts,
-        codeInvitation: 'IGNORE',
       );
 
-      await ref.read(creationTontineControllerProvider.notifier).creerTontine(
+      final groupeId = await ref.read(creationTontineControllerProvider.notifier).creerTontine(
             nomCompletAdmin: _nomAdmin.text.trim(),
             tontineSansId: tontineSansId,
           );
-      // La tontine et le profil viennent d'être écrits dans Firestore, mais
-      // la session/tontine courantes (qui les suivent en direct) peuvent ne
-      // pas l'avoir encore répercuté : naviguer tout de suite ferait
-      // rebondir le routeur sur /bienvenue, qui traite un profil pas encore
-      // propagé comme absent (voir `AppRouter.redirect`). On attend.
-      if (ref.read(currentTontineProvider).value == null) {
-        await _attendreTontine();
+      // La tontine vient d'être créée et choisie, mais la session et la
+      // tontine courantes (suivies en direct) peuvent ne pas l'avoir encore
+      // répercuté : naviguer tout de suite afficherait l'ancien groupe, ou
+      // ferait rebondir le routeur sur /bienvenue (voir `AppRouter.redirect`).
+      if (ref.read(currentTontineProvider).value?.id != groupeId) {
+        await _attendreTontine(groupeId);
       }
       if (mounted) {
         ref.read(flashMessageProvider.notifier).set(L10n.current.createSuccess);
@@ -175,13 +173,13 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
     }
   }
 
-  /// Attend la prochaine émission de [currentTontineProvider] non nulle
+  /// Attend que [currentTontineProvider] désigne la tontine [groupeId]
   /// (avec une limite raisonnable pour ne jamais bloquer indéfiniment si la
   /// propagation échoue).
-  Future<void> _attendreTontine() async {
+  Future<void> _attendreTontine(String groupeId) async {
     final completeur = Completer<void>();
     final abonnement = ref.listenManual(currentTontineProvider, (_, next) {
-      if (next.value != null && !completeur.isCompleted) {
+      if (next.value?.id == groupeId && !completeur.isCompleted) {
         completeur.complete();
       }
     });
@@ -211,7 +209,13 @@ class _CreerTontinePageState extends ConsumerState<CreerTontinePage> {
           tooltip: _etape > 0 ? l10n.createPreviousStep : l10n.commonBack,
           onPressed: busy
               ? null
-              : (_etape > 0 ? _precedent : () => context.go(AppRouter.choixPath)),
+              : (_etape > 0
+                  ? _precedent
+                  : () => context.go(
+                        ref.read(sessionProvider).value?.profil == null
+                            ? AppRouter.choixPath
+                            : AppRouter.groupesPath,
+                      )),
         ),
         automaticallyImplyLeading: false,
         title: Text(l10n.createTitle),

@@ -29,49 +29,21 @@ class MembresController extends AsyncNotifier<void> {
   /// d'invitation. Réservé aux cas où le code sera généré plus tard ; pour
   /// l'ajout standard depuis l'écran « Ajouter un membre », voir
   /// [inviterMembre].
-  Future<Membre> ajouterMembre({
-    required String tontineId,
-    required String nomComplet,
-    String? email,
-    String? whatsapp,
-  }) => _run(
-        () => _tontines.creerMembrePlaceholder(
-          tontineId,
-          nomComplet: nomComplet,
-          email: email,
-          whatsapp: whatsapp,
-        ),
-      );
-
-  /// Ajoute un membre placeholder et génère dans la foulée son invitation
-  /// nominative (voir `InscriptionService.inviterMembre`) : c'est ce code
-  /// que l'administratrice transmet au nouveau membre pour qu'il réclame sa
-  /// fiche à l'inscription.
+  /// Ajoute un membre (sans compte) et génère son invitation nominative.
   Future<Invitation> inviterMembre({
     required String tontineId,
     required String nomComplet,
     String? email,
     String? whatsapp,
   }) => _run(
-        () => ref.read(inscriptionServiceProvider).inviterMembre(
-              tontineId: tontineId,
+        () => _tontines.inviterMembre(
+              tontineId,
               nomComplet: nomComplet,
               email: email,
               whatsapp: whatsapp,
             ),
       );
 
-  /// Ajoute un membre (comme [inviterMembre]) puis lui attribue directement
-  /// [nombreDeNoms] noms — un multiple de `0.5` : chaque unité entière
-  /// devient un nom complet lui appartenant seul ; un reste d'une demie
-  /// complète un nom déjà à moitié attribué (s'il en existe un) ou en ouvre
-  /// un nouveau en attente d'un second détenteur (voir [_attribuerNoms]).
-  ///
-  /// Contrairement à [creerNom]/[assignerParts], cette attribution
-  /// automatique n'exige pas que chaque nom touché somme à 1 : un nom à
-  /// moitié attribué, en attente d'un second membre, est un état
-  /// intermédiaire valide ici — [MembresPage] n'autorise la génération de
-  /// l'échéancier qu'une fois tous les noms complets.
   Future<Invitation> inviterMembreAvecNoms({
     required String tontineId,
     required String nomComplet,
@@ -79,8 +51,8 @@ class MembresController extends AsyncNotifier<void> {
     String? whatsapp,
     required double nombreDeNoms,
   }) => _run(() async {
-        final invitation = await ref.read(inscriptionServiceProvider).inviterMembre(
-              tontineId: tontineId,
+        final invitation = await _tontines.inviterMembre(
+              tontineId,
               nomComplet: nomComplet,
               email: email,
               whatsapp: whatsapp,

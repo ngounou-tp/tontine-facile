@@ -1,7 +1,7 @@
 -- Tontine : noms et parts, tours, déclarations, validation, réorganisation,
 -- preuves (stockage) et isolation entre groupes.
 begin;
-select plan(40);
+select plan(44);
 
 select tests.create_user('adele@example.com') as adele \gset
 select tests.create_user('bruno@example.com') as bruno \gset
@@ -76,6 +76,17 @@ select lives_ok(
 );
 select is((select member_id from public.tontine_name_shares where name_id = :'n3'), :'m_dina'::uuid,
   'les parts sont remplacées d''un bloc');
+select tests.authenticate_as(:'chantal');
+select throws_ok(
+  format($q$select public.save_tontine_name(%L, %L, 1, 'Pirate', '[{"member_id": "%s", "fraction": 1}]')$q$,
+    :'g2', :'n1', :'m_chantal'),
+  '42501', 'forbidden', 'un autre groupe ne peut pas réécrire un nom par son identifiant'
+);
+select tests.authenticate_as(:'adele');
+select is(
+  (select label from public.tontine_names where id = :'n1'), 'Nom 1',
+  'le nom visé est intact'
+);
 select throws_ok(
   format('insert into public.tontine_names (group_id, position, label) values (%L, 9, %L)', :'g1', 'X'),
   '42501', null, 'les noms ne s''écrivent pas directement (RPC uniquement)'
@@ -219,7 +230,7 @@ select lives_ok(
 -- ------------------------------------------------------------ réorganisation
 select tests.authenticate_as(:'bruno');
 select throws_ok(
-  format($q$select public.reorder_turn(%L, %L, 3, 2, 'Absence', '[]')$q$, :'g1', :'t3'),
+  format($q$select public.reorder_turns(%L, 'Absence', '[]', '[{"turn_id": "%s", "old_position": 3, "new_position": 2}]')$q$, :'g1', :'t3'),
   '42501', 'forbidden', 'un membre ne réorganise pas l''échéancier'
 );
 select throws_ok(
@@ -229,13 +240,14 @@ select throws_ok(
 );
 select tests.authenticate_as(:'adele');
 select throws_ok(
-  format($q$select public.reorder_turn(%L, %L, 3, 2, '  ', '[]')$q$, :'g1', :'t3'),
+  format($q$select public.reorder_turns(%L, '  ', '[]', '[{"turn_id": "%s", "old_position": 3, "new_position": 2}]')$q$, :'g1', :'t3'),
   '22023', 'reason_required', 'un motif est obligatoire'
 );
 select lives_ok(
-  format($q$select public.reorder_turn(%L, %L, 3, 2, 'Demande du membre',
-    '[{"id": "%s", "position": 2, "planned_date": "2026-11-08"}, {"id": "%s", "position": 3, "planned_date": "2026-11-15"}]')$q$,
-    :'g1', :'t3', :'t3', :'t2'),
+  format($q$select public.reorder_turns(%L, 'Demande du membre',
+    '[{"id": "%s", "position": 2, "planned_date": "2026-11-08"}, {"id": "%s", "position": 3, "planned_date": "2026-11-15"}]',
+    '[{"turn_id": "%s", "old_position": 3, "new_position": 2}, {"turn_id": "%s", "old_position": 2, "new_position": 3}]')$q$,
+    :'g1', :'t3', :'t2', :'t3', :'t2'),
   'le bureau échange deux tours (positions uniques vérifiées en fin de transaction)'
 );
 select is(
@@ -245,6 +257,15 @@ select is(
 select is((select position from public.tontine_turns where id = :'t3'), 2, 'le tour déplacé a sa nouvelle place');
 select is((select reason from public.tontine_turn_changes where turn_id = :'t3'), 'Demande du membre',
   'le changement est historisé avec son motif');
+select is((select count(*)::integer from public.tontine_turn_changes where group_id = :'g1'), 2,
+  'un changement par tour déplacé');
+-- Un tour remis ne bouge plus.
+update public.tontine_turns set status = 'remis' where id = :'t1';
+select throws_ok(
+  format($q$select public.reorder_turns(%L, 'Erreur', '[{"id": "%s", "position": 3, "planned_date": "2026-11-15"}]',
+    '[{"turn_id": "%s", "old_position": 1, "new_position": 3}]')$q$, :'g1', :'t1', :'t1'),
+  '55000', 'turn_already_paid', 'un tour remis ne peut pas être déplacé'
+);
 
 -- ----------------------------------------------------------------- isolation
 select tests.authenticate_as(:'chantal');
