@@ -272,6 +272,17 @@ class FakeAuthService implements AuthService {
   @override
   Future<void> resendConfirmation(String email) async => confirmationsRenvoyees.add(email);
 
+  final _recuperations = StreamController<void>.broadcast();
+  String? dernierMotDePasse;
+
+  void ouvrirLienReinitialisation() => _recuperations.add(null);
+
+  @override
+  Stream<void> get passwordRecovery => _recuperations.stream;
+
+  @override
+  Future<void> updatePassword(String password) async => dernierMotDePasse = password;
+
   @override
   Future<AppUser?> reloadUser() async => _currentUser;
 }

@@ -128,6 +128,14 @@ void main() {
     expect(chemin(router), AppRouter.verifyEmailPath);
   });
 
+  testWidgets('le choix du nouveau mot de passe passe avant tout, même sans groupe', (tester) async {
+    final router = await pumpRouter(tester, conteneur(utilisateur: _utilisateur));
+
+    await aller(tester, router, AppRouter.nouveauMotDePassePath);
+
+    expect(chemin(router), AppRouter.nouveauMotDePassePath);
+  });
+
   testWidgets('un compte sans groupe est orienté vers /bienvenue', (tester) async {
     final router = await pumpRouter(tester, conteneur(utilisateur: _utilisateur));
 

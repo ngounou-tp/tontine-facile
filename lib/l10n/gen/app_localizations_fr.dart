@@ -248,10 +248,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get verifyStillNotVerified =>
-      'Toujours pas vérifié. Pensez à vérifier vos courriers indésirables.';
-
-  @override
   String get verifyEmailResent => 'Email de vérification renvoyé.';
 
   @override
@@ -259,14 +255,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get verifyTitle => 'Vérifiez votre adresse email';
-
-  @override
-  String verifyBody(String email) {
-    return 'Un lien de vérification a été envoyé à $email. Ouvrez-le, puis revenez sur cet écran.';
-  }
-
-  @override
-  String get verifyDone => 'J\'ai vérifié mon adresse';
 
   @override
   String verifyResendIn(int seconds) {
@@ -1643,4 +1631,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get loginContinueWithApple => 'Continuer avec Apple';
+
+  @override
+  String get newPasswordTitle => 'Choisissez un nouveau mot de passe';
+
+  @override
+  String get newPasswordSubmit => 'Enregistrer le mot de passe';
+
+  @override
+  String get newPasswordSaved => 'Mot de passe modifié.';
 }

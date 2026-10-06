@@ -42,6 +42,14 @@ abstract interface class AuthService {
   /// Renvoie l'email de confirmation d'inscription à [email].
   Future<void> resendConfirmation(String email);
 
+  /// Émet quand l'app vient d'être ouverte par un lien de réinitialisation
+  /// de mot de passe : une session temporaire existe, il reste à choisir un
+  /// nouveau mot de passe ([updatePassword]).
+  Stream<void> get passwordRecovery;
+
+  /// Remplace le mot de passe du compte connecté.
+  Future<void> updatePassword(String password);
+
   /// Recharge l'utilisateur courant depuis le serveur et renvoie son état
   /// à jour, ou `null` si personne n'est connecté.
   Future<AppUser?> reloadUser();

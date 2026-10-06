@@ -4,6 +4,19 @@
 > Sources : audit complet du dépôt (branche `claude/intelligent-ride-whklnn`), cahier des charges
 > « Caisse de réunion » (23 p.), recherches sur les offres gratuites et les règles des stores.
 
+## État d'avancement (6 octobre 2026)
+
+| Lot | État | Détail |
+|---|---|---|
+| 0 — Fondations | ✅ Fait | Nom DjanguiBook, FR/EN complet (420+ textes, choix dans Réglages), correctifs stores (signature Android, permissions iOS, iOS 15, portrait), hook de session, CI |
+| 1 — Migration Supabase | ✅ Fait | Schéma + RLS + fonctions SQL (72 tests pgTAP), repositories Supabase (tests d'intégration contre PostgREST), auth email/Google/Apple, confirmation d'email et réinitialisation par lien profond, groupes multiples et rôles, faille d'usurpation fermée |
+| 2 — Plateforme | ⏳ À faire | Notifications push (FCM), rappels pg_cron, suppression de compte, profil, mise à jour forcée, Crashlytics |
+| 3 — Monétisation | ⏳ À faire | RevenueCat, `feature_gates`, AdMob + UMP/ATT, console propriétaire |
+| 4–5 — Module Caisse | ⏳ À faire | Règles §10 à valider par un bureau pilote |
+| 6 — Publication | ⏳ À faire | Comptes stores, identifiants définitifs (`com.djanguibook.app` à confirmer), fiches, tests fermés |
+
+**Pour lancer l'app aujourd'hui** : créer le projet Supabase et suivre la section Installation du README.
+
 ## 0. Décisions prises
 
 | Sujet | Décision |

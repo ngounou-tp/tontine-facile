@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../core/constants/app_constants.dart';
 import '../l10n/l10n.dart';
+import '../features/auth/application/auth_providers.dart';
 import 'locale_controller.dart';
 import 'router.dart';
 import 'theme.dart';
@@ -15,6 +16,12 @@ class DjanguiBookApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final choix = ref.watch(localeControllerProvider);
+    final router = ref.watch(appRouterProvider);
+    // Lien « mot de passe oublié » ouvert : la session est temporaire,
+    // on demande aussitôt le nouveau mot de passe.
+    ref.listen(passwordRecoveryProvider, (_, suivant) {
+      if (suivant.hasValue) router.go(AppRouter.nouveauMotDePassePath);
+    });
     return MaterialApp.router(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
@@ -36,7 +43,7 @@ class DjanguiBookApp extends ConsumerWidget {
         Intl.defaultLocale = locale.languageCode;
         return child!;
       },
-      routerConfig: ref.watch(appRouterProvider),
+      routerConfig: router,
     );
   }
 }

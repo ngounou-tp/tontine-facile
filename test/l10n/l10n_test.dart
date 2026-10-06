@@ -51,6 +51,17 @@ void main() {
       }
     });
 
+    test("chaque texte est utilisé par l'application (pas de clé orpheline)", () {
+      final code = Directory('lib')
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.dart') && !f.path.contains('/l10n/gen/'))
+          .map((f) => f.readAsStringSync())
+          .join('\n');
+      final orphelines = cles.where((cle) => !RegExp('\\b$cle\\b').hasMatch(code)).toList();
+      expect(orphelines, isEmpty);
+    });
+
     test('aucune traduction vide', () {
       for (final cle in cles) {
         expect((fr[cle] as String).trim(), isNotEmpty, reason: cle);

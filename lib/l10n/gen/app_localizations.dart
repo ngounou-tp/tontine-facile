@@ -518,12 +518,6 @@ abstract class AppLocalizations {
   /// **' · {count, plural, =0{aucun membre} =1{1 membre} other{{count} membres}}'**
   String joinMembersCount(int count);
 
-  /// No description provided for @verifyStillNotVerified.
-  ///
-  /// In fr, this message translates to:
-  /// **'Toujours pas vérifié. Pensez à vérifier vos courriers indésirables.'**
-  String get verifyStillNotVerified;
-
   /// No description provided for @verifyEmailResent.
   ///
   /// In fr, this message translates to:
@@ -541,18 +535,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Vérifiez votre adresse email'**
   String get verifyTitle;
-
-  /// No description provided for @verifyBody.
-  ///
-  /// In fr, this message translates to:
-  /// **'Un lien de vérification a été envoyé à {email}. Ouvrez-le, puis revenez sur cet écran.'**
-  String verifyBody(String email);
-
-  /// No description provided for @verifyDone.
-  ///
-  /// In fr, this message translates to:
-  /// **'J\'ai vérifié mon adresse'**
-  String get verifyDone;
 
   /// No description provided for @verifyResendIn.
   ///
@@ -2755,6 +2737,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Continuer avec Apple'**
   String get loginContinueWithApple;
+
+  /// No description provided for @newPasswordTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez un nouveau mot de passe'**
+  String get newPasswordTitle;
+
+  /// No description provided for @newPasswordSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer le mot de passe'**
+  String get newPasswordSubmit;
+
+  /// No description provided for @newPasswordSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe modifié.'**
+  String get newPasswordSaved;
 }
 
 class _AppLocalizationsDelegate

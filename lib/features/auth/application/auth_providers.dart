@@ -43,6 +43,13 @@ final authServiceProvider = Provider<AuthService>((ref) {
   );
 });
 
+/// Compteur incrémenté à chaque ouverture de l'app par un lien de
+/// réinitialisation de mot de passe (voir `DjanguiBookApp`).
+final passwordRecoveryProvider = StreamProvider<int>((ref) {
+  var compteur = 0;
+  return ref.watch(authServiceProvider).passwordRecovery.map((_) => ++compteur);
+});
+
 final tableChangesProvider = Provider<TableChanges>((ref) {
   return SupabaseTableChanges(ref.watch(supabaseClientProvider));
 });

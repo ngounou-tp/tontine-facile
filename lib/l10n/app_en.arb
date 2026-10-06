@@ -70,12 +70,9 @@
   "joinSubmit": "Join",
   "joinSearching": "Looking up the tontine…",
   "joinMembersCount": " · {count, plural, =0{no members} =1{1 member} other{{count} members}}",
-  "verifyStillNotVerified": "Still not verified. Remember to check your spam folder.",
   "verifyEmailResent": "Verification email sent again.",
   "verifyYourAddressFallback": "your address",
   "verifyTitle": "Verify your email address",
-  "verifyBody": "A verification link has been sent to {email}. Open it, then come back to this screen.",
-  "verifyDone": "I've verified my address",
   "verifyResendIn": "Resend email ({seconds} s)",
   "verifyResend": "Resend email",
   "weekdayMonday": "Monday",
@@ -442,5 +439,8 @@
   "groupsSwitch": "Switch group",
   "settingsMyGroups": "My groups",
   "settingsMyGroupsSubtitle": "{count, plural, =1{1 group · create or join another} other{{count} groups · switch, create or join}}",
-  "loginContinueWithApple": "Continue with Apple"
+  "loginContinueWithApple": "Continue with Apple",
+  "newPasswordTitle": "Choose a new password",
+  "newPasswordSubmit": "Save the password",
+  "newPasswordSaved": "Password changed."
 }

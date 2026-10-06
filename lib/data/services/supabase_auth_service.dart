@@ -147,6 +147,15 @@ class SupabaseAuthService implements AuthService {
       );
 
   @override
+  Stream<void> get passwordRecovery => _auth.onAuthStateChange
+      .where((etat) => etat.event == sb.AuthChangeEvent.passwordRecovery)
+      .map((_) {});
+
+  @override
+  Future<void> updatePassword(String password) =>
+      _avecDelai(() => _auth.updateUser(sb.UserAttributes(password: password)));
+
+  @override
   Future<AppUser?> reloadUser() async {
     if (_auth.currentSession == null) return null;
     return _avecDelai(() async {

@@ -9,6 +9,7 @@ import '../features/auth/application/auth_providers.dart';
 import '../features/auth/presentation/pages/choix_parcours_page.dart';
 import '../features/auth/presentation/pages/connexion_page.dart';
 import '../features/auth/presentation/pages/inscription_page.dart';
+import '../features/auth/presentation/pages/nouveau_mot_de_passe_page.dart';
 import '../features/auth/presentation/pages/rejoindre_tontine_page.dart';
 import '../features/auth/presentation/pages/verify_email_page.dart';
 import '../features/cotisations/presentation/pages/declarations_en_attente_page.dart';
@@ -61,6 +62,7 @@ abstract final class AppRouter {
   static const cotisationsPath = '/cotisations';
   static const declarationsPath = '/declarations';
   static const groupesPath = '/groupes';
+  static const nouveauMotDePassePath = '/nouveau-mot-de-passe';
 
   static final routes = <RouteBase>[
     GoRoute(
@@ -101,6 +103,11 @@ abstract final class AppRouter {
       path: creerTontinePath,
       name: 'creer-tontine',
       builder: (_, _) => const CreerTontinePage(),
+    ),
+    GoRoute(
+      path: nouveauMotDePassePath,
+      name: 'nouveau-mot-de-passe',
+      builder: (_, _) => const NouveauMotDePassePage(),
     ),
     GoRoute(
       path: groupesPath,
@@ -201,6 +208,10 @@ abstract final class AppRouter {
           ? null
           : connexionPath;
     }
+
+    // Session ouverte par un lien de réinitialisation : choisir le nouveau
+    // mot de passe, quel que soit l'état des groupes.
+    if (location == nouveauMotDePassePath) return null;
 
     // Aucun groupe encore : créer une tontine ou en rejoindre une.
     final profil = session.profil;

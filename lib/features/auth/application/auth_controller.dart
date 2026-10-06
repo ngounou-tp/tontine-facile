@@ -37,6 +37,9 @@ class AuthController extends AsyncNotifier<void> {
 
   Future<void> deconnecter() => _run(_service.deconnecter);
 
+  Future<void> changerMotDePasse(String motDePasse) =>
+      _run(() => _service.changerMotDePasse(motDePasse));
+
   Future<void> reinitialiserMotDePasse(String email) =>
       _run(() => _service.reinitialiserMotDePasse(email));
 

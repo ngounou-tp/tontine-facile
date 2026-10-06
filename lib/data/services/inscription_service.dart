@@ -209,6 +209,8 @@ class InscriptionService {
     return utilisateur?.emailVerified ?? false;
   }
 
+  Future<void> changerMotDePasse(String motDePasse) => authService.updatePassword(motDePasse);
+
   Future<void> deconnecter() => authService.signOut();
 
   Future<void> reinitialiserMotDePasse(String email) => authService.sendPasswordResetEmail(email);

@@ -98,19 +98,9 @@
       }
     }
   },
-  "verifyStillNotVerified": "Toujours pas vérifié. Pensez à vérifier vos courriers indésirables.",
   "verifyEmailResent": "Email de vérification renvoyé.",
   "verifyYourAddressFallback": "votre adresse",
   "verifyTitle": "Vérifiez votre adresse email",
-  "verifyBody": "Un lien de vérification a été envoyé à {email}. Ouvrez-le, puis revenez sur cet écran.",
-  "@verifyBody": {
-    "placeholders": {
-      "email": {
-        "type": "String"
-      }
-    }
-  },
-  "verifyDone": "J'ai vérifié mon adresse",
   "verifyResendIn": "Renvoyer l'email ({seconds} s)",
   "@verifyResendIn": {
     "placeholders": {
@@ -990,5 +980,8 @@
       }
     }
   },
-  "loginContinueWithApple": "Continuer avec Apple"
+  "loginContinueWithApple": "Continuer avec Apple",
+  "newPasswordTitle": "Choisissez un nouveau mot de passe",
+  "newPasswordSubmit": "Enregistrer le mot de passe",
+  "newPasswordSaved": "Mot de passe modifié."
 }

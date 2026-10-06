@@ -245,10 +245,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get verifyStillNotVerified =>
-      'Still not verified. Remember to check your spam folder.';
-
-  @override
   String get verifyEmailResent => 'Verification email sent again.';
 
   @override
@@ -256,14 +252,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verifyTitle => 'Verify your email address';
-
-  @override
-  String verifyBody(String email) {
-    return 'A verification link has been sent to $email. Open it, then come back to this screen.';
-  }
-
-  @override
-  String get verifyDone => 'I\'ve verified my address';
 
   @override
   String verifyResendIn(int seconds) {
@@ -1633,4 +1621,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginContinueWithApple => 'Continue with Apple';
+
+  @override
+  String get newPasswordTitle => 'Choose a new password';
+
+  @override
+  String get newPasswordSubmit => 'Save the password';
+
+  @override
+  String get newPasswordSaved => 'Password changed.';
 }
