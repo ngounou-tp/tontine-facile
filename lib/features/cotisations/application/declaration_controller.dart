@@ -68,7 +68,7 @@ class DeclarationController extends AsyncNotifier<void> {
         createdAt: DateTime.now(),
       );
       _validationDeclaration.valider(declaration: declaration, nom: nom, tour: tour);
-      await tontines.saveDeclaration(tontineId, declaration);
+      await tontines.deposerDeclaration(tontineId, declaration);
 
       state = const AsyncData(null);
     } catch (error, stackTrace) {
@@ -98,8 +98,14 @@ class DeclarationController extends AsyncNotifier<void> {
         tour: tour,
         adminUid: adminUid,
       );
-      await tontines.saveCotisation(tontineId, cotisation);
-      await tontines.saveDeclaration(tontineId, _traitement.validerDeclaration(declaration: declaration));
+      // La cotisation (montant dû, pénalité) est calculée par le domaine ;
+      // le serveur l'enregistre et valide la déclaration d'un seul bloc.
+      await tontines.validerDeclaration(
+        tontineId,
+        declarationId: declaration.id,
+        montantDu: cotisation.montantDu,
+        penalite: cotisation.penalite,
+      );
       await rafraichirTours(tontines: tontines, tontineId: tontineId, tontine: tontine, tour: tour);
 
       state = const AsyncData(null);
@@ -120,7 +126,11 @@ class DeclarationController extends AsyncNotifier<void> {
     try {
       final tontines = ref.read(tontineRepositoryProvider);
       final declarationMaj = _traitement.contester(declaration: declaration, motif: motif);
-      await tontines.saveDeclaration(tontineId, declarationMaj);
+      await tontines.contesterDeclaration(
+        tontineId,
+        declarationId: declarationMaj.id,
+        motif: declarationMaj.motifContestation!,
+      );
 
       state = const AsyncData(null);
     } catch (error, stackTrace) {

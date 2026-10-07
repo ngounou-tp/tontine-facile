@@ -1,15 +1,18 @@
-# TontineFacile
+# DjanguiBook
 
 ## Objectif
-TontineFacile est une application mobile Flutter destinée à faciliter la gestion d'une tontine (association
+DjanguiBook (anciennement TontineFacile) est une application mobile Flutter destinée à faciliter la gestion d'une tontine (association
 rotative d'épargne et de crédit très répandue en Afrique de l'Ouest et Centrale). Elle permet à une
 administratrice de créer et paramétrer son groupe, d'inviter ses membres, de suivre l'échéancier des tours et
 la collecte des cotisations, tandis que chaque membre peut suivre sa situation, déclarer ses paiements et
 consulter le fonctionnement du groupe.
 
 ## Fonctionnalités principales
-- **Authentification** : création de compte (email/mot de passe ou Google), connexion, réinitialisation du
-  mot de passe, vérification d'email.
+- **Authentification** : création de compte (email/mot de passe, Google, Apple), connexion,
+  réinitialisation du mot de passe, confirmation d'email.
+- **Plusieurs groupes par compte** : rôles propres à chaque groupe, page « Mes groupes » pour passer de l'un
+  à l'autre, en créer ou en rejoindre.
+- **Français et anglais** : toute l'interface, les montants et les dates suivent la langue choisie.
 - **Deux parcours d'inscription** : l'administratrice crée sa tontine directement ; un membre invité rejoint
   via un code à 6 caractères transmis par l'administratrice.
 - **Gestion de la tontine** : nom, montant par nom, nombre de noms, pénalités et délai de grâce, fréquence des
@@ -36,8 +39,9 @@ consulter le fonctionnement du groupe.
 - **flutter_riverpod** — gestion d'état (Provider, StreamProvider, FutureProvider, AsyncNotifier)
 - **go_router** — navigation déclarative avec gardes de route réactives (redirection selon la session et le
   rôle admin/membre)
-- **Firebase** : `firebase_core`, `firebase_auth`, `cloud_firestore`, `google_sign_in` — authentification et
-  base de données temps réel, avec règles de sécurité Firestore dédiées (`firestore.rules`)
+- **Supabase** (`supabase_flutter`) — authentification, base Postgres avec RLS, fonctions SQL, temps réel et
+  stockage privé des preuves ; `google_sign_in` et `sign_in_with_apple` pour les connexions externes
+- **flutter_localizations / gen-l10n** — interface bilingue (fichiers `lib/l10n/app_fr.arb`, `app_en.arb`)
 - **image_picker** + **flutter_image_compress** — capture et compression des preuves de paiement
 - **intl** — formatage des dates
 - **flutter_launcher_icons** — génération de l'icône de l'application
@@ -51,7 +55,8 @@ lib/
   app/          # point d'entrée, thème, routeur et ses gardes
   core/         # erreurs applicatives partagées
   domain/       # entités, règles métier et services purs (aucune dépendance Flutter/Firebase)
-  data/         # modèles Firestore, datasources, repositories (implémentent les interfaces du domaine)
+  data/         # repositories Supabase (implémentent les interfaces), conversions, services d'auth
+  l10n/         # textes FR/EN et libellés traduits des notions du domaine
   features/     # un dossier par fonctionnalité :
     auth/             # inscription, connexion, session
     tontine/          # création/réglages de la tontine, tableau de bord
@@ -59,58 +64,74 @@ lib/
     echeancier/        # génération et réorganisation des tours
     cotisations/       # saisie des cotisations et traitement des déclarations
     espace_membre/     # espace personnel du membre
+    groupes/           # groupes multiples : liste, choix du groupe affiché
     # chaque dossier contient application/ (providers, controllers) et presentation/ (pages, widgets)
   shared/       # widgets et état partagés (scaffold, barre de navigation, messages flash)
 ```
 
 ## Installation
-1. Installer les dépendances :
+1. Installer les dépendances : `flutter pub get`
+2. Créer un projet sur [supabase.com](https://supabase.com) (offre gratuite), puis appliquer le schéma :
    ```
-   flutter pub get
+   supabase link --project-ref <ref-du-projet>
+   supabase db push
    ```
-2. La configuration Firebase (`lib/firebase_options.dart`, `android/app/google-services.json`) est déjà
-   présente dans le dépôt : aucune étape supplémentaire n'est nécessaire pour lancer l'application.
-3. (Optionnel) Pour développer hors ligne avec les émulateurs Firebase :
-   ```
-   firebase emulators:start --only auth,firestore
-   ```
+3. Dans le tableau de bord Supabase :
+   - **Authentication → URL Configuration** : ajouter `djanguibook://login-callback` aux URL de redirection ;
+   - **Authentication → Providers** : activer Google (ID client « Web ») et Apple si besoin ;
+   - **Authentication → SMTP** : brancher un SMTP externe gratuit (ex. Brevo) — l'envoi intégré est limité
+     à quelques emails par heure.
+4. Copier `env/live.json.example` en `env/live.json` (ignoré par git) et y mettre l'URL du projet et sa clé
+   publique (`anon` / « publishable »). Cette clé n'ouvre rien d'elle-même : toutes les tables sont protégées
+   par la RLS.
+
+### E-mails d'invitation
+Quand le bureau ajoute un membre avec une adresse e-mail, l'Edge Function `send-invitation-email` lui envoie
+son code et la marche à suivre (en français ou en anglais, selon la langue de la personne qui invite). Le
+résultat est suivi dans `invitation_deliveries`, lisible par le bureau seul.
+1. Déployer la fonction : `supabase functions deploy send-invitation-email`
+2. Secrets : `supabase secrets set INVITATION_WEBHOOK_SECRET=<aléatoire> SMTP_HOST=smtp-relay.brevo.com
+   SMTP_PORT=587 SMTP_USER=<...> SMTP_PASS=<...> MAIL_EXPEDITEUR="DjanguiBook <no-reply@...>"`
+   (et `LIEN_APPLICATION` une fois l'app publiée).
+3. **Database → Webhooks** : sur `group_invitations`, événement `INSERT`, appeler la fonction
+   `send-invitation-email` avec l'en-tête `x-webhook-secret: <le même secret>`.
+
+Sans SMTP configuré, l'envoi est consigné en échec avec un message invitant à partager le code autrement.
 
 ## Lancement de l'application
-- Avec les émulateurs Firebase locaux :
-  ```
-  flutter run --dart-define-from-file=env/local.json
-  ```
-- Avec le projet Firebase de production :
-  ```
-  flutter run --dart-define-from-file=env/live.json
-  ```
+- Projet Supabase en ligne : `flutter run --dart-define-from-file=env/live.json`
+- Supabase local (Docker) : `supabase start`, reporter la clé affichée dans `env/local.json`, puis
+  `flutter run --dart-define-from-file=env/local.json`
 
-## Build de l'APK
-```
-flutter build apk --release
-```
-L'APK généré se trouve dans `build/app/outputs/flutter-apk/app-release.apk`.
+L'application est disponible en **français et en anglais** (langue du téléphone par défaut, choix dans
+Réglages). Un même compte peut appartenir à **plusieurs groupes**, avec des rôles différents dans chacun
+(propriétaire, président, trésorier, commissaire aux comptes, membre).
 
-## Tests réalisés
+## Build
+- Android (AAB pour le Play Store) : renseigner `android/key.properties` (modèle :
+  `android/key.properties.example`), puis `flutter build appbundle --release --dart-define-from-file=env/live.json`
+- iOS : `flutter build ipa --release --dart-define-from-file=env/live.json` (Xcode 26 requis)
+
+## Tests
 ```
-flutter test
 flutter analyze
+flutter test                          # domaine, contrôleurs, écrans, routeur
+supabase/tests/run_local.sh           # base de données : RLS et fonctions SQL (pgTAP), sans Docker
+supabase/tests/run_api_local.sh       # repositories Dart et Edge Functions contre une vraie API PostgREST
+(cd supabase/functions && deno test tests/*.ts)   # e-mails d'invitation (Deno)
 ```
-Le projet compte 25 fichiers de test (121 tests) couvrant :
-- les **règles et services métier** du domaine (calcul des cotisations et pénalités, validation des parts et
-  des déclarations, traitement des déclarations) ;
-- les **repositories et modèles** Firestore (sérialisation, conversion entité/modèle) ;
-- les **contrôleurs** (inscription, authentification, création/modification de tontine, membres,
-  échéancier, réorganisation) ;
-- les **widgets et pages** clés (formulaires, tableau de bord, fiche membre, échéancier, page de connexion),
-  y compris des tests de non-débordement à taille d'écran réelle ;
-- le **routeur** et ses redirections réactives selon la session, le profil et le rôle admin/membre.
+- **Domaine** : calculs de cotisations et pénalités, parts, échéancier, réorganisation, déclarations.
+- **Base de données** : chaque règle d'accès (isolation entre groupes, rôles, usurpation impossible,
+  invitations, validations atomiques) a son test pgTAP.
+- **Intégration** : création, invitation, adhésion, échéancier, déclaration et validation de bout en bout,
+  avec trois comptes réels contre l'API.
+- **Interface** : formulaires, tableau de bord, fiche membre, échéancier, groupes, routeur et redirections
+  selon la session, les groupes et les rôles ; textes vérifiés en français et en anglais.
 
-`flutter analyze` ne remonte aucune erreur (seulement quelques infos de style pré-existantes).
+Le plan de route complet (monétisation, notifications, publication, module Caisse) est dans
+[`ROADMAP.md`](ROADMAP.md).
 
-
-
-## Difficultés rencontrées
+## Difficultés rencontrées (version Firebase d'origine)
 - **Réactivité de la session utilisateur** : la session applicative devait refléter non seulement les
   changements Firebase Auth, mais aussi l'apparition du profil Firestore juste après avoir rejoint une
   tontine (sans nouvel événement d'authentification) — résolu par un flux combiné qui re-souscrit au profil à

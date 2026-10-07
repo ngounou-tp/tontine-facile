@@ -26,6 +26,7 @@ import '../../../tontine/application/tontine_providers.dart';
 import '../../application/membres_providers.dart';
 import '../widgets/nombre_de_noms_field.dart' show formatterNombreDeNoms;
 import '../widgets/parts_editor.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Liste des membres et des noms de la tontine courante, avec les actions
 /// d'ajout, d'attribution des parts et de génération de l'échéancier une
@@ -47,11 +48,11 @@ class MembresPage extends ConsumerWidget {
       child: AppScaffold(
         selectedNavIndex: 1,
         appBar: AppBar(
-          title: const Text('Membres'),
+          title: Text(context.l10n.membersTitle),
           bottom: TabBar(
             tabs: [
-              Tab(text: 'Noms (${noms.length})'),
-              Tab(text: 'Membres (${membres.length})'),
+              Tab(text: context.l10n.membersTabNames(noms.length)),
+              Tab(text: context.l10n.membersTabMembers(membres.length)),
             ],
           ),
         ),
@@ -62,11 +63,11 @@ class MembresPage extends ConsumerWidget {
                 backgroundColor: AppColors.accent,
                 foregroundColor: AppColors.ink,
                 icon: const Icon(Icons.add),
-                label: const Text('Ajouter'),
+                label: Text(context.l10n.commonAdd),
               ),
         body: membresAsync.hasError || nomsAsync.hasError
             ? ErrorView(
-                message: 'Impossible de charger les membres.',
+                message: context.l10n.membersLoadError,
                 onRetry: () {
                   ref.invalidate(membresProvider);
                   ref.invalidate(nomsProvider);
@@ -140,8 +141,8 @@ class _Contenu extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
               ],
               SectionHeader(
-                title: 'Noms',
-                actionLabel: isAdmin && !quotaAtteint && noms.isNotEmpty ? 'Attribuer' : null,
+                title: context.l10n.membersSectionNames,
+                actionLabel: isAdmin && !quotaAtteint && noms.isNotEmpty ? context.l10n.membersAssign : null,
                 actionIcon: Icons.add,
                 onAction: () => context.go('${AppRouter.membresPath}/noms/nouveau'),
               ),
@@ -149,8 +150,8 @@ class _Contenu extends ConsumerWidget {
                 EmptyState(
                   compact: true,
                   icon: Icons.badge_outlined,
-                  message: "Aucun nom n'a encore été créé. Attribuez le premier pour commencer.",
-                  actionLabel: isAdmin ? 'Attribuer un nom' : null,
+                  message: context.l10n.membersNoNamesYet,
+                  actionLabel: isAdmin ? context.l10n.membersAssignName : null,
                   onAction: isAdmin ? () => context.go('${AppRouter.membresPath}/noms/nouveau') : null,
                 )
               else
@@ -169,7 +170,7 @@ class _Contenu extends ConsumerWidget {
               const SizedBox(height: AppSpacing.lg),
               if (isAdmin && peutGenerer)
                 AppButton(
-                  label: 'Générer l\'échéancier',
+                  label: context.l10n.membersGenerateSchedule,
                   icon: Icons.event_available_outlined,
                   variant: AppButtonVariant.accent,
                   busy: busyEcheancier,
@@ -179,21 +180,20 @@ class _Contenu extends ConsumerWidget {
                 EmptyState(
                   compact: true,
                   icon: Icons.event_available_outlined,
-                  message: 'Encore ${tontine.nombreDeNoms - noms.length} nom(s) à attribuer avant '
-                      "de pouvoir générer l'échéancier.",
+                  message: context.l10n.membersNamesLeftBeforeSchedule(tontine.nombreDeNoms - noms.length),
                 ),
             ],
           ),
           ListView(
             padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 96),
             children: [
-              SectionHeader(title: 'Membres actifs (${actifs.length})'),
+              SectionHeader(title: context.l10n.membersActiveSection(actifs.length)),
               if (actifs.isEmpty)
                 EmptyState(
                   compact: true,
                   icon: Icons.person_add_alt_1_outlined,
-                  message: 'Aucun membre actif pour le moment.',
-                  actionLabel: isAdmin ? 'Ajouter un membre' : null,
+                  message: context.l10n.membersNoActive,
+                  actionLabel: isAdmin ? context.l10n.addMemberTitle : null,
                   onAction: isAdmin ? () => context.go('${AppRouter.membresPath}/ajouter') : null,
                 )
               else
@@ -209,7 +209,7 @@ class _Contenu extends ConsumerWidget {
                 ),
               if (inactifs.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.lg),
-                SectionHeader(title: 'Membres désactivés (${inactifs.length})'),
+                SectionHeader(title: context.l10n.membersInactiveSection(inactifs.length)),
                 ...inactifs.map(
                   (membre) => Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -240,7 +240,7 @@ class _NomCard extends StatelessWidget {
     for (final membre in membres) {
       if (membre.id == membreId) return membre.nomComplet;
     }
-    return 'Membre inconnu';
+    return L10n.current.unknownMember;
   }
 
   @override
@@ -268,7 +268,7 @@ class _NomCard extends StatelessWidget {
                 Text(nom.libelle, style: AppTypography.bodyStrong),
                 Text(
                   nom.parts.isEmpty
-                      ? 'Aucun détenteur'
+                      ? context.l10n.membersNoHolder
                       : nom.parts
                           .map((p) => '${formatFraction(p.fraction)} ${_nomComplet(p.membreId)}')
                           .join(', '),
@@ -279,9 +279,9 @@ class _NomCard extends StatelessWidget {
             ),
           ),
           if (!sommeValide)
-            const Padding(
-              padding: EdgeInsets.only(left: AppSpacing.xs),
-              child: AppPill(label: 'À compléter', tone: AppTone.danger),
+            Padding(
+              padding: const EdgeInsets.only(left: AppSpacing.xs),
+              child: AppPill(label: context.l10n.membersToComplete, tone: AppTone.danger),
             ),
           if (onTap != null) const Icon(Icons.chevron_right, color: AppColors.slate),
         ],
@@ -315,7 +315,7 @@ class _MembreCard extends StatelessWidget {
                 children: [
                   Text(membre.nomComplet, style: AppTypography.bodyStrong, overflow: TextOverflow.ellipsis),
                   Text(
-                    membre.whatsapp ?? membre.email ?? 'Aucun contact',
+                    membre.whatsapp ?? membre.email ?? context.l10n.membersNoContact,
                     style: AppTypography.secondary,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -329,7 +329,7 @@ class _MembreCard extends StatelessWidget {
                 AppPill(label: formatterNombreDeNoms(totalParts), tone: AppTone.info),
                 if (enAttente) ...[
                   const SizedBox(height: AppSpacing.xxs),
-                  const AppPill(label: 'En attente', tone: AppTone.warning),
+                  AppPill(label: context.l10n.membersPending, tone: AppTone.warning),
                 ],
               ],
             ),
@@ -362,9 +362,9 @@ class _AvancementNoms extends StatelessWidget {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text('$attribues', style: AppTypography.amount.copyWith(fontWeight: FontWeight.w600)),
-              Text('/$attendus noms attribués', style: AppTypography.secondary),
+              Text(context.l10n.membersNamesAssignedOf(attendus), style: AppTypography.secondary),
               const Spacer(),
-              if (complet) const AppPill(label: 'Complet', tone: AppTone.success),
+              if (complet) AppPill(label: context.l10n.membersComplete, tone: AppTone.success),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),

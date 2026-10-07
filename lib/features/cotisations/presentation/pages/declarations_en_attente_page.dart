@@ -17,6 +17,7 @@ import '../../../echeancier/application/echeancier_providers.dart';
 import '../../../membres/application/membres_providers.dart';
 import '../../application/cotisations_providers.dart';
 import '../widgets/declaration_card.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Onglet Déclarations : toutes les déclarations de paiement (en attente,
 /// validées, contestées), groupées par tour — le tour le plus récent en
@@ -41,10 +42,10 @@ class DeclarationsEnAttentePage extends ConsumerWidget {
 
     return AppScaffold(
       selectedNavIndex: 3,
-      appBar: AppBar(title: const Text('Déclarations')),
+      appBar: AppBar(title: Text(context.l10n.navDeclarations)),
       body: enErreur
           ? ErrorView(
-              message: 'Impossible de charger les déclarations.',
+              message: context.l10n.declListLoadError,
               onRetry: () {
                 ref.invalidate(declarationsProvider);
                 ref.invalidate(nomsProvider);
@@ -100,7 +101,7 @@ class _Contenu extends StatelessWidget {
 
   String _beneficiaires(Tour tour) {
     final nom = _nom(tour.nomId);
-    if (nom == null) return 'Nom inconnu';
+    if (nom == null) return L10n.current.unknownName;
     final noms = <String>[];
     for (final part in nom.parts) {
       final membre = _membre(part.membreId);
@@ -119,10 +120,10 @@ class _Contenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (declarations.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.receipt_long_outlined,
-        title: 'Aucune déclaration',
-        message: 'Quand un membre signale avoir payé, sa déclaration et sa preuve apparaissent ici.',
+        title: context.l10n.declNone,
+        message: context.l10n.declNoneMessage,
       );
     }
 
@@ -157,8 +158,8 @@ class _Contenu extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: _GroupeTour(
                 titre: groupe.tour == null
-                    ? 'Tour inconnu'
-                    : 'Tour ${groupe.tour!.position} — ${_beneficiaires(groupe.tour!)}',
+                    ? context.l10n.unknownTurn
+                    : context.l10n.declGroupTitle(groupe.tour!.position, _beneficiaires(groupe.tour!)),
                 declarations: groupe.declarations,
                 membre: _membre,
                 nom: _nom,
@@ -202,9 +203,9 @@ class _GroupeTour extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: enAttente > 0
-                  ? AppPill(label: '$enAttente en attente sur ${declarations.length}', tone: AppTone.warning)
+                  ? AppPill(label: context.l10n.declPendingOf(enAttente, declarations.length), tone: AppTone.warning)
                   : Text(
-                      '${declarations.length} déclaration${declarations.length > 1 ? 's' : ''}',
+                      context.l10n.declCount(declarations.length),
                       style: AppTypography.secondary,
                     ),
             ),

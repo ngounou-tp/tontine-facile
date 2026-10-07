@@ -6,8 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../application/auth_controller.dart';
-import '../../application/auth_providers.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../app/router.dart';
 import '../widgets/auth_form.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Écran affiché tant que l'email de l'utilisateur n'est pas vérifié
 /// (uniquement imposé en environnement live — voir `AppRouter.redirect`).
@@ -15,55 +18,35 @@ import '../widgets/auth_form.dart';
 /// Revérifie automatiquement toutes les 5 secondes (au cas où le lien a été
 /// ouvert dans un autre onglet) et propose de renvoyer l'email ou de
 /// vérifier manuellement.
+/// Après une inscription par email : « ouvrez le lien reçu ». Aucune
+/// session n'existe encore — elle s'ouvrira à l'ouverture du lien sur ce
+/// téléphone (retour automatique dans l'app), ou en se connectant ensuite.
 class VerifyEmailPage extends ConsumerStatefulWidget {
-  const VerifyEmailPage({super.key});
+  const VerifyEmailPage({this.email, super.key});
+
+  /// Adresse utilisée à l'inscription (affichée, et cible du renvoi).
+  final String? email;
 
   @override
   ConsumerState<VerifyEmailPage> createState() => _VerifyEmailPageState();
 }
 
 class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
-  Timer? _sondage;
   Timer? _compteARebours;
   int _secondesAvantRenvoi = 0;
 
   @override
-  void initState() {
-    super.initState();
-    _sondage = Timer.periodic(
-      const Duration(seconds: 5),
-      (_) => _verifier(silencieux: true),
-    );
-  }
-
-  @override
   void dispose() {
-    _sondage?.cancel();
     _compteARebours?.cancel();
     super.dispose();
   }
 
-  Future<void> _verifier({bool silencieux = false}) async {
-    try {
-      final verifie =
-          await ref.read(authControllerProvider.notifier).verifierEmailVerifie();
-      if (verifie) {
-        ref.invalidate(sessionProvider);
-      } else if (!silencieux && mounted) {
-        _message(
-          'Toujours pas vérifié. Pensez à vérifier vos courriers indésirables.',
-        );
-      }
-    } catch (error) {
-      if (!silencieux && mounted) _message(messageErreurAuth(error));
-    }
-  }
-
   Future<void> _renvoyer() async {
-    if (_secondesAvantRenvoi > 0) return;
+    final email = widget.email;
+    if (_secondesAvantRenvoi > 0 || email == null) return;
     try {
-      await ref.read(authControllerProvider.notifier).renvoyerEmailVerification();
-      if (mounted) _message('Email de vérification renvoyé.');
+      await ref.read(authControllerProvider.notifier).renvoyerConfirmation(email);
+      if (mounted) _message(context.l10n.verifyEmailResent);
       _demarrerCompteARebours();
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
@@ -91,8 +74,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
   @override
   Widget build(BuildContext context) {
     final busy = ref.watch(authControllerProvider).isLoading;
-    final email =
-        ref.watch(sessionProvider).value?.utilisateur.email ?? 'votre adresse';
+    final email = widget.email ?? context.l10n.verifyYourAddressFallback;
 
     return Scaffold(
       body: SafeArea(
@@ -117,15 +99,14 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                const Text(
-                  'Vérifiez votre adresse email',
+                Text(
+                  context.l10n.verifyTitle,
                   textAlign: TextAlign.center,
                   style: AppTypography.screenTitle,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Un lien de vérification a été envoyé à $email. '
-                  'Ouvrez-le, puis revenez sur cet écran.',
+                  context.l10n.verifyBodyLink(email),
                   textAlign: TextAlign.center,
                   style: AppTypography.body,
                 ),
@@ -133,10 +114,9 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                 SizedBox(
                   width: double.infinity,
                   child: AppButton(
-                    label: "J'ai vérifié mon adresse",
+                    label: context.l10n.verifyDoneSignIn,
                     variant: AppButtonVariant.accent,
-                    busy: busy,
-                    onPressed: busy ? null : () => _verifier(),
+                    onPressed: () => context.go(AppRouter.connexionPath),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -144,20 +124,18 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                   width: double.infinity,
                   child: AppButton(
                     label: _secondesAvantRenvoi > 0
-                        ? "Renvoyer l'email ($_secondesAvantRenvoi s)"
-                        : "Renvoyer l'email",
+                        ? context.l10n.verifyResendIn(_secondesAvantRenvoi)
+                        : context.l10n.verifyResend,
                     variant: AppButtonVariant.secondary,
                     onPressed:
-                        (busy || _secondesAvantRenvoi > 0) ? null : _renvoyer,
+                        (busy || _secondesAvantRenvoi > 0 || widget.email == null) ? null : _renvoyer,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 AppButton(
-                  label: 'Se déconnecter',
+                  label: context.l10n.commonBack,
                   variant: AppButtonVariant.tertiary,
-                  onPressed: busy
-                      ? null
-                      : () => ref.read(authControllerProvider.notifier).deconnecter(),
+                  onPressed: () => context.go(AppRouter.connexionPath),
                 ),
               ]),
             ),

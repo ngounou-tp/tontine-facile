@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../domain/enums/mode_parts.dart';
+import '../../../../l10n/domain_labels.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Sélecteur du mode de répartition des parts fractionnaires d'un nom (voir
 /// `ModeParts`). Entièrement contrôlé : [value]/[onChanged].
@@ -10,15 +12,6 @@ class ModePartsSelector extends StatelessWidget {
 
   final ModeParts value;
   final ValueChanged<ModeParts> onChanged;
-
-  static String _description(ModeParts mode) => switch (mode) {
-        ModeParts.montantFixe =>
-          'Chaque détenteur de part verse le même montant fixe, quelle que soit sa fraction.',
-        ModeParts.proportionnel =>
-          'Chaque détenteur verse un montant proportionnel à sa fraction du nom.',
-        ModeParts.partEgale =>
-          'Le montant du nom est réparti à parts égales entre ses détenteurs.',
-      };
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +43,9 @@ class ModePartsSelector extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(mode.libelle, style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
+                        Text(mode.label(context.l10n), style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
                         const SizedBox(height: 2),
-                        Text(_description(mode), style: AppTypography.secondary),
+                        Text(mode.description(context.l10n), style: AppTypography.secondary),
                       ],
                     ),
                   ),

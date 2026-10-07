@@ -1,5 +1,5 @@
 name: tontinefacile
-description: "TontineFacile - pilotage simple des tontines."
+description: "DjanguiBook - tontines et caisses de réunion, simplement."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -37,8 +37,6 @@ dependencies:
   flutter_riverpod: ^3.4.3
   go_router: ^18.0.1
   firebase_core: ^4.14.0
-  firebase_auth: ^6.6.1
-  cloud_firestore: ^6.9.0
   google_sign_in: ^7.2.0
   image_picker: ^1.2.3
   flutter_image_compress: ^2.5.1
@@ -46,6 +44,10 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   shared_preferences: ^2.5.5
+  supabase_flutter: ^2.18.0
+  uuid: ^4.6.0
+  sign_in_with_apple: ^8.2.0
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:
@@ -58,7 +60,6 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-
 flutter_launcher_icons:
   android: true
   ios: true
@@ -71,6 +72,7 @@ flutter_launcher_icons:
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

@@ -4,16 +4,23 @@ import '../../../../app/theme.dart';
 import '../../../../domain/enums/jour_semaine.dart';
 import '../../../../domain/enums/occurrence_mensuelle.dart';
 import '../../../../domain/value_objects/regle_periodicite.dart';
+import '../../../../l10n/domain_labels.dart';
+import '../../../../l10n/l10n.dart';
 
 enum _TypePeriodicite {
-  tousLesNJours('Tous les N jours'),
-  chaqueSemaine('Chaque semaine'),
-  toutesLesDeuxSemaines('Toutes les deux semaines'),
-  chaqueMoisJourFixe('Chaque mois, jour fixe'),
-  chaqueMoisSemaine('Chaque mois, Nième jour de semaine');
+  tousLesNJours,
+  chaqueSemaine,
+  toutesLesDeuxSemaines,
+  chaqueMoisJourFixe,
+  chaqueMoisSemaine;
 
-  const _TypePeriodicite(this.libelle);
-  final String libelle;
+  String label(AppLocalizations l10n) => switch (this) {
+        tousLesNJours => l10n.periodTypeEveryNDays,
+        chaqueSemaine => l10n.periodTypeWeekly,
+        toutesLesDeuxSemaines => l10n.periodTypeBiweekly,
+        chaqueMoisJourFixe => l10n.periodTypeMonthlyDay,
+        chaqueMoisSemaine => l10n.periodTypeMonthlyWeekday,
+      };
 }
 
 _TypePeriodicite _typeDe(ReglePeriodicite regle) => switch (regle) {
@@ -106,7 +113,7 @@ class _PeriodiciteFieldState extends State<PeriodiciteField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Fréquence', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(context.l10n.fieldFrequency, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
         DropdownButtonFormField<_TypePeriodicite>(
           initialValue: _type,
@@ -115,7 +122,7 @@ class _PeriodiciteFieldState extends State<PeriodiciteField> {
             for (final t in _TypePeriodicite.values)
               DropdownMenuItem(
                 value: t,
-                child: Text(t.libelle, overflow: TextOverflow.ellipsis),
+                child: Text(t.label(context.l10n), overflow: TextOverflow.ellipsis),
               ),
           ],
           onChanged: (t) {
@@ -133,12 +140,12 @@ class _PeriodiciteFieldState extends State<PeriodiciteField> {
   List<Widget> _champsSpecifiques() {
     switch (_type) {
       case _TypePeriodicite.tousLesNJours:
-        return [_champEntier('Nombre de jours entre deux échéances', _joursController)];
+        return [_champEntier(context.l10n.fieldDaysBetweenDueDates, _joursController)];
       case _TypePeriodicite.chaqueSemaine:
       case _TypePeriodicite.toutesLesDeuxSemaines:
         return [_champJourSemaine()];
       case _TypePeriodicite.chaqueMoisJourFixe:
-        return [_champEntier('Jour du mois (1 à 31)', _jourMoisController)];
+        return [_champEntier(context.l10n.fieldDayOfMonth, _jourMoisController)];
       case _TypePeriodicite.chaqueMoisSemaine:
         return [_champOccurrence(), const SizedBox(height: AppSpacing.md), _champJourSemaine()];
     }
@@ -163,7 +170,7 @@ class _PeriodiciteFieldState extends State<PeriodiciteField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Jour de la semaine', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(context.l10n.fieldWeekday, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
         DropdownButtonFormField<JourSemaine>(
           initialValue: _jourSemaine,
@@ -172,7 +179,7 @@ class _PeriodiciteFieldState extends State<PeriodiciteField> {
             for (final j in JourSemaine.values)
               DropdownMenuItem(
                 value: j,
-                child: Text(j.libelle, overflow: TextOverflow.ellipsis),
+                child: Text(j.label(context.l10n), overflow: TextOverflow.ellipsis),
               ),
           ],
           onChanged: (j) {
@@ -189,7 +196,7 @@ class _PeriodiciteFieldState extends State<PeriodiciteField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Occurrence dans le mois', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(context.l10n.fieldOccurrenceInMonth, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.xs),
         DropdownButtonFormField<OccurrenceMensuelle>(
           initialValue: _occurrence,
@@ -198,7 +205,7 @@ class _PeriodiciteFieldState extends State<PeriodiciteField> {
             for (final o in OccurrenceMensuelle.values)
               DropdownMenuItem(
                 value: o,
-                child: Text(o.libelle, overflow: TextOverflow.ellipsis),
+                child: Text(o.label(context.l10n), overflow: TextOverflow.ellipsis),
               ),
           ],
           onChanged: (o) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Bannière du tableau de bord signalant des déclarations de paiement en
 /// attente de traitement — masquée si [nombre] vaut 0. Apparaît et
@@ -47,13 +48,11 @@ class PendingDeclarationsBanner extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              nombre == 1
-                                  ? '1 déclaration de paiement à traiter'
-                                  : '$nombre déclarations de paiement à traiter',
+                              context.l10n.bannerPendingDeclarations(nombre),
                               style: AppTypography.bodyStrong,
                             ),
                             Text(
-                              'Vérifiez les preuves pour valider les paiements.',
+                              context.l10n.bannerCheckProofs,
                               style: AppTypography.secondary.copyWith(color: AppColors.warningInk),
                             ),
                           ],

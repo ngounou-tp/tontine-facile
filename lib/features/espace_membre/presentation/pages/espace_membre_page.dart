@@ -25,6 +25,7 @@ import '../../../tontine/application/tontine_providers.dart';
 import '../../application/espace_membre_providers.dart';
 import '../widgets/mes_noms_list.dart';
 import '../widgets/situation_membre_card.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Espace du membre (non-administratrice) : sa situation vis-à-vis de la
 /// tontine, ses noms et leur statut pour le tour en cours, historique de
@@ -40,9 +41,9 @@ class EspaceMembrePage extends ConsumerWidget {
   Future<void> _confirmerDeconnexion(BuildContext context, WidgetRef ref) async {
     final confirme = await confirmer(
       context,
-      titre: 'Se déconnecter ?',
-      message: 'Vous devrez vous reconnecter pour accéder à votre tontine.',
-      libelleConfirmation: 'Se déconnecter',
+      titre: context.l10n.settingsSignOutTitle,
+      message: context.l10n.settingsSignOutMessage,
+      libelleConfirmation: context.l10n.commonSignOut,
     );
     if (confirme) {
       await ref.read(authControllerProvider.notifier).deconnecter();
@@ -57,11 +58,16 @@ class EspaceMembrePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(tontineAsync.value?.nom ?? 'Mon espace'),
+        title: Text(tontineAsync.value?.nom ?? context.l10n.memberSpaceTitle),
         actions: [
           IconButton(
+            onPressed: () => context.go(AppRouter.groupesPath),
+            tooltip: context.l10n.groupsSwitch,
+            icon: const Icon(Icons.swap_horiz),
+          ),
+          IconButton(
             onPressed: () => _confirmerDeconnexion(context, ref),
-            tooltip: 'Se déconnecter',
+            tooltip: context.l10n.commonSignOut,
             icon: const Icon(Icons.logout),
           ),
           const SizedBox(width: AppSpacing.xs),
@@ -74,11 +80,11 @@ class EspaceMembrePage extends ConsumerWidget {
       body: tontineAsync.when(
         loading: () => const LoadingView(),
         error: (_, _) => ErrorView(
-          message: 'Impossible de charger votre espace.',
+          message: context.l10n.memberSpaceLoadError,
           onRetry: () => ref.invalidate(tontineProvider),
         ),
         data: (tontine) => tontine == null || membre == null
-            ? const ErrorView(message: 'Aucune fiche membre associée à ce compte.')
+            ? ErrorView(message: context.l10n.memberSpaceNoMember)
             : _Contenu(tontine: tontine, membre: membre),
       ),
     );
@@ -112,7 +118,7 @@ class _Contenu extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xl),
         children: [
-          Text('Bonjour, ${membre.nomComplet.split(' ').first}', style: AppTypography.screenTitle),
+          Text(context.l10n.homeHelloName(membre.nomComplet.split(' ').first), style: AppTypography.screenTitle),
           const SizedBox(height: AppSpacing.lg),
           SituationMembreCard(
             nomTontine: tontine.nom,
@@ -122,19 +128,19 @@ class _Contenu extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.xl),
           if (tours.isEmpty)
-            const EmptyState(
+            EmptyState(
               compact: true,
               icon: Icons.event_note_outlined,
-              message: "L'échéancier n'a pas encore été généré par l'administratrice.",
+              message: context.l10n.memberSpaceScheduleNotGenerated,
             )
           else if (tourActuel == null)
-            const EmptyState(
+            EmptyState(
               compact: true,
               icon: Icons.celebration_outlined,
-              message: 'Tous les tours ont été remis.',
+              message: context.l10n.memberSpaceAllTurnsPaid,
             )
           else ...[
-            const SectionHeader(title: 'À régler pour ce tour'),
+            SectionHeader(title: context.l10n.memberSpaceToPayThisTurn),
             MesNomsList(
               situations: situations,
               onDeclarer: (situation) =>
@@ -143,7 +149,7 @@ class _Contenu extends ConsumerWidget {
           ],
           if (mesDeclarations.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xl),
-            const SectionHeader(title: 'Mes déclarations'),
+            SectionHeader(title: context.l10n.memberSpaceMyDeclarations),
             // Une seule carte, des lignes séparées : une liste de reçus se
             // parcourt d'un trait, comme un relevé bancaire.
             AppCard(
@@ -156,11 +162,11 @@ class _Contenu extends ConsumerWidget {
                       icone: Icons.receipt_long_outlined,
                       titre: formatAmount(mesDeclarations[i].montantDeclare),
                       sousTitre: mesDeclarations[i].motifContestation ??
-                          'Déclaré le ${formatDate(mesDeclarations[i].datePaiement)}',
+                          context.l10n.memberSpaceDeclaredOn(formatDate(mesDeclarations[i].datePaiement)),
                       trailing: switch (mesDeclarations[i].statut.name) {
-                        'enAttente' => const AppPill(label: 'En attente', tone: AppTone.warning),
-                        'validee' => const AppPill(label: 'Validée', tone: AppTone.success),
-                        _ => const AppPill(label: 'Contestée', tone: AppTone.danger),
+                        'enAttente' => AppPill(label: context.l10n.declStatusPending, tone: AppTone.warning),
+                        'validee' => AppPill(label: context.l10n.declStatusApproved, tone: AppTone.success),
+                        _ => AppPill(label: context.l10n.declStatusDisputed, tone: AppTone.danger),
                       },
                     ),
                   ],
@@ -170,7 +176,7 @@ class _Contenu extends ConsumerWidget {
           ],
           if (mesCotisations.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xl),
-            const SectionHeader(title: 'Historique des cotisations'),
+            SectionHeader(title: context.l10n.memberSpaceContributionHistory),
             AppCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -181,7 +187,7 @@ class _Contenu extends ConsumerWidget {
                       icone: Icons.check_circle_outline,
                       couleurIcone: AppColors.success,
                       titre: formatAmount(mesCotisations[i].montantVerse),
-                      sousTitre: 'Payé le ${formatDate(mesCotisations[i].datePaiement)}',
+                      sousTitre: context.l10n.declPaidOn(formatDate(mesCotisations[i].datePaiement)),
                     ),
                   ],
                 ],

@@ -1,87 +1,108 @@
 import '../../domain/entities/changement.dart';
 import '../../domain/entities/cotisation.dart';
 import '../../domain/entities/declaration.dart';
+import '../../domain/entities/invitation.dart';
 import '../../domain/entities/membre.dart';
 import '../../domain/entities/nom.dart';
 import '../../domain/entities/preuve.dart';
 import '../../domain/entities/tontine.dart';
 import '../../domain/entities/tour.dart';
 
-/// Repository de l'agrégat Tontine.
+/// Repository de l'agrégat Tontine, adressé par l'identifiant du groupe.
 ///
-/// `Membre`, `Nom`, `Tour`, `Cotisation`, `Declaration`, `Preuve` et
-/// `Changement` sont des entités enfants qui n'existent que sous une
-/// tontine (sous-collections Firestore) : elles sont exposées ici plutôt
-/// que via des repositories séparés, car aucune n'a de cycle de vie
-/// indépendant de son `tontineId`.
+/// Les droits sont appliqués par le serveur (RLS et fonctions SQL) : un
+/// appel non autorisé échoue avec une `AppException` (voir
+/// `mapSupabaseError`), quelle que soit l'interface qui l'a déclenché.
 abstract interface class TontineRepository {
-  // Tontines
-  String nouvelIdTontine();
-  Future<List<Tontine>> getTontines();
-  Future<Tontine?> getTontine(String tontineId);
+  // Tontine (nom du groupe et réglages). La création passe par
+  // `GroupesRepository.creerTontine`.
+  Future<Tontine?> getTontine(String groupeId);
+  Stream<Tontine?> watchTontine(String groupeId);
   Future<void> saveTontine(Tontine tontine);
 
   // Membres
-  Future<List<Membre>> getMembres(String tontineId);
-  Future<void> saveMembre(String tontineId, Membre membre);
+  Future<List<Membre>> getMembres(String groupeId);
+  Stream<List<Membre>> watchMembres(String groupeId);
 
-  /// Crée un membre sans `uid`, à réclamer plus tard via [claimMembre] et
-  /// une invitation nominative.
-  Future<Membre> creerMembrePlaceholder(
-    String tontineId, {
+  /// Met à jour coordonnées et activation d'un membre (bureau). Ni le
+  /// compte rattaché ni les rôles ne changent par ce biais.
+  Future<void> saveMembre(String groupeId, Membre membre);
+
+  /// Ajoute un membre (sans compte) et génère son invitation nominative.
+  Future<Invitation> inviterMembre(
+    String groupeId, {
     required String nomComplet,
     String? email,
     String? whatsapp,
   });
 
-  /// Matérialise l'adhésion d'un membre : attache `uid` au placeholder créé
-  /// par l'administratrice, après vérification du code d'invitation.
-  Future<void> claimMembre({
-    required String tontineId,
-    required String membreId,
-    required String uid,
-    required String codeInvitation,
-  });
-
   // Noms
-  /// Identifiant frais pour un nouveau nom de [tontineId] (aucun accès
-  /// réseau).
-  String nouvelIdNom(String tontineId);
-  Future<List<Nom>> getNoms(String tontineId);
-  Future<void> saveNom(String tontineId, Nom nom);
+  String nouvelIdNom(String groupeId);
+  Future<List<Nom>> getNoms(String groupeId);
+  Stream<List<Nom>> watchNoms(String groupeId);
+
+  /// Crée ou remplace un nom et ses parts, d'un bloc.
+  Future<void> saveNom(String groupeId, Nom nom);
 
   // Tours
-  Future<List<Tour>> getTours(String tontineId);
-  Future<void> saveTour(String tontineId, Tour tour);
-
-  // Streams — mises à jour en direct pour les écrans qui affichent la
-  // tontine courante sans action explicite de rechargement.
-  Stream<Tontine?> watchTontine(String tontineId);
-  Stream<List<Membre>> watchMembres(String tontineId);
-  Stream<List<Nom>> watchNoms(String tontineId);
+  String nouvelIdTour(String groupeId);
+  Future<List<Tour>> getTours(String groupeId);
 
   /// Programme, triée par [Tour.position].
-  Stream<List<Tour>> watchTours(String tontineId);
+  Stream<List<Tour>> watchTours(String groupeId);
+  Future<void> saveTour(String groupeId, Tour tour);
+
+  /// Enregistre plusieurs tours en une requête (génération de l'échéancier).
+  Future<void> saveTours(String groupeId, List<Tour> tours);
+
+  /// Applique une réorganisation (positions et dates) et historise un
+  /// changement par tour déplacé, d'un bloc.
+  Future<void> reorganiserTours(
+    String groupeId, {
+    required List<Tour> tours,
+    required List<Changement> changements,
+    required String motif,
+  });
 
   // Cotisations
-  String nouvelIdCotisation(String tontineId);
-  Future<List<Cotisation>> getCotisations(String tontineId);
-  Future<void> saveCotisation(String tontineId, Cotisation cotisation);
-  Stream<List<Cotisation>> watchCotisations(String tontineId);
+  String nouvelIdCotisation(String groupeId);
+  Future<List<Cotisation>> getCotisations(String groupeId);
+  Stream<List<Cotisation>> watchCotisations(String groupeId);
 
-  // Declarations
-  String nouvelIdDeclaration(String tontineId);
-  Future<List<Declaration>> getDeclarations(String tontineId);
-  Future<void> saveDeclaration(String tontineId, Declaration declaration);
-  Stream<List<Declaration>> watchDeclarations(String tontineId);
+  /// Enregistre une cotisation officielle (bureau). Une cotisation ne se
+  /// modifie ni ne se supprime ensuite.
+  Future<void> saveCotisation(String groupeId, Cotisation cotisation);
+
+  // Déclarations
+  String nouvelIdDeclaration(String groupeId);
+  Future<List<Declaration>> getDeclarations(String groupeId);
+  Stream<List<Declaration>> watchDeclarations(String groupeId);
+
+  /// Dépôt par un membre, pour un nom qu'il détient, sur le tour en cours.
+  Future<void> deposerDeclaration(String groupeId, Declaration declaration);
+
+  /// Validation par le bureau : crée la cotisation officielle et passe la
+  /// déclaration en « validée », d'un bloc. Renvoie l'id de la cotisation.
+  Future<String> validerDeclaration(
+    String groupeId, {
+    required String declarationId,
+    required int montantDu,
+    required int penalite,
+  });
+
+  /// Refus motivé par le bureau.
+  Future<void> contesterDeclaration(
+    String groupeId, {
+    required String declarationId,
+    required String motif,
+  });
 
   // Preuves
-  String nouvelIdPreuve(String tontineId);
-  Future<List<Preuve>> getPreuves(String tontineId);
-  Future<void> savePreuve(String tontineId, Preuve preuve);
+  String nouvelIdPreuve(String groupeId);
+  Future<void> savePreuve(String groupeId, Preuve preuve);
+  Future<Preuve?> getPreuve(String groupeId, String preuveId);
 
-  // Changements
-  Future<List<Changement>> getChangements(String tontineId);
-  Future<void> saveChangement(String tontineId, Changement changement);
-  Stream<List<Changement>> watchChangements(String tontineId);
+  // Historique des réorganisations
+  Future<List<Changement>> getChangements(String groupeId);
+  Stream<List<Changement>> watchChangements(String groupeId);
 }

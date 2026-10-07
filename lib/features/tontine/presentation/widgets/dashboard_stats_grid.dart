@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Grille « en un coup d'œil » du tableau de bord : membres actifs, noms
 /// attribués, avancement de la tontine (tours remis) et répartition des
@@ -29,27 +30,28 @@ class DashboardStatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final tuiles = [
       _StatTile(
         icon: Icons.groups_outlined,
         valeur: '$membresActifs',
-        libelle: membresActifs > 1 ? 'Membres actifs' : 'Membre actif',
+        libelle: l10n.statsActiveMembers(membresActifs),
       ),
       _StatTile(
         icon: Icons.badge_outlined,
         valeur: '$nomsAttribues/$nomsAttendus',
-        libelle: 'Noms attribués',
+        libelle: l10n.statsNamesAssigned,
         alerte: nomsAttribues < nomsAttendus,
       ),
       _StatTile(
         icon: Icons.flag_outlined,
         valeur: toursTotal == 0 ? '—' : '$toursRemis/$toursTotal',
-        libelle: 'Tours remis',
+        libelle: l10n.statsTurnsPaid,
       ),
       _StatTile(
         icon: Icons.schedule_outlined,
         valeur: '$paiementsATemps / $paiementsEnRetard',
-        libelle: 'À temps / en retard',
+        libelle: l10n.statsOnTimeLate,
         alerte: paiementsEnRetard > 0,
       ),
     ];

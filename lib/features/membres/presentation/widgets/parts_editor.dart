@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme.dart';
 import '../../../../domain/entities/membre.dart';
 import '../../../../domain/entities/part.dart';
+import '../../../../l10n/l10n.dart';
 
 const _glyphsParDenominateur = {
   2: {1: '½'},
@@ -30,7 +31,7 @@ String _glyphe(double fraction) {
       if (glyphe != null) return glyphe;
     }
   }
-  return '${(fraction * 100).round()} %';
+  return L10n.current.percentValue((fraction * 100).round());
 }
 
 /// Éditeur des détenteurs de part d'un nom : sélection des membres actifs
@@ -126,8 +127,8 @@ class _PartsEditorState extends State<PartsEditor> {
       children: [
         Row(
           children: [
-            const Expanded(
-              child: Text('Détenteurs de part', style: TextStyle(fontWeight: FontWeight.w600)),
+            Expanded(
+              child: Text(context.l10n.partsHolders, style: const TextStyle(fontWeight: FontWeight.w600)),
             ),
             TextButton(
               onPressed: _selectionnes.length > 1
@@ -136,7 +137,7 @@ class _PartsEditorState extends State<PartsEditor> {
                       _emettre();
                     }
                   : null,
-              child: const Text('Répartir également'),
+              child: Text(context.l10n.partsSplitEqually),
             ),
           ],
         ),
@@ -152,7 +153,7 @@ class _PartsEditorState extends State<PartsEditor> {
             ),
             const SizedBox(width: AppSpacing.xs),
             Text(
-              'Total : ${(somme * 100).round()} %',
+              context.l10n.partsTotal((somme * 100).round()),
               style: AppTypography.secondary.copyWith(
                 color: sommeValide ? AppColors.success : AppColors.danger,
                 fontWeight: FontWeight.w600,

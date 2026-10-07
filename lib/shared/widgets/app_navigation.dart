@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/router.dart';
 import '../../app/theme.dart';
+import '../../l10n/l10n.dart';
 
 class AppNavigation extends StatelessWidget {
   const AppNavigation({super.key, required this.selectedIndex, required this.onSelected});
@@ -33,12 +34,12 @@ class AppNavigation extends StatelessWidget {
       onDestinationSelected: onSelected,
       indicatorColor: AppColors.canvas,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: AppColors.indigo), label: 'Accueil'),
-        NavigationDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups, color: AppColors.indigo), label: 'Membres'),
-        NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month, color: AppColors.indigo), label: 'Échéancier'),
-        NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long, color: AppColors.indigo), label: 'Déclarations'),
-        NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings, color: AppColors.indigo), label: 'Réglages'),
+      destinations: [
+        NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: AppColors.indigo), label: context.l10n.navHome),
+        NavigationDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups, color: AppColors.indigo), label: context.l10n.navMembers),
+        NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month, color: AppColors.indigo), label: context.l10n.navSchedule),
+        NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long, color: AppColors.indigo), label: context.l10n.navDeclarations),
+        NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings, color: AppColors.indigo), label: context.l10n.navSettings),
       ],
     );
   }

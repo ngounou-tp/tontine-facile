@@ -1,0 +1,993 @@
+{
+  "@@locale": "fr",
+  "relativeToday": "aujourd'hui",
+  "relativeTomorrow": "demain",
+  "relativeYesterday": "hier",
+  "relativeInDays": "dans {days} jours",
+  "@relativeInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeDaysAgo": "il y a {days} jours",
+  "@relativeDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "errorGeneric": "Une erreur est survenue. Réessayez.",
+  "errorNetwork": "La connexion a expiré. Vérifiez votre connexion et réessayez.",
+  "errorInvalidCredentials": "Email ou mot de passe incorrect.",
+  "errorEmailAlreadyInUse": "Un compte existe déjà avec cet email.",
+  "errorWeakPassword": "Le mot de passe est trop faible (6 caractères minimum).",
+  "errorInvalidEmail": "L'adresse email est invalide.",
+  "errorUserDisabled": "Ce compte a été désactivé.",
+  "errorTooManyRequests": "Trop de tentatives. Réessaie plus tard.",
+  "errorSignInRequired": "Connectez-vous pour continuer.",
+  "errorExternalSignIn": "La connexion avec ce compte a échoué. Réessayez.",
+  "errorAuthUnknown": "Erreur d'authentification. Réessayez.",
+  "errorInvitationNotFound": "Ce code d'invitation est introuvable.",
+  "errorInvitationAlreadyUsed": "Cette invitation a déjà été utilisée.",
+  "commonCancel": "Annuler",
+  "commonRetry": "Réessayer",
+  "commonBack": "Retour",
+  "commonLoading": "Chargement en cours",
+  "commonComingSoon": "Cette fonctionnalité arrive bientôt.",
+  "amountFieldLabel": "Montant de la cotisation",
+  "amountFieldHint": "25 000 FCFA",
+  "navHome": "Accueil",
+  "navMembers": "Membres",
+  "navSchedule": "Échéancier",
+  "navDeclarations": "Déclarations",
+  "navSettings": "Réglages",
+  "statusPaid": "Payé",
+  "statusLate": "En retard",
+  "statusPartial": "Partiel",
+  "statusException": "Exception",
+  "statusToCollect": "À encaisser",
+  "memberCardRecordPayment": "Noter un paiement",
+  "memberCardMoreOptions": "Plus d’options",
+  "authEmailLabel": "E-mail",
+  "authPasswordLabel": "Mot de passe",
+  "authConfirmPasswordLabel": "Confirmer le mot de passe",
+  "authTogglePasswordVisibility": "Afficher ou masquer le mot de passe",
+  "authPasswordsDoNotMatch": "Les mots de passe ne correspondent pas.",
+  "authInvalidEmail": "Saisissez une adresse e-mail valide.",
+  "authPasswordTooShort": "Le mot de passe doit contenir au moins 6 caractères.",
+  "authTagline": "Le registre de votre tontine, toujours à jour",
+  "loginEnterEmailForReset": "Saisissez votre e-mail pour recevoir le lien de réinitialisation.",
+  "loginResetLinkSent": "Un lien de réinitialisation a été envoyé à votre adresse e-mail.",
+  "loginSubmit": "Se connecter",
+  "loginForgotPassword": "Mot de passe oublié ?",
+  "commonOr": "ou",
+  "loginContinueWithGoogle": "Continuer avec Google",
+  "loginCreateAccount": "Créer un compte",
+  "signupTitle": "Créer un compte",
+  "signupSubmit": "Créer mon compte",
+  "signupHaveAccount": "J’ai déjà un compte",
+  "welcomeTitle": "Bienvenue sur {appName}",
+  "@welcomeTitle": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "welcomeSubtitle": "Comment souhaitez-vous commencer ?",
+  "welcomeCreateTitle": "Créer une tontine",
+  "welcomeCreateDescription": "Démarrez un nouveau groupe, invitez vos membres et suivez les cotisations dès aujourd'hui.",
+  "welcomeJoinTitle": "Rejoindre une tontine",
+  "welcomeJoinDescription": "Vous avez reçu un code de votre trésorier ? Rejoignez son groupe en quelques secondes.",
+  "commonSignOut": "Se déconnecter",
+  "joinEnterSixChars": "Saisissez les 6 caractères du code d’invitation.",
+  "joinSuccess": "Vous avez rejoint la tontine.",
+  "joinTitle": "Entrez votre code d’invitation",
+  "joinSubtitle": "Six caractères, remis par la trésorière du groupe.",
+  "joinPasteHint": "Vous pouvez coller le code",
+  "joinSubmit": "Rejoindre",
+  "joinSearching": "Recherche de la tontine…",
+  "joinMembersCount": " · {count, plural, =0{aucun membre} =1{1 membre} other{{count} membres}}",
+  "@joinMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "verifyEmailResent": "Email de vérification renvoyé.",
+  "verifyYourAddressFallback": "votre adresse",
+  "verifyTitle": "Vérifiez votre adresse email",
+  "verifyResendIn": "Renvoyer l'email ({seconds} s)",
+  "@verifyResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "verifyResend": "Renvoyer l'email",
+  "weekdayMonday": "Lundi",
+  "weekdayTuesday": "Mardi",
+  "weekdayWednesday": "Mercredi",
+  "weekdayThursday": "Jeudi",
+  "weekdayFriday": "Vendredi",
+  "weekdaySaturday": "Samedi",
+  "weekdaySunday": "Dimanche",
+  "occurrenceFirst": "Premier",
+  "occurrenceSecond": "Deuxième",
+  "occurrenceThird": "Troisième",
+  "occurrenceFourth": "Quatrième",
+  "occurrenceLast": "Dernier",
+  "sharesModeFixed": "Montant fixe par part",
+  "sharesModeProportional": "Répartition proportionnelle",
+  "sharesModeEqual": "Parts égales",
+  "sharesModeFixedDescription": "Chaque détenteur de part verse le même montant fixe, quelle que soit sa fraction.",
+  "sharesModeProportionalDescription": "Chaque détenteur verse un montant proportionnel à sa fraction du nom.",
+  "sharesModeEqualDescription": "Le montant du nom est réparti à parts égales entre ses détenteurs.",
+  "penaltyNone": "Aucune pénalité",
+  "penaltyFlat": "Pénalité forfaitaire (montant fixe)",
+  "penaltyProportional": "Pénalité proportionnelle (% du montant dû)",
+  "periodEveryNDays": "Tous les {days} jours",
+  "@periodEveryNDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "periodWeekly": "Chaque {day}",
+  "@periodWeekly": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "periodBiweekly": "Toutes les deux semaines, le {day}",
+  "@periodBiweekly": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "periodMonthlyDay": "Chaque mois, le {day}",
+  "@periodMonthlyDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "periodMonthlyWeekday": "{occurrence} {day} du mois",
+  "@periodMonthlyWeekday": {
+    "placeholders": {
+      "occurrence": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "periodTypeEveryNDays": "Tous les N jours",
+  "periodTypeWeekly": "Chaque semaine",
+  "periodTypeBiweekly": "Toutes les deux semaines",
+  "periodTypeMonthlyDay": "Chaque mois, jour fixe",
+  "periodTypeMonthlyWeekday": "Chaque mois, Nième jour de semaine",
+  "fieldFrequency": "Fréquence",
+  "fieldDaysBetweenDueDates": "Nombre de jours entre deux échéances",
+  "fieldDayOfMonth": "Jour du mois (1 à 31)",
+  "fieldWeekday": "Jour de la semaine",
+  "fieldOccurrenceInMonth": "Occurrence dans le mois",
+  "fieldPenaltyRule": "Règle de pénalité",
+  "fieldPenaltyAmount": "Montant de la pénalité (FCFA)",
+  "fieldPenaltyPercent": "Pourcentage de pénalité (%)",
+  "fieldGraceDays": "Délai de grâce (jours, 0 à 30)",
+  "createStepGroup": "Le groupe",
+  "createStepFrequency": "Fréquence des échéances",
+  "createStepPenalty": "Pénalité et délai de grâce",
+  "createStepShares": "Répartition des parts",
+  "createStepConfirm": "Confirmation",
+  "createErrorGroupName": "Le nom du groupe doit contenir au moins 2 caractères.",
+  "createErrorFullName": "Indiquez votre nom complet.",
+  "createErrorAmount": "Indiquez un montant par nom valide.",
+  "createErrorNamesCount": "Indiquez le nombre de noms que comptera la tontine.",
+  "createErrorFirstDueDate": "Choisissez la date de la première échéance.",
+  "createErrorPenaltyValue": "Indiquez une valeur de pénalité supérieure à zéro.",
+  "createErrorGraceDays": "Le délai de grâce doit être compris entre 0 et 30 jours.",
+  "createSuccess": "Tontine créée avec succès. Ajoutez vos premiers membres.",
+  "createPreviousStep": "Étape précédente",
+  "createTitle": "Créer une tontine",
+  "createStepOf": "Étape {step} sur {total}",
+  "@createStepOf": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "createSubmit": "Créer la tontine",
+  "commonNext": "Suivant",
+  "fieldGroupName": "Nom du groupe",
+  "fieldGroupNameHint": "Tontine des Dames",
+  "fieldYourFullName": "Votre nom complet",
+  "fieldFullNameHint": "Adèle Tchoumi",
+  "fieldAmountPerName": "Montant par nom",
+  "fieldAmountHint": "25 000",
+  "fieldNamesCount": "Nombre de noms",
+  "fieldNamesCountHelp": "Combien de noms (parts) comptera la tontine au total ? Vous les attribuerez aux membres au fil des inscriptions.",
+  "fieldFirstDueDate": "Date de la première échéance",
+  "fieldChooseDate": "Choisir une date",
+  "recapGroup": "Groupe",
+  "recapAdmin": "Administratrice",
+  "recapFirstDueDate": "Première échéance",
+  "recapPenalty": "Pénalité",
+  "recapPenaltyValue": "Valeur de la pénalité",
+  "recapGraceDays": "Délai de grâce",
+  "recapGraceDaysValue": "{days, plural, =0{0 jour} =1{1 jour} other{{days} jours}}",
+  "@recapGraceDaysValue": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "editErrorNamesBelowExisting": "{count, plural, =1{1 nom existe déjà : le nombre de noms ne peut pas être réduit en dessous de ce total.} other{{count} noms existent déjà : le nombre de noms ne peut pas être réduit en dessous de ce total.}}",
+  "@editErrorNamesBelowExisting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "editSuccess": "Tontine mise à jour.",
+  "editTitleAdmin": "Modifier la tontine",
+  "editTitleMember": "Réglages de la tontine",
+  "errorLoadTontine": "Impossible de charger la tontine.",
+  "errorNoTontine": "Aucune tontine associée à ce compte.",
+  "editSave": "Enregistrer les modifications",
+  "editFrozenStarted": "Figée — l'échéancier a démarré",
+  "editReadOnlyAdminOnly": "Lecture seule — réservé à l'administratrice",
+  "editFrozenExplanation": "Toute modification invaliderait les montants dus et les tours déjà calculés. Ces informations ne peuvent plus changer une fois la collecte commencée.",
+  "editAdminOnlyExplanation": "Seule l'administratrice de la tontine peut modifier ces informations.",
+  "homeAddMember": "Ajouter un membre",
+  "homeLoading": "Chargement de votre tontine…",
+  "homeLoadError": "Impossible de charger votre tontine.",
+  "homeHello": "Bonjour",
+  "homeHelloName": "Bonjour, {name}",
+  "@homeHelloName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSubtitlePending": "{count, plural, =0{Voici le résumé de votre tontine.} =1{Un paiement attend votre validation.} other{{count} paiements attendent votre validation.}}",
+  "@homeSubtitlePending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSubtitleMember": "Voici le résumé de votre tontine.",
+  "homeAtAGlance": "En un coup d'œil",
+  "commonSeeAll": "Voir tout",
+  "homeNoActiveMembers": "Aucun membre actif pour le moment",
+  "homeActiveMembers": "{count, plural, =1{1 membre actif} other{{count} membres actifs}}",
+  "@homeActiveMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unknownName": "Nom inconnu",
+  "tourScheduleToPrepare": "Échéancier à préparer",
+  "tourScheduleToPrepareMessage": "L'échéancier n'a pas encore été généré. Attribuez les noms puis générez-le depuis Membres.",
+  "tourGoToMembers": "Aller aux membres",
+  "tourTontineFinished": "Tontine terminée",
+  "tourTontineFinishedMessage": "Tous les tours ont été remis. Bravo !",
+  "tourCurrentOverline": "TOUR {position} · EN COURS",
+  "@tourCurrentOverline": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "tourReceives": "Reçoit {amount} · {date} ({relative})",
+  "@tourReceives": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "relative": {
+        "type": "String"
+      }
+    }
+  },
+  "tourCollectedOf": "collectés sur {amount}",
+  "@tourCollectedOf": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "tourSeeCollection": "Voir la collecte",
+  "tourCollect": "Collecter les cotisations",
+  "percentValue": "{value} %",
+  "@percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "statsActiveMembers": "{count, plural, =0{Membre actif} =1{Membre actif} other{Membres actifs}}",
+  "@statsActiveMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsNamesAssigned": "Noms attribués",
+  "statsTurnsPaid": "Tours remis",
+  "statsOnTimeLate": "À temps / en retard",
+  "bannerPendingDeclarations": "{count, plural, =1{1 déclaration de paiement à traiter} other{{count} déclarations de paiement à traiter}}",
+  "@bannerPendingDeclarations": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bannerCheckProofs": "Vérifiez les preuves pour valider les paiements.",
+  "settingsSignOutTitle": "Se déconnecter ?",
+  "settingsSignOutMessage": "Vous devrez vous reconnecter pour accéder à votre tontine.",
+  "settingsTitle": "Réglages",
+  "settingsSectionGroup": "Groupe",
+  "settingsTontineSettings": "Réglages de la tontine",
+  "settingsTontineSettingsAdmin": "Nom, montant, pénalité, nombre de noms",
+  "settingsTontineSettingsMember": "Consulter (lecture seule)",
+  "settingsSectionAccount": "Compte",
+  "settingsMyProfile": "Mon profil",
+  "settingsMyProfileAdmin": "Vos coordonnées et votre code d'invitation",
+  "settingsMyProfileMember": "Vos noms, vos cotisations et vos déclarations",
+  "settingsSectionPreferences": "Préférences",
+  "settingsLanguage": "Langue",
+  "settingsLanguageSystem": "Langue du téléphone",
+  "languageFrench": "Français",
+  "languageEnglish": "English",
+  "namesCountWhole": "{count, plural, =0{0 nom} =1{1 nom} other{{count} noms}}",
+  "@namesCountWhole": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "namesCountHalfOnly": "½ nom",
+  "namesCountWithHalf": "{count}½ noms",
+  "@namesCountWithHalf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "namesRemoveHalf": "Retirer une demie",
+  "namesAddHalf": "Ajouter une demie",
+  "membersTitle": "Membres",
+  "membersTabNames": "Noms ({count})",
+  "@membersTabNames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "membersTabMembers": "Membres ({count})",
+  "@membersTabMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonAdd": "Ajouter",
+  "membersLoadError": "Impossible de charger les membres.",
+  "membersSectionNames": "Noms",
+  "membersAssign": "Attribuer",
+  "membersNoNamesYet": "Aucun nom n'a encore été créé. Attribuez le premier pour commencer.",
+  "membersAssignName": "Attribuer un nom",
+  "membersGenerateSchedule": "Générer l'échéancier",
+  "membersNamesLeftBeforeSchedule": "{count, plural, =1{Encore 1 nom à attribuer avant de pouvoir générer l'échéancier.} other{Encore {count} noms à attribuer avant de pouvoir générer l'échéancier.}}",
+  "@membersNamesLeftBeforeSchedule": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "membersActiveSection": "Membres actifs ({count})",
+  "@membersActiveSection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "membersNoActive": "Aucun membre actif pour le moment.",
+  "membersInactiveSection": "Membres désactivés ({count})",
+  "@membersInactiveSection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unknownMember": "Membre inconnu",
+  "membersNoHolder": "Aucun détenteur",
+  "membersToComplete": "À compléter",
+  "membersNoContact": "Aucun contact",
+  "membersPending": "En attente",
+  "membersNamesAssignedOf": "/{total} noms attribués",
+  "@membersNamesAssignedOf": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "membersComplete": "Complet",
+  "addMemberCodeCopied": "Code copié.",
+  "addMemberTitle": "Ajouter un membre",
+  "addMemberSubmit": "Ajouter et générer le code",
+  "addMemberAddedFlash": "{name} a été ajouté(e) à la tontine.",
+  "@addMemberAddedFlash": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addMemberAddedTitle": "{name} a été ajouté(e)",
+  "@addMemberAddedTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addMemberNoNamesYet": "Sans nom attribué pour le moment.",
+  "addMemberWithNames": "Avec {names}.",
+  "@addMemberWithNames": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "addMemberShareCode": "Transmettez-lui ce code pour qu'il ou elle rejoigne la tontine.",
+  "addMemberInviteCodeOverline": "CODE D'INVITATION",
+  "addMemberInviteCodeSemantics": "Code d'invitation {code}",
+  "@addMemberInviteCodeSemantics": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "addMemberCopyCode": "Copier le code",
+  "commonDone": "Terminé",
+  "profileContactUpdated": "Coordonnées mises à jour.",
+  "profileDeactivateTitle": "Désactiver {name} ?",
+  "@profileDeactivateTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileDeactivateMessage": "Ce membre n'apparaîtra plus dans les membres actifs. Vous pourrez le réactiver à tout moment.",
+  "profileDeactivate": "Désactiver",
+  "profileDeactivated": "{name} a été désactivé(e).",
+  "@profileDeactivated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileReactivated": "{name} a été réactivé(e).",
+  "@profileReactivated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileNamesAssigned": "{names} attribué(s) à {name}.",
+  "@profileNamesAssigned": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileLoadError": "Impossible de charger ce membre.",
+  "profileNotFound": "Ce membre est introuvable.",
+  "profileEditContact": "Modifier les coordonnées",
+  "commonSave": "Enregistrer",
+  "contactWhatsApp": "WhatsApp",
+  "profileNamesHeld": "Noms détenus",
+  "profileNoNamesYet": "Aucun nom attribué pour le moment.",
+  "profileDeactivateMember": "Désactiver ce membre",
+  "profileReactivateMember": "Réactiver ce membre",
+  "profileInviteCodeUsed": "Code d'invitation (utilisé)",
+  "profileInviteCode": "Code d'invitation",
+  "profileRegistered": "Inscrit",
+  "profileShareCodeWith": "À transmettre à {name} pour qu'il ou elle rejoigne la tontine.",
+  "@profileShareCodeWith": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileDuePerDueDate": "DÛ PAR ÉCHÉANCE",
+  "profileNamesHeldCount": "{count, plural, =1{1 nom détenu} other{{count} noms détenus}}",
+  "@profileNamesHeldCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statusDeactivated": "Désactivé",
+  "statusAwaitingSignup": "En attente d'inscription",
+  "statusActive": "Actif",
+  "profileAssignNamesTitle": "Attribuer des noms",
+  "profileAssignNamesQuestion": "Combien de noms supplémentaires pour {name} ?",
+  "@profileAssignNamesQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "memberFormContactRequired": "Indiquez au moins un email ou un numéro WhatsApp.",
+  "memberFormFullName": "Nom complet",
+  "memberFormNameTooShort": "Le nom doit contenir au moins 2 caractères.",
+  "memberFormWhatsApp": "Numéro WhatsApp",
+  "memberFormEmail": "Email",
+  "memberFormOneContactRequired": "Au moins un des deux moyens de contact est requis.",
+  "memberFormHalfNamesHelp": "Un nom peut être partagé en demies entre deux membres ; le nom entier lui appartient exclusivement.",
+  "errorNamesQuotaExceeded": "Cette attribution dépasserait le nombre de noms prévu pour la tontine ({total}).",
+  "@errorNamesQuotaExceeded": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "defaultNameLabel": "Nom {position}",
+  "@defaultNameLabel": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "assignSharesMustTotal100": "La somme des parts doit être égale à 100 %.",
+  "assignSharesSaved": "Parts enregistrées.",
+  "assignLoadNamesError": "Impossible de charger les noms.",
+  "assignNameNotFound": "Ce nom est introuvable.",
+  "assignNewName": "Nouveau nom",
+  "assignEditShares": "Modifier les parts",
+  "assignAddActiveMembersFirst": "Ajoutez d'abord des membres actifs pour pouvoir leur attribuer ce nom.",
+  "assignFrozen": "Figé — l'échéancier a déjà démarré. Modifier ces parts fausserait les montants dus déjà calculés.",
+  "partsHolders": "Détenteurs de part",
+  "partsSplitEqually": "Répartir également",
+  "partsTotal": "Total : {percent} %",
+  "@partsTotal": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleTabUpcoming": "À venir ({count})",
+  "@scheduleTabUpcoming": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleTabHistory": "Historique ({count})",
+  "@scheduleTabHistory": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleLoadError": "Impossible de charger l'échéancier.",
+  "scheduleNoCalendarYet": "Pas encore de calendrier",
+  "scheduleDragHint": "Maintenez et faites glisser pour changer l'ordre.",
+  "scheduleNoTurnPaid": "Aucun tour remis pour le moment. Les tours apparaîtront ici une fois la cagnotte remise.",
+  "reorderReasonRequired": "Indiquez la raison de ce changement.",
+  "reorderTitle": "Déplacer ce tour",
+  "reorderExplanation": "Les dates des tours suivants seront recalculées. Expliquez pourquoi l'ordre change.",
+  "reorderHint": "Ex. absence exceptionnelle, demande du membre…",
+  "commonConfirm": "Confirmer",
+  "turnStatusUpcoming": "À venir",
+  "turnStatusInProgress": "En cours",
+  "turnStatusPaid": "Remis",
+  "turnStatusPostponed": "Reporté",
+  "turnHistoryTitle": "Historique du tour",
+  "turnPositionChange": "Position {from} → {to}",
+  "@turnPositionChange": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "turnPaidOn": "Remis le {date}",
+  "@turnPaidOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "turnPlannedOn": "Prévu le {date}",
+  "@turnPlannedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "turnChangesSeeHistory": "{count, plural, =1{Repositionné — voir l'historique} other{{count} changements — voir l'historique}}",
+  "@turnChangesSeeHistory": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "turnsPaidOf": " / {total} tours remis",
+  "@turnsPaidOf": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "collectLoadError": "Impossible de charger la collecte.",
+  "collectTurnNotFound": "Ce tour est introuvable.",
+  "collectRecorded": "Cotisation de {name} enregistrée.",
+  "@collectRecorded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "collectTitleAdmin": "Collecte — Tour {position}",
+  "@collectTitleAdmin": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "collectTitleMember": "Tour {position} — Contributions",
+  "@collectTitleMember": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "collectTabToCollect": "À collecter ({count})",
+  "@collectTabToCollect": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "collectTabSettled": "Réglé ({count})",
+  "@collectTabSettled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "collectNoHolders": "Aucun détenteur de part pour ce tour.",
+  "collectEveryonePaid": "Tout le monde a réglé ce tour.",
+  "collectNoPaymentsYet": "Aucun règlement enregistré pour le moment.",
+  "collectDueOverline": "ÉCHÉANCE · {date}",
+  "@collectDueOverline": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "collectComplete": "Collecte complète",
+  "collectPeopleLeft": "{count, plural, =1{1 personne à encaisser} other{{count} personnes à encaisser}}",
+  "@collectPeopleLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statusUnpaid": "Impayé",
+  "collectRemainingOf": "reste sur {amount}",
+  "@collectRemainingOf": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "contribInvalidAmount": "Indiquez un montant versé valide.",
+  "contribAmountExceedsDue": "Le montant versé ne peut pas dépasser le montant dû.",
+  "contribMarkedOnTimeReason": "Marqué comme à temps par l’administratrice.",
+  "contribAmountDue": "Montant dû : {amount}",
+  "@contribAmountDue": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "contribAmountPaid": "Montant versé",
+  "contribPaymentDate": "Date du paiement",
+  "contribIsLate": "Ce paiement est-il en retard ?",
+  "contribOnTime": "À temps",
+  "contribPenaltyWaived": "Pénalité levée",
+  "contribPenaltyComputed": "Pénalité calculée",
+  "contribCancelWaiver": "Annuler la levée",
+  "contribWaivePenalty": "Lever la pénalité",
+  "contribSubmit": "Enregistrer la cotisation",
+  "declValidated": "Déclaration validée.",
+  "declRejected": "Déclaration refusée.",
+  "declTitle": "Déclaration",
+  "declLoadError": "Impossible de charger cette déclaration.",
+  "declNotFound": "Cette déclaration est introuvable.",
+  "turnLabel": "Tour {position}",
+  "@turnLabel": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "declAmountDeclared": "Montant déclaré",
+  "declPaidOn": "Payé le {date}",
+  "@declPaidOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "declRejectionReason": "Motif du refus : {reason}",
+  "@declRejectionReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "declProofOfPayment": "Preuve de paiement",
+  "declApprove": "Valider la déclaration",
+  "declReject": "Refuser",
+  "declNewDeclaration": "Faire une nouvelle déclaration",
+  "declStatusPending": "En attente",
+  "declStatusApproved": "Validée",
+  "declStatusDisputed": "Contestée",
+  "declProofLoadError": "Impossible de charger la preuve.",
+  "declNoProof": "Aucune preuve disponible.",
+  "declEnlargeProof": "Agrandir la preuve",
+  "declRejectReasonRequired": "Indiquez la raison du refus.",
+  "declRejectTitle": "Refuser cette déclaration",
+  "declRejectHint": "Ex. preuve illisible, montant incorrect…",
+  "declListLoadError": "Impossible de charger les déclarations.",
+  "declNone": "Aucune déclaration",
+  "declNoneMessage": "Quand un membre signale avoir payé, sa déclaration et sa preuve apparaissent ici.",
+  "unknownTurn": "Tour inconnu",
+  "declGroupTitle": "Tour {position} — {beneficiaries}",
+  "@declGroupTitle": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      },
+      "beneficiaries": {
+        "type": "String"
+      }
+    }
+  },
+  "declPendingOf": "{pending} en attente sur {total}",
+  "@declPendingOf": {
+    "placeholders": {
+      "pending": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "declCount": "{count, plural, =1{1 déclaration} other{{count} déclarations}}",
+  "@declCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "waiverReasonRequired": "Indiquez la raison de cette exception.",
+  "waiverExplanation": "La pénalité de retard calculée ne sera pas appliquée à cette cotisation. Expliquez pourquoi.",
+  "waiverHint": "Ex. panne réseau signalée à l’avance",
+  "proofImageError": "Impossible de récupérer l'image. Réessayez.",
+  "proofTakePhoto": "Prendre une photo",
+  "proofChooseFromGallery": "Choisir dans la galerie",
+  "proofRequired": "Preuve (obligatoire)",
+  "proofOptional": "Preuve (optionnelle)",
+  "proofRemove": "Retirer la preuve",
+  "proofCompressing": "Compression en cours…",
+  "proofAdd": "Ajouter une preuve",
+  "memberSpaceTitle": "Mon espace",
+  "memberSpaceLoadError": "Impossible de charger votre espace.",
+  "memberSpaceNoMember": "Aucune fiche membre associée à ce compte.",
+  "memberSpaceScheduleNotGenerated": "L'échéancier n'a pas encore été généré par l'administratrice.",
+  "memberSpaceAllTurnsPaid": "Tous les tours ont été remis.",
+  "memberSpaceToPayThisTurn": "À régler pour ce tour",
+  "memberSpaceMyDeclarations": "Mes déclarations",
+  "memberSpaceDeclaredOn": "Déclaré le {date}",
+  "@memberSpaceDeclaredOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "memberSpaceContributionHistory": "Historique des cotisations",
+  "declareInvalidAmount": "Indiquez un montant valide.",
+  "declareAmountExceedsRemaining": "Le montant ne peut pas dépasser le reste à devoir.",
+  "declareProofRequired": "Une preuve est obligatoire pour déclarer un paiement.",
+  "declareSent": "Déclaration envoyée. En attente de validation par l'administratrice.",
+  "declareTitle": "J'ai payé",
+  "declareNotAllowed": "Ce nom ne peut plus être déclaré pour le tour en cours.",
+  "declareRemaining": "Reste à devoir : {amount}",
+  "@declareRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "declareSubmit": "Envoyer la déclaration",
+  "myNamesNoCurrentTurn": "Aucun tour en cours pour vos noms.",
+  "myNamesDeclarationPending": "Déclaration en attente",
+  "myNamesDeclarationDisputed": "Déclaration contestée",
+  "myNamesShare": "Part : {fraction}",
+  "@myNamesShare": {
+    "placeholders": {
+      "fraction": {
+        "type": "String"
+      }
+    }
+  },
+  "situationNoUpcomingTurn": "Aucun tour à venir pour vos noms.",
+  "situationYourNextTurn": "Votre prochain tour",
+  "situationTurnLine": "{name} · tour {position} · {relative}",
+  "@situationTurnLine": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "position": {
+        "type": "int"
+      },
+      "relative": {
+        "type": "String"
+      }
+    }
+  },
+  "onboarding1Title": "Votre tontine,\nsans cahier ni calculs",
+  "onboarding1Text": "Membres, noms, parts et ordre des tours : tout le cercle est réglé une fois, puis {appName} tient le calendrier pour vous.",
+  "@onboarding1Text": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "onboarding2Title": "Chaque franc,\nsuivi en direct",
+  "onboarding2Text": "Voyez qui a payé, qui est en retard et combien il reste à collecter pour le tour en cours. Les pénalités se calculent toutes seules.",
+  "onboarding3Title": "Les membres déclarent,\nvous validez",
+  "onboarding3Text": "Chaque membre signale son paiement avec une preuve, depuis son téléphone. L'administratrice vérifie et valide en un geste.",
+  "onboardingSkip": "Passer",
+  "onboardingStart": "Commencer",
+  "onboardingHaveCode": "J'ai reçu un code d'invitation",
+  "onboardingCircleCaption": "Tour 5 · Aïcha reçoit la cagnotte",
+  "onboardingCollectOverline": "COLLECTE · TOUR 3",
+  "onboardingDeclaredPayment": "a déclaré un paiement",
+  "onboardingMobileMoneyReceipt": "Reçu Mobile Money joint",
+  "errorAlreadyMember": "Vous faites déjà partie de ce groupe.",
+  "errorForbidden": "Cette action est réservée au bureau du groupe.",
+  "errorDeclarationNotPending": "Cette déclaration a déjà été traitée.",
+  "errorTurnAlreadyPaid": "Un tour déjà remis ne peut pas être déplacé.",
+  "errorLastOwner": "Le groupe doit garder au moins un propriétaire.",
+  "errorNamesQuotaReached": "Tous les noms prévus pour la tontine sont déjà attribués.",
+  "errorServerNotConfigured": "L'application n'est pas reliée à son serveur. Contactez le support.",
+  "errorEmailNotConfirmed": "Confirmez d'abord votre adresse : ouvrez le lien reçu par email.",
+  "verifyBodyLink": "Un lien de confirmation a été envoyé à {email}. Ouvrez-le depuis ce téléphone pour entrer directement dans l'application, ou connectez-vous ensuite.",
+  "@verifyBodyLink": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyDoneSignIn": "J'ai confirmé, me connecter",
+  "roleOwner": "Propriétaire",
+  "rolePresident": "Président(e)",
+  "roleTreasurer": "Trésorier(ère)",
+  "roleAuditor": "Commissaire aux comptes",
+  "roleMember": "Membre",
+  "groupsTitle": "Mes groupes",
+  "groupsSubtitle": "Touchez un groupe pour l'afficher.",
+  "groupsCurrent": "Affiché",
+  "groupsJoinWithCode": "Rejoindre avec un code",
+  "groupsSwitch": "Changer de groupe",
+  "settingsMyGroups": "Mes groupes",
+  "settingsMyGroupsSubtitle": "{count, plural, =1{1 groupe · créer ou rejoindre un autre} other{{count} groupes · changer, créer ou rejoindre}}",
+  "@settingsMyGroupsSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loginContinueWithApple": "Continuer avec Apple",
+  "newPasswordTitle": "Choisissez un nouveau mot de passe",
+  "newPasswordSubmit": "Enregistrer le mot de passe",
+  "newPasswordSaved": "Mot de passe modifié.",
+  "settingsDeleteAccount": "Supprimer mon compte",
+  "settingsDeleteAccountSubtitle": "Définitif. Vos fiches restent dans les groupes, anonymisées.",
+  "settingsDeleteAccountTitle": "Supprimer votre compte ?",
+  "settingsDeleteAccountMessage": "Votre compte et vos coordonnées seront effacés. Les cotisations et l'historique restent dans vos groupes, sans votre nom de compte, pour ne pas fausser les comptes des autres membres. Un groupe dont vous êtes le seul membre sera supprimé. Cette action est irréversible.",
+  "settingsDeleteAccountConfirm": "Supprimer définitivement",
+  "errorTransferOwnershipRequired": "Vous êtes le seul propriétaire d'un groupe : nommez d'abord un autre propriétaire avant de supprimer votre compte."
+}

@@ -1,4 +1,4 @@
-# TontineFacile
+# DjanguiBook
 
 App Flutter (Riverpod, go_router, Firebase) de gestion de tontines. Interface en français.
 
@@ -23,3 +23,11 @@ Pour tout travail sur l'interface (écran, widget, thème, animation dans `lib/`
 
 - Tests : `flutter test`
 - Analyse : `flutter analyze`
+- Base de données (pgTAP, sans Docker) : `supabase/tests/run_local.sh`
+- Repositories Supabase et Edge Functions contre PostgREST : `supabase/tests/run_api_local.sh`
+- Edge Functions (Deno) : `cd supabase/functions && deno test tests/*.ts`
+
+## Backend
+
+Supabase (Postgres + RLS) : schéma et fonctions dans `supabase/migrations/`. Toute écriture sensible passe
+par la RLS ou une fonction SQL ; chaque nouvelle règle d'accès a son test pgTAP dans `supabase/tests/database/`.

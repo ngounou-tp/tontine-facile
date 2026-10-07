@@ -1,73 +1,101 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase, SupabaseClient;
 
-import '../../../data/datasources/profil_firestore_datasource.dart';
-import '../../../data/datasources/tontine_firestore_datasource.dart';
-import '../../../data/repositories/profil_repository.dart';
-import '../../../data/repositories/profil_repository_impl.dart';
+import '../../../core/errors/app_exception.dart';
+import '../../../data/repositories/groupes_repository.dart';
+import '../../../data/repositories/supabase_groupes_repository.dart';
+import '../../../data/repositories/supabase_tontine_repository.dart';
 import '../../../data/repositories/tontine_repository.dart';
-import '../../../data/repositories/tontine_repository_impl.dart';
 import '../../../data/services/auth_service.dart';
-import '../../../data/services/firebase_auth_service.dart';
 import '../../../data/services/inscription_service.dart';
+import '../../../data/services/preferences_session.dart';
+import '../../../data/services/supabase_auth_service.dart';
+import '../../../data/supabase/stockage_preuves.dart';
+import '../../../data/supabase/supabase_config.dart';
+import '../../../data/supabase/table_changes.dart';
 import '../../../domain/entities/app_user.dart';
 import '../../../domain/entities/session.dart';
 import '../../../domain/entities/tontine.dart';
+import '../../onboarding/application/onboarding_provider.dart';
 
-/// Source unique de l'utilisateur authentifié Firebase.
+/// Client Supabase initialisé au démarrage (`main.dart`). Lève
+/// [ServeurNonConfigureException] si le build n'a pas reçu
+/// `SUPABASE_URL` / `SUPABASE_ANON_KEY`.
+final supabaseClientProvider = Provider<SupabaseClient>((ref) {
+  if (!SupabaseConfig.estConfigure) throw const ServeurNonConfigureException();
+  return Supabase.instance.client;
+});
+
+/// Source unique de l'utilisateur authentifié.
 ///
-/// L'état est `loading` pendant la restauration de la session, `null` après
-/// déconnexion et contient un [AppUser] une fois connecté.
+/// `loading` pendant la restauration de la session, `null` après
+/// déconnexion, un [AppUser] une fois connecté.
 final authStateProvider = StreamProvider<AppUser?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
 });
 
-/// Adaptateur Firebase Auth utilisé par les écrans et le service d'inscription.
 final authServiceProvider = Provider<AuthService>((ref) {
-  return FirebaseAuthService();
-});
-
-final _profilDataSourceProvider = Provider<ProfilDataSource>((ref) {
-  return FirestoreProfilDataSource();
-});
-
-/// Accès aux profils qui relient un compte à une tontine et à un membre.
-final profilRepositoryProvider = Provider<ProfilRepository>((ref) {
-  return FirestoreProfilRepository(
-    dataSource: ref.watch(_profilDataSourceProvider),
+  return SupabaseAuthService(
+    ref.watch(supabaseClientProvider).auth,
+    googleServerClientId: const String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID').isEmpty
+        ? null
+        : const String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID'),
   );
 });
 
-final _tontineDataSourceProvider = Provider<TontineDataSource>((ref) {
-  return FirestoreTontineDataSource();
+/// Compteur incrémenté à chaque ouverture de l'app par un lien de
+/// réinitialisation de mot de passe (voir `DjanguiBookApp`).
+final passwordRecoveryProvider = StreamProvider<int>((ref) {
+  var compteur = 0;
+  return ref.watch(authServiceProvider).passwordRecovery.map((_) => ++compteur);
 });
 
-/// Dépendance nécessaire aux parcours d'inscription et d'adhésion.
+final tableChangesProvider = Provider<TableChanges>((ref) {
+  return SupabaseTableChanges(ref.watch(supabaseClientProvider));
+});
+
+final stockagePreuvesProvider = Provider<StockagePreuves>((ref) {
+  return SupabaseStockagePreuves(ref.watch(supabaseClientProvider));
+});
+
+/// Données des tontines (membres, noms, tours, cotisations...).
 final tontineRepositoryProvider = Provider<TontineRepository>((ref) {
-  return FirestoreTontineRepository(
-    dataSource: ref.watch(_tontineDataSourceProvider),
+  return SupabaseTontineRepository(
+    db: ref.watch(supabaseClientProvider).rest,
+    changes: ref.watch(tableChangesProvider),
+    stockage: ref.watch(stockagePreuvesProvider),
   );
 });
 
-/// Orchestre Firebase Auth, profils, invitations et tontines.
+/// Groupes du compte : appartenances, création, adhésion.
+final groupesRepositoryProvider = Provider<GroupesRepository>((ref) {
+  return SupabaseGroupesRepository(
+    db: ref.watch(supabaseClientProvider).rest,
+    changes: ref.watch(tableChangesProvider),
+  );
+});
+
+final preferencesSessionProvider = Provider<PreferencesSession>((ref) {
+  return SharedPreferencesSession(ref.watch(sharedPreferencesProvider));
+});
+
+/// Orchestre authentification, groupes et groupe affiché.
 final inscriptionServiceProvider = Provider<InscriptionService>((ref) {
   return InscriptionService(
     authService: ref.watch(authServiceProvider),
-    tontineRepository: ref.watch(tontineRepositoryProvider),
-    profilRepository: ref.watch(profilRepositoryProvider),
+    groupes: ref.watch(groupesRepositoryProvider),
+    preferences: ref.watch(preferencesSessionProvider),
   );
 });
 
-/// Session applicative enrichie du profil Firestore éventuel.
-///
-/// Un compte authentifié sans profil produit une [Session] dont `profil` est
-/// `null`; le routeur pourra ainsi l'orienter vers la création ou l'adhésion à
-/// une tontine plutôt que vers l'espace administrateur ou membre.
+/// Session : utilisateur, ses groupes, et le groupe affiché
+/// ([Session.profil], `null` tant qu'il n'appartient à aucun groupe — le
+/// routeur l'oriente alors vers la création ou l'adhésion).
 final sessionProvider = StreamProvider<Session?>((ref) {
   return ref.watch(inscriptionServiceProvider).session;
 });
 
-/// Tontine associée à la session courante, utile notamment aux gardes de route
-/// pour distinguer l'administratrice des membres.
+/// Tontine du groupe affiché, utile notamment aux gardes de route.
 final currentTontineProvider = FutureProvider<Tontine?>((ref) async {
   final session = await ref.watch(sessionProvider.future);
   final profil = session?.profil;
@@ -76,24 +104,17 @@ final currentTontineProvider = FutureProvider<Tontine?>((ref) async {
   return ref.watch(tontineRepositoryProvider).getTontine(profil.tontineId);
 });
 
-/// `true` si le compte connecté est l'administratrice de la tontine
-/// courante, `false` pour un membre ou tant que l'un ou l'autre n'a pas
-/// résolu. Les écrans partagés (Accueil, Membres, Échéancier, Réglages,
-/// Déclarations) sont ouverts en lecture seule aux membres par le routeur ;
-/// c'est ce provider qui leur permet de masquer localement leurs actions
-/// réservées (ajouter/modifier/désactiver un membre, générer ou réorganiser
-/// l'échéancier, traiter une déclaration...).
+/// `true` si le compte connecté fait partie du bureau (propriétaire,
+/// président ou trésorier) du groupe affiché. Les écrans partagés masquent
+/// leurs actions réservées pour les autres membres ; le serveur refuse de
+/// toute façon ces actions (RLS).
 final isAdminProvider = Provider<bool>((ref) {
-  final session = ref.watch(sessionProvider).value;
-  final tontine = ref.watch(currentTontineProvider).value;
-  if (session == null || tontine == null) return false;
-  return tontine.adminUid == session.utilisateur.uid;
+  return ref.watch(sessionProvider).value?.profil?.estGestionnaire ?? false;
 });
 
-/// Aperçu (nom, nombre de membres) de la tontine désignée par un code
-/// d'invitation, `null` si le code est introuvable. Une instance par code
-/// grâce à `.family` : l'écran d'adhésion la relance à chaque frappe.
-final apercuInvitationProvider = FutureProvider.autoDispose
-    .family<({String nom, int nombreMembres})?, String>((ref, code) {
+/// Aperçu (nom du groupe, nombre de membres) du groupe désigné par un code
+/// d'invitation, `null` si le code est introuvable.
+final apercuInvitationProvider =
+    FutureProvider.autoDispose.family<ApercuInvitation?, String>((ref, code) {
   return ref.watch(inscriptionServiceProvider).apercuInvitation(code);
 });

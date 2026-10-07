@@ -7,6 +7,8 @@ import '../../../../core/utils/date_formatter.dart';
 import '../../../../shared/widgets/app_button.dart';
 import 'penalite_exception_dialog.dart';
 import 'preuve_picker.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Valeur soumise par [CotisationForm] : montant réellement versé, date du
 /// paiement, pénalité retenue (0 si levée), motif de l'exception le cas
@@ -106,11 +108,11 @@ class _CotisationFormState extends State<CotisationForm> {
   void _soumettre() {
     final montant = int.tryParse(_montant.text);
     if (montant == null || montant <= 0) {
-      setState(() => _erreur = 'Indiquez un montant versé valide.');
+      setState(() => _erreur = context.l10n.contribInvalidAmount);
       return;
     }
     if (montant > widget.montantDu) {
-      setState(() => _erreur = 'Le montant versé ne peut pas dépasser le montant dû.');
+      setState(() => _erreur = context.l10n.contribAmountExceedsDue);
       return;
     }
     setState(() => _erreur = null);
@@ -124,7 +126,7 @@ class _CotisationFormState extends State<CotisationForm> {
         (!_paiementEnRetard && widget.calculerPenalite(_datePaiement) > 0);
     final motif = _exonererPenalite
         ? _motifException
-        : (exonerer ? 'Marqué comme à temps par l’administratrice.' : null);
+        : (exonerer ? context.l10n.contribMarkedOnTimeReason : null);
 
     widget.onSubmit((
       montantVerse: montant,
@@ -140,9 +142,9 @@ class _CotisationFormState extends State<CotisationForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Montant dû : ${formatAmount(widget.montantDu)}', style: AppTypography.secondary),
+        Text(context.l10n.contribAmountDue(formatAmount(widget.montantDu)), style: AppTypography.secondary),
         const SizedBox(height: AppSpacing.md),
-        const Text('Montant versé', style: AppTypography.bodyStrong),
+        Text(context.l10n.contribAmountPaid, style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.xs),
         // Le montant est LA donnée de l'écran : saisie en grands chiffres,
         // clavier numérique, chiffres seuls (ni espace, ni virgule).
@@ -152,7 +154,7 @@ class _CotisationFormState extends State<CotisationForm> {
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           style: AppTypography.amountXl.copyWith(fontSize: 28),
           decoration: InputDecoration(
-            suffixText: 'FCFA',
+            suffixText: AppConstants.currency,
             suffixStyle: AppTypography.bodyStrong.copyWith(color: AppColors.slate),
             errorText: _erreur,
           ),
@@ -161,7 +163,7 @@ class _CotisationFormState extends State<CotisationForm> {
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        const Text('Date du paiement', style: AppTypography.bodyStrong),
+        Text(context.l10n.contribPaymentDate, style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.xs),
         InkWell(
           borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
@@ -184,12 +186,12 @@ class _CotisationFormState extends State<CotisationForm> {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        const Text('Ce paiement est-il en retard ?', style: AppTypography.bodyStrong),
+        Text(context.l10n.contribIsLate, style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.xs),
         SegmentedButton<bool>(
-          segments: const [
-            ButtonSegment(value: false, label: Text('À temps')),
-            ButtonSegment(value: true, label: Text('En retard')),
+          segments: [
+            ButtonSegment(value: false, label: Text(context.l10n.contribOnTime)),
+            ButtonSegment(value: true, label: Text(context.l10n.statusLate)),
           ],
           selected: {_paiementEnRetard},
           onSelectionChanged: (selection) => setState(() {
@@ -223,7 +225,7 @@ class _CotisationFormState extends State<CotisationForm> {
                           children: [
                             Expanded(
                               child: Text(
-                                _exonererPenalite ? 'Pénalité levée' : 'Pénalité calculée',
+                                _exonererPenalite ? context.l10n.contribPenaltyWaived : context.l10n.contribPenaltyComputed,
                                 style: AppTypography.bodyStrong,
                               ),
                             ),
@@ -245,7 +247,7 @@ class _CotisationFormState extends State<CotisationForm> {
                           alignment: Alignment.centerLeft,
                           child: TextButton(
                             onPressed: () => _basculerExoneration(!_exonererPenalite),
-                            child: Text(_exonererPenalite ? 'Annuler la levée' : 'Lever la pénalité'),
+                            child: Text(_exonererPenalite ? context.l10n.contribCancelWaiver : context.l10n.contribWaivePenalty),
                           ),
                         ),
                       ],
@@ -257,7 +259,7 @@ class _CotisationFormState extends State<CotisationForm> {
         PreuvePicker(value: _preuve, onChanged: (valeur) => setState(() => _preuve = valeur)),
         const SizedBox(height: AppSpacing.xl),
         AppButton(
-          label: 'Enregistrer la cotisation',
+          label: context.l10n.contribSubmit,
           variant: AppButtonVariant.accent,
           busy: widget.busy,
           onPressed: widget.busy ? null : _soumettre,

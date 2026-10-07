@@ -23,6 +23,8 @@ import '../../application/tontine_providers.dart';
 import '../widgets/current_tour_card.dart';
 import '../widgets/dashboard_stats_grid.dart';
 import '../widgets/pending_declarations_banner.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Tableau de bord de l'administratrice : vue d'ensemble de sa tontine
 /// (montant distribué par tour, tour en cours, progression de la collecte,
@@ -42,11 +44,16 @@ class HomePage extends ConsumerWidget {
     return AppScaffold(
       selectedNavIndex: 0,
       appBar: AppBar(
-        title: Text(tontineAsync.value?.nom ?? 'TontineFacile'),
+        title: Text(tontineAsync.value?.nom ?? AppConstants.appName),
         actions: [
           IconButton(
+            onPressed: () => context.go(AppRouter.groupesPath),
+            tooltip: context.l10n.groupsSwitch,
+            icon: const Icon(Icons.swap_horiz),
+          ),
+          IconButton(
             onPressed: () => context.go(AppRouter.reglagesPath),
-            tooltip: 'Réglages',
+            tooltip: context.l10n.navSettings,
             icon: const Icon(Icons.settings_outlined),
           ),
           const SizedBox(width: AppSpacing.xs),
@@ -62,16 +69,16 @@ class HomePage extends ConsumerWidget {
               icon: const Icon(Icons.person_add_alt_1_outlined),
               // « Ajouter » seul ne dit pas quoi : sur l'accueil, l'action
               // n'a pas de contexte implicite.
-              label: const Text('Ajouter un membre'),
+              label: Text(context.l10n.homeAddMember),
             ),
       body: tontineAsync.when(
-        loading: () => const LoadingView(message: 'Chargement de votre tontine…'),
+        loading: () => LoadingView(message: context.l10n.homeLoading),
         error: (_, _) => ErrorView(
-          message: 'Impossible de charger votre tontine.',
+          message: context.l10n.homeLoadError,
           onRetry: () => ref.invalidate(tontineProvider),
         ),
         data: (tontine) => tontine == null
-            ? const ErrorView(message: 'Aucune tontine associée à ce compte.')
+            ? ErrorView(message: context.l10n.errorNoTontine)
             : _Contenu(tontine: tontine),
       ),
     );
@@ -127,12 +134,14 @@ class _Contenu extends ConsumerWidget {
       ),
       children: [
         Text(
-          prenom.isEmpty ? 'Bonjour' : 'Bonjour, $prenom',
+          prenom.isEmpty ? context.l10n.homeHello : context.l10n.homeHelloName(prenom),
           style: AppTypography.screenTitle,
         ),
         const SizedBox(height: AppSpacing.xxs),
         Text(
-          isAdmin ? _sousTitre(declarationsEnAttente.length) : 'Voici le résumé de votre tontine.',
+          isAdmin
+              ? context.l10n.homeSubtitlePending(declarationsEnAttente.length)
+              : context.l10n.homeSubtitleMember,
           style: AppTypography.secondary,
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -153,7 +162,7 @@ class _Contenu extends ConsumerWidget {
           onTap: () => context.go(AppRouter.declarationsPath),
         ),
         const SizedBox(height: AppSpacing.xl),
-        const SectionHeader(title: "En un coup d'œil"),
+        SectionHeader(title: context.l10n.homeAtAGlance),
         DashboardStatsGrid(
           membresActifs: actifs,
           nomsAttribues: noms.length,
@@ -165,8 +174,8 @@ class _Contenu extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.xl),
         SectionHeader(
-          title: 'Membres',
-          actionLabel: 'Voir tout',
+          title: context.l10n.navMembers,
+          actionLabel: context.l10n.commonSeeAll,
           onAction: () => context.go(AppRouter.membresPath),
         ),
         AppCard(
@@ -187,8 +196,8 @@ class _Contenu extends ConsumerWidget {
               Expanded(
                 child: Text(
                   actifs == 0
-                      ? 'Aucun membre actif pour le moment'
-                      : '$actifs membre${actifs > 1 ? 's' : ''} actif${actifs > 1 ? 's' : ''}',
+                      ? context.l10n.homeNoActiveMembers
+                      : context.l10n.homeActiveMembers(actifs),
                   style: AppTypography.body,
                 ),
               ),
@@ -199,12 +208,6 @@ class _Contenu extends ConsumerWidget {
       ],
     );
   }
-
-  String _sousTitre(int declarationsEnAttente) => switch (declarationsEnAttente) {
-        0 => 'Voici le résumé de votre tontine.',
-        1 => 'Un paiement attend votre validation.',
-        final n => '$n paiements attendent votre validation.',
-      };
 }
 
 /// Jusqu'à quatre avatars qui se chevauchent, puis « +N » : on voit qui

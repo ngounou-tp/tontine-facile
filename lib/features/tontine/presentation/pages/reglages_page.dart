@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/locale_controller.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
 import '../../../../shared/widgets/app_card.dart';
@@ -9,6 +10,8 @@ import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../auth/application/auth_providers.dart';
+import '../../../auth/presentation/widgets/auth_form.dart' show messageErreurAuth;
+import '../../../../l10n/l10n.dart';
 
 /// Onglet Réglages : menu des paramètres de l'application (tontine, profil
 /// utilisateur...) et actions de compte.
@@ -18,12 +21,72 @@ class ReglagesPage extends ConsumerWidget {
   Future<void> _confirmerDeconnexion(BuildContext context, WidgetRef ref) async {
     final confirme = await confirmer(
       context,
-      titre: 'Se déconnecter ?',
-      message: 'Vous devrez vous reconnecter pour accéder à votre tontine.',
-      libelleConfirmation: 'Se déconnecter',
+      titre: context.l10n.settingsSignOutTitle,
+      message: context.l10n.settingsSignOutMessage,
+      libelleConfirmation: context.l10n.commonSignOut,
     );
     if (confirme) {
       await ref.read(authControllerProvider.notifier).deconnecter();
+    }
+  }
+
+  /// Suppression définitive : confirmation explicite, puis retour à
+  /// l'écran de connexion (la session est fermée par le service).
+  Future<void> _confirmerSuppression(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final confirme = await confirmer(
+      context,
+      titre: l10n.settingsDeleteAccountTitle,
+      message: l10n.settingsDeleteAccountMessage,
+      libelleConfirmation: l10n.settingsDeleteAccountConfirm,
+      destructif: true,
+    );
+    if (!confirme) return;
+    try {
+      await ref.read(authControllerProvider.notifier).supprimerCompte();
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageErreurAuth(error))));
+      }
+    }
+  }
+
+  String _nomLangue(AppLocalizations l10n, Locale? langue) => switch (langue?.languageCode) {
+        'fr' => l10n.languageFrench,
+        'en' => l10n.languageEnglish,
+        _ => l10n.settingsLanguageSystem,
+      };
+
+  /// Feuille de choix : langue du téléphone (par défaut), français, anglais.
+  Future<void> _choisirLangue(BuildContext context, WidgetRef ref, Locale? actuelle) async {
+    final l10n = context.l10n;
+    final options = <(Locale?, String)>[
+      (null, l10n.settingsLanguageSystem),
+      (const Locale('fr'), l10n.languageFrench),
+      (const Locale('en'), l10n.languageEnglish),
+    ];
+    final choix = await showModalBottomSheet<(Locale?,)>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final (locale, libelle) in options)
+              ListTile(
+                title: Text(libelle),
+                trailing: locale?.languageCode == actuelle?.languageCode
+                    ? const Icon(Icons.check, color: AppColors.indigo)
+                    : null,
+                onTap: () => Navigator.of(sheetContext).pop((locale,)),
+              ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+        ),
+      ),
+    );
+    if (choix != null) {
+      await ref.read(localeControllerProvider.notifier).setLocale(choix.$1);
     }
   }
 
@@ -32,42 +95,68 @@ class ReglagesPage extends ConsumerWidget {
     final session = ref.watch(sessionProvider).value;
     final membreId = session?.profil?.membreId;
     final isAdmin = ref.watch(isAdminProvider);
+    final l10n = context.l10n;
+    final langue = ref.watch(localeControllerProvider);
 
     return AppScaffold(
       selectedNavIndex: 4,
-      appBar: AppBar(title: const Text('Réglages')),
+      appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            const _EnTeteSection('Groupe'),
+            _EnTeteSection(l10n.settingsSectionGroup),
+            _CarteMenu(
+              icon: Icons.swap_horiz,
+              title: l10n.settingsMyGroups,
+              subtitle: l10n.settingsMyGroupsSubtitle(session?.adhesions.length ?? 1),
+              onTap: () => context.go(AppRouter.groupesPath),
+            ),
+            const SizedBox(height: AppSpacing.sm),
             _CarteMenu(
               icon: Icons.groups_outlined,
-              title: 'Réglages de la tontine',
+              title: l10n.settingsTontineSettings,
               subtitle: isAdmin
-                  ? 'Nom, montant, pénalité, nombre de noms'
-                  : 'Consulter (lecture seule)',
+                  ? l10n.settingsTontineSettingsAdmin
+                  : l10n.settingsTontineSettingsMember,
               onTap: () => context.go('${AppRouter.reglagesPath}/tontine'),
             ),
             const SizedBox(height: AppSpacing.lg),
-            const _EnTeteSection('Compte'),
+            _EnTeteSection(l10n.settingsSectionAccount),
             _CarteMenu(
               icon: Icons.person_outline,
-              title: 'Mon profil',
+              title: l10n.settingsMyProfile,
               subtitle: isAdmin
-                  ? 'Vos coordonnées et votre code d\'invitation'
-                  : 'Vos noms, vos cotisations et vos déclarations',
+                  ? l10n.settingsMyProfileAdmin
+                  : l10n.settingsMyProfileMember,
               onTap: isAdmin
                   ? (membreId == null ? null : () => context.go('${AppRouter.membresPath}/$membreId'))
                   : () => context.go(AppRouter.espaceMembrePath),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            _EnTeteSection(l10n.settingsSectionPreferences),
+            _CarteMenu(
+              icon: Icons.translate,
+              title: l10n.settingsLanguage,
+              subtitle: _nomLangue(l10n, langue),
+              onTap: () => _choisirLangue(context, ref, langue),
+            ),
             const SizedBox(height: AppSpacing.xl),
             _CarteMenu(
               icon: Icons.logout,
-              title: 'Se déconnecter',
+              title: l10n.commonSignOut,
               iconColor: AppColors.danger,
               titleColor: AppColors.danger,
               onTap: () => _confirmerDeconnexion(context, ref),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _CarteMenu(
+              icon: Icons.delete_forever_outlined,
+              title: l10n.settingsDeleteAccount,
+              subtitle: l10n.settingsDeleteAccountSubtitle,
+              iconColor: AppColors.danger,
+              titleColor: AppColors.danger,
+              onTap: () => _confirmerSuppression(context, ref),
             ),
           ],
         ),

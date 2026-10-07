@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "DjanguiBook";
+"NSCameraUsageDescription" = "DjanguiBook utilise l'appareil photo pour photographier vos reçus de paiement.";
+"NSPhotoLibraryUsageDescription" = "DjanguiBook a besoin d'accéder à vos photos pour joindre un reçu de paiement.";

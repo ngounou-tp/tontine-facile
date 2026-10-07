@@ -27,6 +27,7 @@ import '../../application/membres_providers.dart';
 import '../widgets/membre_form.dart';
 import '../widgets/nombre_de_noms_field.dart';
 import '../widgets/parts_editor.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Fiche d'un membre : coordonnées, code d'invitation, noms détenus et
 /// montant dû par échéance, avec actions de modification, d'attribution de
@@ -57,7 +58,7 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
           );
       if (mounted) {
         setState(() => _modification = false);
-        _message('Coordonnées mises à jour.');
+        _message(context.l10n.profileContactUpdated);
       }
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
@@ -70,9 +71,9 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
     if (membre.actif) {
       final confirme = await confirmer(
         context,
-        titre: 'Désactiver ${membre.nomComplet} ?',
-        message: "Ce membre n'apparaîtra plus dans les membres actifs. Vous pourrez le réactiver à tout moment.",
-        libelleConfirmation: 'Désactiver',
+        titre: context.l10n.profileDeactivateTitle(membre.nomComplet),
+        message: context.l10n.profileDeactivateMessage,
+        libelleConfirmation: context.l10n.profileDeactivate,
         destructif: true,
       );
       if (!confirme || !mounted) return;
@@ -81,10 +82,10 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
       final notifier = ref.read(membresControllerProvider.notifier);
       if (membre.actif) {
         await notifier.desactiverMembre(tontineId: tontineId, membre: membre);
-        if (mounted) _message('${membre.nomComplet} a été désactivé(e).');
+        if (mounted) _message(context.l10n.profileDeactivated(membre.nomComplet));
       } else {
         await notifier.reactiverMembre(tontineId: tontineId, membre: membre);
-        if (mounted) _message('${membre.nomComplet} a été réactivé(e).');
+        if (mounted) _message(context.l10n.profileReactivated(membre.nomComplet));
       }
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
@@ -93,7 +94,7 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
 
   Future<void> _copierCode(String code) async {
     await Clipboard.setData(ClipboardData(text: code));
-    if (mounted) _message('Code copié.');
+    if (mounted) _message(context.l10n.addMemberCodeCopied);
   }
 
   Future<void> _attribuerNoms(String tontineId, Membre membre) async {
@@ -110,7 +111,7 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
             nombreDeNoms: choix,
           );
       if (mounted) {
-        _message('${formatterNombreDeNoms(choix)} attribué(s) à ${membre.nomComplet}.');
+        _message(context.l10n.profileNamesAssigned(formatterNombreDeNoms(choix), membre.nomComplet));
       }
     } catch (error) {
       if (mounted) _message(messageErreurAuth(error));
@@ -129,12 +130,12 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: 'Retour',
+            tooltip: context.l10n.commonBack,
             onPressed: () => context.go(AppRouter.membresPath),
           ),
         ),
         body: ErrorView(
-          message: 'Impossible de charger ce membre.',
+          message: context.l10n.profileLoadError,
           onRetry: () => ref.invalidate(membresProvider),
         ),
       );
@@ -156,11 +157,11 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: 'Retour',
+            tooltip: context.l10n.commonBack,
             onPressed: () => context.go(AppRouter.membresPath),
           ),
         ),
-        body: const ErrorView(message: 'Ce membre est introuvable.'),
+        body: ErrorView(message: context.l10n.profileNotFound),
       );
     }
     final tontine = ref.watch(tontineProvider).value;
@@ -178,12 +179,12 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Retour',
+          tooltip: context.l10n.commonBack,
           onPressed: _modification
               ? () => setState(() => _modification = false)
               : () => context.go(AppRouter.membresPath),
         ),
-        title: Text(_modification ? 'Modifier les coordonnées' : membreActuel.nomComplet),
+        title: Text(_modification ? context.l10n.profileEditContact : membreActuel.nomComplet),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -195,7 +196,7 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
                     nomComplet: membreActuel.nomComplet,
                     email: membreActuel.email ?? '',
                     whatsapp: membreActuel.whatsapp ?? '',
-                    submitLabel: 'Enregistrer',
+                    submitLabel: context.l10n.commonSave,
                     busy: busy,
                     onSubmit: (valeur) => _modifier(tontineId, membreActuel, valeur),
                   )
@@ -210,11 +211,11 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (membreActuel.whatsapp != null)
-                                _ligneContact(Icons.chat_outlined, 'WhatsApp', membreActuel.whatsapp!),
+                                _ligneContact(Icons.chat_outlined, context.l10n.contactWhatsApp, membreActuel.whatsapp!),
                               if (membreActuel.whatsapp != null && membreActuel.email != null)
                                 const Divider(height: AppSpacing.lg),
                               if (membreActuel.email != null)
-                                _ligneContact(Icons.mail_outline, 'E-mail', membreActuel.email!),
+                                _ligneContact(Icons.mail_outline, context.l10n.authEmailLabel, membreActuel.email!),
                             ],
                           ),
                         ),
@@ -229,18 +230,18 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
                       ],
                       const SizedBox(height: AppSpacing.xl),
                       SectionHeader(
-                        title: 'Noms détenus',
+                        title: context.l10n.profileNamesHeld,
                         actionLabel: isAdmin && (tontine == null || noms.length < tontine.nombreDeNoms)
-                            ? 'Attribuer'
+                            ? context.l10n.membersAssign
                             : null,
                         actionIcon: Icons.add,
                         onAction: () => _attribuerNoms(tontineId, membreActuel),
                       ),
                       if (nomsDetenus.isEmpty)
-                        const EmptyState(
+                        EmptyState(
                           compact: true,
                           icon: Icons.badge_outlined,
-                          message: 'Aucun nom attribué pour le moment.',
+                          message: context.l10n.profileNoNamesYet,
                         )
                       else
                         Card(
@@ -275,13 +276,15 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
                       if (isAdmin) ...[
                         const SizedBox(height: AppSpacing.xl),
                         AppButton(
-                          label: 'Modifier les coordonnées',
+                          label: context.l10n.profileEditContact,
                           variant: AppButtonVariant.secondary,
                           onPressed: () => setState(() => _modification = true),
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         AppButton(
-                          label: membreActuel.actif ? 'Désactiver ce membre' : 'Réactiver ce membre',
+                          label: membreActuel.actif
+                              ? context.l10n.profileDeactivateMember
+                              : context.l10n.profileReactivateMember,
                           variant: AppButtonVariant.destructive,
                           busy: busy,
                           onPressed: busy ? null : () => _basculerActif(tontineId, membreActuel),
@@ -323,11 +326,11 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
             children: [
               Expanded(
                 child: Text(
-                  inscrit ? "Code d'invitation (utilisé)" : "Code d'invitation",
+                  inscrit ? context.l10n.profileInviteCodeUsed : context.l10n.profileInviteCode,
                   style: AppTypography.secondary,
                 ),
               ),
-              if (inscrit) const AppPill(label: 'Inscrit', tone: AppTone.success),
+              if (inscrit) AppPill(label: context.l10n.profileRegistered, tone: AppTone.success),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -343,7 +346,7 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
                 ),
               ),
               IconButton.filledTonal(
-                tooltip: 'Copier le code',
+                tooltip: context.l10n.addMemberCopyCode,
                 icon: const Icon(Icons.copy_outlined, size: 20),
                 onPressed: () => _copierCode(membre.codeInvitation!),
               ),
@@ -352,7 +355,7 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
           if (!inscrit) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'À transmettre à ${membre.nomComplet} pour qu\'il ou elle rejoigne la tontine.',
+              context.l10n.profileShareCodeWith(membre.nomComplet),
               style: AppTypography.secondary,
             ),
           ],
@@ -383,11 +386,11 @@ class _FicheMembrePageState extends ConsumerState<FicheMembrePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('DÛ PAR ÉCHÉANCE', style: AppTypography.overline.copyWith(color: AppColors.accent)),
+          Text(context.l10n.profileDuePerDueDate, style: AppTypography.overline.copyWith(color: AppColors.accent)),
           const SizedBox(height: AppSpacing.xxs),
           Text(formatAmount(total), style: AppTypography.amountXl.copyWith(color: AppColors.surface)),
           Text(
-            '${nomsDetenus.length} nom${nomsDetenus.length > 1 ? 's' : ''} détenu${nomsDetenus.length > 1 ? 's' : ''}',
+            context.l10n.profileNamesHeldCount(nomsDetenus.length),
             style: AppTypography.secondary.copyWith(color: AppColors.onInkMuted),
           ),
         ],
@@ -414,11 +417,11 @@ class _EnTeteMembre extends StatelessWidget {
               Text(membre.nomComplet, style: AppTypography.screenTitle),
               const SizedBox(height: AppSpacing.xxs),
               if (!membre.actif)
-                const AppPill(label: 'Désactivé', tone: AppTone.neutral)
+                AppPill(label: context.l10n.statusDeactivated, tone: AppTone.neutral)
               else if (membre.uid == null)
-                const AppPill(label: 'En attente d\'inscription', tone: AppTone.warning)
+                AppPill(label: context.l10n.statusAwaitingSignup, tone: AppTone.warning)
               else
-                const AppPill(label: 'Actif', tone: AppTone.success),
+                AppPill(label: context.l10n.statusActive, tone: AppTone.success),
             ],
           ),
         ),
@@ -463,10 +466,10 @@ class _FeuilleAttribuerNomsState extends State<_FeuilleAttribuerNoms> {
               ),
             ),
           ),
-          Text('Attribuer des noms', style: AppTypography.sectionTitle),
+          Text(context.l10n.profileAssignNamesTitle, style: AppTypography.sectionTitle),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Combien de noms supplémentaires pour ${widget.nomComplet} ?',
+            context.l10n.profileAssignNamesQuestion(widget.nomComplet),
             style: AppTypography.secondary,
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -477,7 +480,7 @@ class _FeuilleAttribuerNomsState extends State<_FeuilleAttribuerNoms> {
           ),
           const SizedBox(height: AppSpacing.lg),
           AppButton(
-            label: 'Attribuer',
+            label: context.l10n.membersAssign,
             variant: AppButtonVariant.accent,
             onPressed: () => Navigator.of(context).pop(_valeur),
           ),

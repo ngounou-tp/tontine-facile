@@ -12,6 +12,8 @@ import '../../../../shared/widgets/app_progress_bar.dart';
 import '../../../../shared/widgets/member_avatar.dart';
 import '../../../../shared/widgets/tontine_logo.dart';
 import '../../application/onboarding_provider.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Découverte de l'app au tout premier lancement : trois écrans qui
 /// montrent, avec les vrais composants de l'app, ce qu'elle fait pour la
@@ -30,28 +32,25 @@ class OnboardingPage extends ConsumerStatefulWidget {
 class _Etape {
   const _Etape({required this.titre, required this.texte, required this.illustration});
 
-  final String titre;
-  final String texte;
+  final String Function(AppLocalizations l10n) titre;
+  final String Function(AppLocalizations l10n) texte;
   final Widget illustration;
 }
 
-const _etapes = [
+final _etapes = [
   _Etape(
-    titre: 'Votre tontine,\nsans cahier ni calculs',
-    texte: "Membres, noms, parts et ordre des tours : tout le cercle est réglé une fois, "
-        'puis TontineFacile tient le calendrier pour vous.',
+    titre: (l10n) => l10n.onboarding1Title,
+    texte: (l10n) => l10n.onboarding1Text(AppConstants.appName),
     illustration: _IllustrationCercle(),
   ),
   _Etape(
-    titre: 'Chaque franc,\nsuivi en direct',
-    texte: 'Voyez qui a payé, qui est en retard et combien il reste à collecter '
-        'pour le tour en cours. Les pénalités se calculent toutes seules.',
+    titre: (l10n) => l10n.onboarding2Title,
+    texte: (l10n) => l10n.onboarding2Text,
     illustration: _IllustrationCollecte(),
   ),
   _Etape(
-    titre: 'Les membres déclarent,\nvous validez',
-    texte: "Chaque membre signale son paiement avec une preuve, depuis son téléphone. "
-        "L'administratrice vérifie et valide en un geste.",
+    titre: (l10n) => l10n.onboarding3Title,
+    texte: (l10n) => l10n.onboarding3Text,
     illustration: _IllustrationDeclaration(),
   ),
 ];
@@ -102,7 +101,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 children: [
                   const TontineLogo(size: 32),
                   const SizedBox(width: AppSpacing.xs),
-                  const Expanded(child: Text('TontineFacile', style: AppTypography.bodyStrong)),
+                  const Expanded(child: Text(AppConstants.appName, style: AppTypography.bodyStrong)),
                   AnimatedOpacity(
                     opacity: _derniere ? 0 : 1,
                     duration: AppMotion.fast,
@@ -110,7 +109,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       ignoring: _derniere,
                       child: TextButton(
                         onPressed: () => _terminer(AppRouter.connexionPath),
-                        child: const Text('Passer'),
+                        child: Text(context.l10n.onboardingSkip),
                       ),
                     ),
                   ),
@@ -141,7 +140,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   SizedBox(
                     width: double.infinity,
                     child: AppButton(
-                      label: _derniere ? 'Commencer' : 'Suivant',
+                      label: _derniere ? context.l10n.onboardingStart : context.l10n.commonNext,
                       icon: _derniere ? null : Icons.arrow_forward,
                       variant: AppButtonVariant.accent,
                       onPressed: _suivant,
@@ -158,7 +157,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                         ignoring: !_derniere,
                         child: TextButton(
                           onPressed: () => _terminer(AppRouter.rejoindrePath),
-                          child: const Text("J'ai reçu un code d'invitation"),
+                          child: Text(context.l10n.onboardingHaveCode),
                         ),
                       ),
                     ),
@@ -222,9 +221,9 @@ class _PageEtape extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          Text(etape.titre, style: AppTypography.pageTitle.copyWith(fontSize: 28, height: 34 / 28)),
+          Text(etape.titre(context.l10n), style: AppTypography.pageTitle.copyWith(fontSize: 28, height: 34 / 28)),
           const SizedBox(height: AppSpacing.sm),
-          Text(etape.texte, style: AppTypography.body.copyWith(color: AppColors.slate)),
+          Text(etape.texte(context.l10n), style: AppTypography.body.copyWith(color: AppColors.slate)),
         ],
       ),
     );
@@ -241,7 +240,7 @@ class _Indicateur extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Étape ${actif + 1} sur $nombre',
+      label: context.l10n.createStepOf(actif + 1, nombre),
       child: ExcludeSemantics(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -295,7 +294,7 @@ class _IllustrationCercle extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
-            'Tour 5 · Aïcha reçoit la cagnotte',
+            context.l10n.onboardingCircleCaption,
             style: AppTypography.secondary.copyWith(color: AppColors.surface),
           ),
         ),
@@ -315,16 +314,16 @@ class _IllustrationCollecte extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('COLLECTE · TOUR 3', style: AppTypography.overline),
+          Text(context.l10n.onboardingCollectOverline, style: AppTypography.overline),
           const SizedBox(height: AppSpacing.xs),
           Text(formatAmount(37500), style: AppTypography.amountXl.copyWith(fontSize: 30)),
-          Text('collectés sur ${formatAmount(50000)}', style: AppTypography.secondary),
+          Text(context.l10n.tourCollectedOf(formatAmount(50000)), style: AppTypography.secondary),
           const SizedBox(height: AppSpacing.md),
           const AppProgressBar(value: 0.75, color: AppColors.accent),
           const SizedBox(height: AppSpacing.md),
-          const _LigneMembre(nom: 'Aïcha Ndiaye', pastille: AppPill(label: 'Payé', tone: AppTone.success)),
-          const _LigneMembre(nom: 'Rose Domche', pastille: AppPill(label: 'Payé', tone: AppTone.success)),
-          const _LigneMembre(nom: 'Fatou Diallo', pastille: AppPill(label: 'En retard', tone: AppTone.danger)),
+          _LigneMembre(nom: 'Aïcha Ndiaye', pastille: AppPill(label: context.l10n.statusPaid, tone: AppTone.success)),
+          _LigneMembre(nom: 'Rose Domche', pastille: AppPill(label: context.l10n.statusPaid, tone: AppTone.success)),
+          _LigneMembre(nom: 'Fatou Diallo', pastille: AppPill(label: context.l10n.statusLate, tone: AppTone.danger)),
         ],
       ),
     );
@@ -352,12 +351,12 @@ class _IllustrationDeclaration extends StatelessWidget {
                 children: [
                   const MemberAvatar(nomComplet: 'Fatou Diallo', size: 44),
                   const SizedBox(width: AppSpacing.sm),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Fatou Diallo', style: AppTypography.bodyStrong),
-                        Text('a déclaré un paiement', style: AppTypography.secondary),
+                        const Text('Fatou Diallo', style: AppTypography.bodyStrong),
+                        Text(context.l10n.onboardingDeclaredPayment, style: AppTypography.secondary),
                       ],
                     ),
                   ),
@@ -371,8 +370,8 @@ class _IllustrationDeclaration extends StatelessWidget {
                       ),
                     ),
                     child: validee
-                        ? const AppPill(key: ValueKey('validee'), label: 'Validée', tone: AppTone.success)
-                        : const AppPill(key: ValueKey('attente'), label: 'En attente', tone: AppTone.warning),
+                        ? AppPill(key: const ValueKey('validee'), label: context.l10n.declStatusApproved, tone: AppTone.success)
+                        : AppPill(key: const ValueKey('attente'), label: context.l10n.declStatusPending, tone: AppTone.warning),
                   ),
                 ],
               ),
@@ -387,13 +386,13 @@ class _IllustrationDeclaration extends StatelessWidget {
                   color: AppColors.canvas,
                   borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.receipt_long_outlined, color: AppColors.indigo, size: 20),
-                    SizedBox(width: AppSpacing.xs),
+                    const Icon(Icons.receipt_long_outlined, color: AppColors.indigo, size: 20),
+                    const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
-                        'Reçu Mobile Money joint',
+                        context.l10n.onboardingMobileMoneyReceipt,
                         style: AppTypography.secondary,
                         overflow: TextOverflow.ellipsis,
                       ),

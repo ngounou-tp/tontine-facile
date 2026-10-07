@@ -9,6 +9,7 @@ import '../../../../domain/entities/nom.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_pill.dart';
 import '../../../../shared/widgets/member_avatar.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Ligne résumant une déclaration de paiement : membre, nom, montant, date
 /// déclarée et statut (en attente, validée, contestée).
@@ -26,15 +27,15 @@ class DeclarationCard extends StatelessWidget {
   final Nom? nom;
   final VoidCallback onTap;
 
-  ({String label, AppTone ton}) get _statut => switch (declaration.statut.name) {
-        'validee' => (label: 'Validée', ton: AppTone.success),
-        'enAttente' => (label: 'En attente', ton: AppTone.warning),
-        _ => (label: 'Contestée', ton: AppTone.danger),
+  ({String label, AppTone ton}) _statut(AppLocalizations l10n) => switch (declaration.statut.name) {
+        'validee' => (label: l10n.declStatusApproved, ton: AppTone.success),
+        'enAttente' => (label: l10n.declStatusPending, ton: AppTone.warning),
+        _ => (label: l10n.declStatusDisputed, ton: AppTone.danger),
       };
 
   @override
   Widget build(BuildContext context) {
-    final statut = _statut;
+    final statut = _statut(context.l10n);
     return AppCard(
       onTap: onTap,
       child: Row(
@@ -46,12 +47,12 @@ class DeclarationCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  membre?.nomComplet ?? 'Membre inconnu',
+                  membre?.nomComplet ?? context.l10n.unknownMember,
                   style: AppTypography.bodyStrong,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '${nom?.libelle ?? 'Nom inconnu'} · ${formatDate(declaration.datePaiement)}',
+                  '${nom?.libelle ?? context.l10n.unknownName} · ${formatDate(declaration.datePaiement)}',
                   style: AppTypography.secondary,
                   overflow: TextOverflow.ellipsis,
                 ),

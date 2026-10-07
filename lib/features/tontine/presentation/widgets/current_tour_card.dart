@@ -9,6 +9,7 @@ import '../../../../domain/entities/tour.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_progress_bar.dart';
 import '../../../../shared/widgets/empty_state.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Carte principale du tableau de bord : répond d'un coup d'œil à « qui
 /// reçoit la cagnotte de ce tour, quand, et où en est la collecte ? ». Le
@@ -46,8 +47,8 @@ class CurrentTourCard extends StatelessWidget {
     return null;
   }
 
-  String _beneficiaires(Nom? nom) {
-    if (nom == null) return 'Nom inconnu';
+  String _beneficiaires(Nom? nom, AppLocalizations l10n) {
+    if (nom == null) return l10n.unknownName;
     final noms = <String>[];
     for (final part in nom.parts) {
       for (final membre in membres) {
@@ -62,23 +63,24 @@ class CurrentTourCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     if (!tourGenere) {
       return EmptyState(
         compact: true,
         icon: Icons.event_note_outlined,
-        title: 'Échéancier à préparer',
-        message: "L'échéancier n'a pas encore été généré. Attribuez les noms puis générez-le depuis Membres.",
-        actionLabel: onPreparer == null ? null : 'Aller aux membres',
+        title: l10n.tourScheduleToPrepare,
+        message: l10n.tourScheduleToPrepareMessage,
+        actionLabel: onPreparer == null ? null : l10n.tourGoToMembers,
         onAction: onPreparer,
       );
     }
     final tourActuel = tour;
     if (tourActuel == null) {
-      return const EmptyState(
+      return EmptyState(
         compact: true,
         icon: Icons.celebration_outlined,
-        title: 'Tontine terminée',
-        message: 'Tous les tours ont été remis. Bravo !',
+        title: l10n.tourTontineFinished,
+        message: l10n.tourTontineFinishedMessage,
       );
     }
 
@@ -98,7 +100,7 @@ class CurrentTourCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'TOUR ${tourActuel.position} · EN COURS',
+                    l10n.tourCurrentOverline(tourActuel.position),
                     style: AppTypography.overline.copyWith(color: AppColors.accent),
                   ),
                 ),
@@ -107,15 +109,18 @@ class CurrentTourCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              _beneficiaires(_nom(tourActuel.nomId)),
+              _beneficiaires(_nom(tourActuel.nomId), l10n),
               style: AppTypography.sectionTitle.copyWith(color: AppColors.surface),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: AppSpacing.xxs),
             Text(
-              'Reçoit ${formatAmount(totalAttendu)} · ${formatDateCourte(echeance)} '
-              '(${formatEcheanceRelative(echeance)})',
+              l10n.tourReceives(
+                formatAmount(totalAttendu),
+                formatDateCourte(echeance),
+                formatEcheanceRelative(echeance),
+              ),
               style: AppTypography.secondary.copyWith(color: AppColors.onInkMuted),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -124,7 +129,7 @@ class CurrentTourCard extends StatelessWidget {
               style: AppTypography.amountXl.copyWith(color: AppColors.surface),
             ),
             Text(
-              'collectés sur ${formatAmount(totalAttendu)}',
+              l10n.tourCollectedOf(formatAmount(totalAttendu)),
               style: AppTypography.secondary.copyWith(color: AppColors.onInkMuted),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -136,7 +141,7 @@ class CurrentTourCard extends StatelessWidget {
             if (onCollecter != null) ...[
               const SizedBox(height: AppSpacing.lg),
               AppButton(
-                label: complet ? 'Voir la collecte' : 'Collecter les cotisations',
+                label: complet ? l10n.tourSeeCollection : l10n.tourCollect,
                 icon: complet ? Icons.check_circle_outline : Icons.payments_outlined,
                 variant: AppButtonVariant.accent,
                 onPressed: onCollecter,
@@ -166,7 +171,7 @@ class _PastillePourcentage extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        '${(progression * 100).round()} %',
+        context.l10n.percentValue((progression * 100).round()),
         style: AppTypography.micro.copyWith(
           color: AppColors.surface,
           fontFeatures: const [FontFeature.tabularFigures()],

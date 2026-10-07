@@ -25,8 +25,5 @@ class ValidationTontine {
 				tontine.valeurPenalite != null) {
 			throw ArgumentError('Une tontine sans pénalité ne peut pas avoir de valeur.');
 		}
-		if (!RegExp(r'^[A-Za-z0-9]{6}$').hasMatch(tontine.codeInvitation)) {
-			throw ArgumentError('Le code d’invitation doit contenir 6 caractères alphanumériques.');
-		}
 	}
 }

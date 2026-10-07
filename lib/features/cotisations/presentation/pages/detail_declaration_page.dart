@@ -30,6 +30,7 @@ import '../../../membres/application/membres_providers.dart';
 import '../../../tontine/application/tontine_providers.dart';
 import '../../application/cotisations_providers.dart';
 import '../../application/declaration_controller.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Détail d'une déclaration de paiement, avec preuve. Les actions de
 /// traitement (validation ou refus) ne sont visibles que pour
@@ -61,7 +62,7 @@ class DetailDeclarationPage extends ConsumerWidget {
             adminUid: adminUid,
           );
       if (context.mounted) {
-        ref.read(flashMessageProvider.notifier).set('Déclaration validée.');
+        ref.read(flashMessageProvider.notifier).set(L10n.current.declValidated);
         context.go(AppRouter.declarationsPath);
       }
     } catch (error) {
@@ -90,7 +91,7 @@ class DetailDeclarationPage extends ConsumerWidget {
             motif: motif,
           );
       if (context.mounted) {
-        ref.read(flashMessageProvider.notifier).set('Déclaration refusée.');
+        ref.read(flashMessageProvider.notifier).set(L10n.current.declRejected);
         context.go(AppRouter.declarationsPath);
       }
     } catch (error) {
@@ -119,14 +120,14 @@ class DetailDeclarationPage extends ConsumerWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Retour',
+          tooltip: context.l10n.commonBack,
           onPressed: () => context.go(AppRouter.declarationsPath),
         ),
-        title: const Text('Déclaration'),
+        title: Text(context.l10n.declTitle),
       ),
       body: enErreur
           ? ErrorView(
-              message: 'Impossible de charger cette déclaration.',
+              message: context.l10n.declLoadError,
               onRetry: () {
                 ref.invalidate(tontineProvider);
                 ref.invalidate(declarationsProvider);
@@ -192,7 +193,7 @@ class _Contenu extends ConsumerWidget {
       }
     }
     if (declaration == null || tontine == null || tontineId == null) {
-      return const ErrorView(message: 'Cette déclaration est introuvable.');
+      return ErrorView(message: context.l10n.declNotFound);
     }
 
     Nom? nom;
@@ -240,14 +241,14 @@ class _Contenu extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          membre?.nomComplet ?? 'Membre inconnu',
+                          membre?.nomComplet ?? context.l10n.unknownMember,
                           style: AppTypography.sectionTitle,
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           [
-                            nom?.libelle ?? 'Nom inconnu',
-                            if (tour != null) 'Tour ${tour.position}',
+                            nom?.libelle ?? context.l10n.unknownName,
+                            if (tour != null) context.l10n.turnLabel(tour.position),
                           ].join(' · '),
                           style: AppTypography.secondary,
                         ),
@@ -266,15 +267,15 @@ class _Contenu extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        const Expanded(child: Text('Montant déclaré', style: AppTypography.secondary)),
-                        _pastilleStatut(declaration.statut.name),
+                        Expanded(child: Text(context.l10n.declAmountDeclared, style: AppTypography.secondary)),
+                        _pastilleStatut(context, declaration.statut.name),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.xxs),
                     Text(formatAmount(declaration.montantDeclare), style: AppTypography.amountXl),
                     const SizedBox(height: AppSpacing.xxs),
                     Text(
-                      'Payé le ${formatDate(declaration.datePaiement)}',
+                      context.l10n.declPaidOn(formatDate(declaration.datePaiement)),
                       style: AppTypography.secondary,
                     ),
                     if (declaration.motifContestation != null) ...[
@@ -287,7 +288,7 @@ class _Contenu extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(AppSpacing.controlRadius),
                         ),
                         child: Text(
-                          'Motif du refus : ${declaration.motifContestation!}',
+                          context.l10n.declRejectionReason(declaration.motifContestation!),
                           style: AppTypography.secondary.copyWith(color: AppColors.danger),
                         ),
                       ),
@@ -296,19 +297,19 @@ class _Contenu extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              const SectionHeader(title: 'Preuve de paiement'),
+              SectionHeader(title: context.l10n.declProofOfPayment),
               _CartePreuve(preuveId: declaration.preuveId),
               if (peutTraiter) ...[
                 const SizedBox(height: AppSpacing.xl),
                 AppButton(
-                  label: 'Valider la déclaration',
+                  label: context.l10n.declApprove,
                   variant: AppButtonVariant.accent,
                   busy: busy,
                   onPressed: busy ? null : () => onValider(declaration!, tontine!, nom!, tour!),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 AppButton(
-                  label: 'Refuser',
+                  label: context.l10n.declReject,
                   variant: AppButtonVariant.destructive,
                   busy: busy,
                   onPressed: busy ? null : () => onRefuser(declaration!),
@@ -317,7 +318,7 @@ class _Contenu extends ConsumerWidget {
               if (peutRedeclarer) ...[
                 const SizedBox(height: AppSpacing.xl),
                 AppButton(
-                  label: 'Faire une nouvelle déclaration',
+                  label: context.l10n.declNewDeclaration,
                   variant: AppButtonVariant.accent,
                   onPressed: () => context.go(
                     '${AppRouter.espaceMembrePath}/declarer/${declaration!.nomId}',
@@ -331,10 +332,10 @@ class _Contenu extends ConsumerWidget {
     );
   }
 
-  Widget _pastilleStatut(String statut) => switch (statut) {
-        'enAttente' => const AppPill(label: 'En attente', tone: AppTone.warning),
-        'validee' => const AppPill(label: 'Validée', tone: AppTone.success),
-        _ => const AppPill(label: 'Contestée', tone: AppTone.danger),
+  Widget _pastilleStatut(BuildContext context, String statut) => switch (statut) {
+        'enAttente' => AppPill(label: context.l10n.declStatusPending, tone: AppTone.warning),
+        'validee' => AppPill(label: context.l10n.declStatusApproved, tone: AppTone.success),
+        _ => AppPill(label: context.l10n.declStatusDisputed, tone: AppTone.danger),
       };
 }
 
@@ -366,26 +367,26 @@ class _CartePreuve extends ConsumerWidget {
             child: CircularProgressIndicator(strokeWidth: 2.2),
           ),
         ),
-        error: (_, _) => const EmptyState(
-          key: ValueKey('erreur'),
+        error: (_, _) => EmptyState(
+          key: const ValueKey('erreur'),
           compact: true,
           icon: Icons.broken_image_outlined,
-          message: 'Impossible de charger la preuve.',
+          message: context.l10n.declProofLoadError,
         ),
         data: (preuve) {
           if (preuve == null) {
-            return const EmptyState(
-              key: ValueKey('vide'),
+            return EmptyState(
+              key: const ValueKey('vide'),
               compact: true,
               icon: Icons.image_not_supported_outlined,
-              message: 'Aucune preuve disponible.',
+              message: context.l10n.declNoProof,
             );
           }
           final octets = base64Decode(preuve.imageEncodee);
           return Semantics(
             key: const ValueKey('image'),
             button: true,
-            label: 'Agrandir la preuve',
+            label: context.l10n.declEnlargeProof,
             child: GestureDetector(
               onTap: () => _agrandir(context, octets),
               child: Stack(
@@ -425,7 +426,7 @@ class _CartePreuve extends ConsumerWidget {
           backgroundColor: Colors.black,
           appBar: AppBar(
             backgroundColor: Colors.black,
-            title: const Text('Preuve de paiement'),
+            title: Text(context.l10n.declProofOfPayment),
           ),
           body: InteractiveViewer(
             maxScale: 5,
@@ -457,7 +458,7 @@ class _MotifRefusDialogState extends State<_MotifRefusDialog> {
   void _confirmer() {
     final valeur = _motif.text.trim();
     if (valeur.isEmpty) {
-      setState(() => _erreur = 'Indiquez la raison du refus.');
+      setState(() => _erreur = context.l10n.declRejectReasonRequired);
       return;
     }
     Navigator.of(context).pop(valeur);
@@ -466,13 +467,13 @@ class _MotifRefusDialogState extends State<_MotifRefusDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Refuser cette déclaration'),
+      title: Text(context.l10n.declRejectTitle),
       content: TextField(
         controller: _motif,
         autofocus: true,
         maxLines: 3,
         decoration: InputDecoration(
-          hintText: 'Ex. preuve illisible, montant incorrect…',
+          hintText: context.l10n.declRejectHint,
           errorText: _erreur,
         ),
         onChanged: (_) {
@@ -481,12 +482,12 @@ class _MotifRefusDialogState extends State<_MotifRefusDialog> {
       ),
       actions: [
         AppButton(
-          label: 'Annuler',
+          label: context.l10n.commonCancel,
           variant: AppButtonVariant.tertiary,
           onPressed: () => Navigator.of(context).pop(),
         ),
         AppButton(
-          label: 'Confirmer',
+          label: context.l10n.commonConfirm,
           variant: AppButtonVariant.destructive,
           onPressed: _confirmer,
         ),

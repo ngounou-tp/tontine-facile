@@ -4,6 +4,7 @@ import '../../../../app/theme.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../domain/entities/nom.dart';
 import '../../../../domain/entities/tour.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Carte de synthèse de l'espace membre : nom du groupe, noms détenus et
 /// prochain tour où l'un d'eux sera bénéficiaire — le moment que chaque
@@ -43,12 +44,12 @@ class SituationMembreCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             if (tour == null || nom == null) ...[
               Text(
-                'Aucun tour à venir pour vos noms.',
+                context.l10n.situationNoUpcomingTurn,
                 style: AppTypography.sectionTitle.copyWith(color: AppColors.surface),
               ),
             ] else ...[
               Text(
-                'Votre prochain tour',
+                context.l10n.situationYourNextTurn,
                 style: AppTypography.secondary.copyWith(color: AppColors.onInkMuted),
               ),
               const SizedBox(height: AppSpacing.xxs),
@@ -57,7 +58,7 @@ class SituationMembreCard extends StatelessWidget {
                 style: AppTypography.amountXl.copyWith(color: AppColors.surface, fontSize: 30),
               ),
               Text(
-                '${nom.libelle} · tour ${tour.position} · ${formatEcheanceRelative(tour.datePrevue)}',
+                context.l10n.situationTurnLine(nom.libelle, tour.position, formatEcheanceRelative(tour.datePrevue)),
                 style: AppTypography.secondary.copyWith(color: AppColors.onInkMuted),
               ),
             ],
@@ -67,7 +68,7 @@ class SituationMembreCard extends StatelessWidget {
                 const Icon(Icons.badge_outlined, size: 16, color: AppColors.accent),
                 const SizedBox(width: AppSpacing.xxs),
                 Text(
-                  nombreDeNoms > 1 ? '$nombreDeNoms noms détenus' : '$nombreDeNoms nom détenu',
+                  context.l10n.profileNamesHeldCount(nombreDeNoms),
                   style: AppTypography.secondary.copyWith(color: AppColors.surface),
                 ),
               ],

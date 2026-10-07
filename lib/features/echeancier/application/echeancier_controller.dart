@@ -25,11 +25,14 @@ class EcheancierController extends AsyncNotifier<void> {
   }) async {
     state = const AsyncLoading();
     try {
-      final tours = _generateur.generer(tontine: tontine, noms: noms);
       final tontines = ref.read(tontineRepositoryProvider);
-      await Future.wait(
-        tours.map((tour) => tontines.saveTour(tontine.id, tour)),
+      final tours = _generateur.generer(
+        tontine: tontine,
+        noms: noms,
+        nouvelId: (_) => tontines.nouvelIdTour(tontine.id),
       );
+      // Une seule requête : l'échéancier est créé entier ou pas du tout.
+      await tontines.saveTours(tontine.id, tours);
       state = const AsyncData(null);
     } catch (error, stackTrace) {
       state = AsyncError(error, stackTrace);

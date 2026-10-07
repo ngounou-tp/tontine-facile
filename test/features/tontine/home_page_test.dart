@@ -20,7 +20,7 @@ import 'package:tontinefacile/features/auth/application/auth_providers.dart';
 import 'package:tontinefacile/features/tontine/application/tontine_providers.dart';
 import 'package:tontinefacile/features/tontine/presentation/pages/home_page.dart';
 
-import '../membres/membres_controller_test.dart' show FakeTontineRepository;
+import '../../support/fakes.dart' show FakeTontineRepository;
 
 void _tailleTelephone(WidgetTester tester) {
   tester.view.physicalSize = const Size(1080, 4000);
@@ -41,7 +41,6 @@ Tontine _tontine() => Tontine(
       delaiGraceJours: 0,
       valeurPenalite: null,
       modeParts: ModeParts.montantFixe,
-      codeInvitation: 'ABCDEF',
     );
 
 void main() {

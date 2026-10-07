@@ -127,14 +127,9 @@ final nomsNonSoldesTourActuelProvider = Provider<List<EtatCotisationNom>>((ref) 
 });
 
 /// Preuve (photo compressée) désignée par [preuveId], récupérée une fois —
-/// un document `preuves` est immuable après création (voir
-/// `firestore.rules`), inutile de le suivre en direct.
+/// une preuve est immuable après dépôt, inutile de la suivre en direct.
 final preuveProvider = FutureProvider.family<Preuve?, String>((ref, preuveId) async {
   final tontineId = ref.watch(currentTontineIdProvider);
   if (tontineId == null) return null;
-  final preuves = await ref.watch(tontineRepositoryProvider).getPreuves(tontineId);
-  for (final preuve in preuves) {
-    if (preuve.id == preuveId) return preuve;
-  }
-  return null;
+  return ref.watch(tontineRepositoryProvider).getPreuve(tontineId, preuveId);
 });

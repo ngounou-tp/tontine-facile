@@ -12,7 +12,7 @@ import 'package:tontinefacile/domain/value_objects/regle_periodicite.dart';
 import 'package:tontinefacile/features/auth/application/auth_providers.dart';
 import 'package:tontinefacile/features/cotisations/application/cotisation_controller.dart';
 
-import '../membres/membres_controller_test.dart' show FakeTontineRepository;
+import '../../support/fakes.dart' show FakeTontineRepository;
 
 Tontine _tontine() => Tontine(
       id: 't-1',
@@ -26,7 +26,6 @@ Tontine _tontine() => Tontine(
       delaiGraceJours: 0,
       valeurPenalite: null,
       modeParts: ModeParts.montantFixe,
-      codeInvitation: 'ABCDEF',
     );
 
 void main() {
